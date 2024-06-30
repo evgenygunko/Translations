@@ -153,6 +153,9 @@ publish/
 # checkin your Azure Web App publish settings, but sensitive information contained
 # in these scripts will be unencrypted
 PublishScripts/
+PublishProfiles/
+Properties/serviceDependencies*
+Properties/serviceDependencies/
 
 # NuGet Packages
 *.nupkg
@@ -262,3 +265,5 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+TestAzure.http
