@@ -266,4 +266,5 @@ paket-files/
 __pycache__/
 *.pyc
 
-TestAzure.http
+/TestAzure.http
+/http-client.env.json

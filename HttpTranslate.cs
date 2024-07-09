@@ -1,47 +1,64 @@
-using System.Net;
-using Azure.AI.Translation.Text;
-using Azure;
+﻿using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using TranslationsFunc.Models;
+using TranslationsFunc.Services;
 
 namespace My.Function
 {
-    public record TranslationInput(string HeadWord, string Meaning);
-    public record TranslationOutput(string? HeadWord, string? Meaning);
-
     public class HttpTranslate
     {
         private readonly ILogger _logger;
+        private readonly ITranslationService _translationService;
 
-        public HttpTranslate(ILoggerFactory loggerFactory)
+        public HttpTranslate(
+            ILoggerFactory loggerFactory,
+            ITranslationService translationService)
         {
             _logger = loggerFactory.CreateLogger<HttpTranslate>();
+            _translationService = translationService;
         }
 
         [Function("Translate")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req,
             [FromBody] TranslationInput translationInput)
         {
-            _logger.LogInformation($"Will translate '{translationInput.HeadWord}'");
+            if (string.IsNullOrEmpty(translationInput.SourceLanguage))
+            {
+                return CreateBadRequestResponse(req, "SourceLanguage cannot be null or empty");
+            }
+
+            if (string.IsNullOrEmpty(translationInput.HeadWord))
+            {
+                return CreateBadRequestResponse(req, "HeadWord cannot be null or empty");
+            }
+
+            if (translationInput.DestinationLanguages.Count() == 0 || translationInput.DestinationLanguages.Count() > 2)
+            {
+                return CreateBadRequestResponse(req, "DestinationLanguages need to at least one element and less than two.");
+            }
+
+            // todo: add a check for languages
+
+            _logger.LogInformation($"Will translate '{translationInput.HeadWord}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "'.");
 
             try
             {
-                string key = Environment.GetEnvironmentVariable("TRANSLATIONS_APP_KEY");
-                string region = Environment.GetEnvironmentVariable("TRANSLATIONS_APP_REGION");
-                AzureKeyCredential credential = new(key);
-                TextTranslationClient client = new(credential, region);
-
-                string? translatedHeadWord = await TranslateAsync(client, translationInput.HeadWord);
-                string? translatedMeaning = await TranslateAsync(client, translationInput.Meaning);
+                var translations = await _translationService.TranslateAsync(translationInput);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
+                await response.WriteAsJsonAsync(translations);
 
-                var translationOutput = new TranslationOutput(translatedHeadWord, translatedMeaning);
-                await response.WriteAsJsonAsync(translationOutput);
+                _logger.LogInformation($"Returning translations: " + JsonSerializer.Serialize(
+                    translations,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    }));
 
-                _logger.LogInformation($"Returning translations: " + JsonSerializer.Serialize(translationOutput));
                 return response;
             }
             catch (Exception ex)
@@ -51,16 +68,15 @@ namespace My.Function
             }
         }
 
-        private async Task<string?> TranslateAsync(TextTranslationClient client, string inputText)
+        private static HttpResponseData CreateBadRequestResponse(HttpRequestData req, string message)
         {
-            string sourceLanguage = "da";
-            string targetLanguage = "en";
+            var response = req.CreateResponse(HttpStatusCode.BadRequest);
+            response.Headers.Add("Content-Type", "application/json; charset=utf-8");
 
-            Response<IReadOnlyList<TranslatedTextItem>> response = await client.TranslateAsync(targetLanguage, inputText, sourceLanguage).ConfigureAwait(false);
-            IReadOnlyList<TranslatedTextItem> translations = response.Value;
-            TranslatedTextItem? translation = translations.FirstOrDefault();
+            var responseBody = new { Error = message };
+            response.WriteString(JsonSerializer.Serialize(responseBody));
 
-            return translation?.Translations?.FirstOrDefault()?.Text;
+            return response;
         }
     }
 }

@@ -1,0 +1,81 @@
+﻿### Translate from Danish to English + Russian
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+  "HeadWord": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "SourceLanguage": "da",
+  "DestinationLanguages": [
+    "en",
+    "ru"
+  ]
+}
+
+
+### Translate from Danish to English when Meaning is empty
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+  "HeadWord": "såsom",
+  "Meaning": "",
+  "SourceLanguage": "da",
+  "DestinationLanguages": [
+    "en"
+  ]
+}
+
+
+### BadRequest - SourceLanguage is null
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+  "HeadWord": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "SourceLanguage": "",
+  "DestinationLanguages": [
+    "en",
+    "ru"
+  ]
+}
+
+
+### BadRequest - HeadWord is null
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+  "HeadWord": "",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "SourceLanguage": "Danish",
+  "DestinationLanguages": [
+    "en",
+    "ru"
+  ]
+}
+
+### BadRequest - DestinationLanguages has too many elements
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+  "HeadWord": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "SourceLanguage": "Danish",
+  "DestinationLanguages": [
+    "en",
+    "ru",
+    "es"
+  ]
+}
+
+###
+
+https://api.cognitive.microsofttranslator.com/languages?api-version=3.0
