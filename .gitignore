@@ -152,10 +152,10 @@ publish/
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
 # checkin your Azure Web App publish settings, but sensitive information contained
 # in these scripts will be unencrypted
-PublishScripts/
-PublishProfiles/
-Properties/serviceDependencies*
-Properties/serviceDependencies/
+source/TranslationFunc/Properties/PublishScripts/
+source/TranslationFunc/Properties/PublishProfiles/
+source/TranslationFunc/Properties/serviceDependencies*
+source/TranslationFunc/Properties/serviceDependencies/
 
 # NuGet Packages
 *.nupkg
@@ -266,5 +266,4 @@ paket-files/
 __pycache__/
 *.pyc
 
-/TestAzure.http
-/http-client.env.json
+**/http-client.env.json
