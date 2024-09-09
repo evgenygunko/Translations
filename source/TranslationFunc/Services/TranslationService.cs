@@ -23,9 +23,15 @@ namespace TranslationsFunc.Services
             foreach (string destinationLanguage in translationInput.DestinationLanguages)
             {
                 string? translatedHeadWord = await TranslateTextAsync(client, translationInput.HeadWord, translationInput.SourceLanguage, destinationLanguage);
-                string? translatedMeaning = await TranslateTextAsync(client, translationInput.Meaning, translationInput.SourceLanguage, destinationLanguage);
 
-                translations.Add(new TranslationOutput(destinationLanguage, translatedHeadWord, translatedMeaning));
+                List<string?> translatedMeanings = new List<string?>();
+                foreach (string meaning in translationInput.Meanings)
+                {
+                    string? translatedMeaning = await TranslateTextAsync(client, meaning, translationInput.SourceLanguage, destinationLanguage);
+                    translatedMeanings.Add(translatedMeaning);
+                }
+
+                translations.Add(new TranslationOutput(destinationLanguage, translatedHeadWord, translatedMeanings));
             }
 
             return translations;
