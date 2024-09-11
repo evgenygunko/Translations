@@ -23,22 +23,24 @@ foreach ($file in $projectFiles) {
     $xml = [xml](Get-Content $file)
     [bool]$updated = $false
 
-    $xml.GetElementsByTagName("PackageVersion") | ForEach-Object{
-        Write-Host "Updating PackageVersion to:" $version
+    $xml.GetElementsByTagName("AssemblyVersion") | ForEach-Object{
+        Write-Host "Updating AssemblyVersion to:" $version
         $_."#text" = $version
 
         $updated = $true
     }
 
-    $xml.GetElementsByTagName("Version") | ForEach-Object{
-        Write-Host "Updating Version to:" $version
+    $xml.GetElementsByTagName("FileVersion") | ForEach-Object{
+        Write-Host "Updating FileVersion to:" $version
         $_."#text" = $version
+
+        $updated = $true
     }
 
     if ($updated) {
         Write-Host "Project file saved"
         $xml.Save($file.FullName)
     } else {
-        Write-Host "'PackageVersion' property not found in the project file"
+        Write-Host "Neither 'AssemblyVersion' nor 'FileVersion' properties were found in the project file."
     }
 }
