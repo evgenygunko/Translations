@@ -1,0 +1,53 @@
+stages:
+  - stage: Build
+    displayName: Build${{ parameters.ProjectName }}
+
+    jobs:
+          - job: Build
+
+            steps:
+                - task: PowerShell@2
+                  displayName: 'PowerShell Script - set buld number variable'
+                  inputs:
+                      targetType: 'inline'
+                      script: |
+                          Write-Host "##vso[build.updatebuildnumber]$(major).$(minor).$(Build.BuildId)"
+
+                - task: PowerShell@2
+                  displayName: 'PowerShell Script - update version number in project files'
+                  inputs:
+                      targetType: filePath
+                      arguments: "-version '$(Build.BuildNumber)'"
+                      filePath: './.build/UpdateVersion.ps1'
+
+                # - script: yarn install
+                #   displayName: 'yarn install'
+
+                # - script: yarn prettier:check
+                #   displayName: 'Check prettier adherence'
+
+                - script: |
+                    dotnet restore
+                    dotnet build --configuration Release
+
+                - task: DotNetCoreCLI@2
+                  inputs:
+                    command: publish
+                    arguments: '--configuration Release --output publish_output'
+                    projects: '**/TranslationsFunc.csproj'
+                    publishWebProjects: false
+                    modifyOutputPath: false
+                    zipAfterPublish: false
+
+                - task: ArchiveFiles@2
+                  displayName: "Archive files"
+                  inputs:
+                    rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
+                    includeRootFolder: false
+                    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+
+                - task: PublishBuildArtifacts@1
+                  inputs:
+                    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+                    artifactName: 'drop'
+                  condition: ne(variables['Build.Reason'], 'PullRequest')

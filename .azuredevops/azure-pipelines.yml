@@ -1,0 +1,13 @@
+trigger:
+    branches:
+        include:
+            - master
+
+pool:
+    #vmImage: windows-latest
+    #name: windows-private
+    name: Default
+
+stages:
+    # Build and Lint
+    - template: /.azuredevops/templates/build.yml
