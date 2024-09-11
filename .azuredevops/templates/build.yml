@@ -1,6 +1,5 @@
 stages:
     - stage: Build
-      displayName: Build${{ parameters.ProjectName }}
 
       jobs:
           - job: Build

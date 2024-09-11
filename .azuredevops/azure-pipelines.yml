@@ -11,3 +11,6 @@ pool:
 stages:
     # Build and Lint
     - template: /.azuredevops/templates/build.yml
+
+    # Deploy application to single specific environment
+    - template: /.azuredevops/templates/release.yml

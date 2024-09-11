@@ -1,0 +1,29 @@
+stages:
+    - stage: Deploy_To_Azure_FunctionApp
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+      #trigger: manual # comment out condition and uncomment this like to allow triggering the stage manually
+
+      jobs:
+          - job: Deploy_To_Azure_FunctionApp
+
+            steps:
+                # Download pipelines artifacts
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                      artifactName: 'drop'
+                      buildType: 'current'
+                      targetPath: '$(Build.ArtifactStagingDirectory)'
+
+                # Deploy Azure Functions
+                - task: AzureFunctionApp@2 # Add this at the end of your file
+                  inputs:
+                      azureSubscription: $(AzureServiceConnection)
+                      appType: functionApp # default is functionApp
+                      appName: $(appName)
+                      package: $(System.ArtifactsDirectory)/**/*.zip
+                      deploymentMethod: 'auto' # 'auto' | 'zipDeploy' | 'runFromPackage'. Required. Deployment method. Default: auto.
+                      #Uncomment the next lines to deploy to a deployment slot
+                      #Note that deployment slots is not supported for Linux Dynamic SKU
+                      #deployToSlotOrASE: true
+                      #resourceGroupName: '<Resource Group Name>'
+                      #slotName: '<Slot name>'
