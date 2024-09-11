@@ -20,35 +20,34 @@ namespace TranslationsFunc.Services
             TextTranslationClient client = new(credential, region);
             var translations = new List<TranslationOutput>();
 
+            // Translate headwords in one request
+            var options = new TextTranslationTranslateOptions(
+                sourceLanguage: translationInput.SourceLanguage,
+                targetLanguages: translationInput.DestinationLanguages,
+                content: new[] { translationInput.HeadWord });
+            var response = await client.TranslateAsync(options).ConfigureAwait(false);
+            IReadOnlyList<TranslatedTextItem> translatedHeadWords = response.Value;
+
+            // Translate meanings in one request
+            options = new TextTranslationTranslateOptions(
+                sourceLanguage: translationInput.SourceLanguage,
+                targetLanguages: translationInput.DestinationLanguages,
+                content: translationInput.Meanings);
+
+            response = await client.TranslateAsync(options).ConfigureAwait(false);
+            IReadOnlyList<TranslatedTextItem> translatedMeanings = response.Value;
+
+            // Create response
             foreach (string destinationLanguage in translationInput.DestinationLanguages)
             {
-                string? translatedHeadWord = await TranslateTextAsync(client, translationInput.HeadWord, translationInput.SourceLanguage, destinationLanguage);
+                var translatedHeadWordTextItems = translatedHeadWords.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
+                string? translatedHeadWord = translatedHeadWordTextItems.FirstOrDefault()?.Text;
 
-                List<string?> translatedMeanings = new List<string?>();
-                foreach (string meaning in translationInput.Meanings)
-                {
-                    string? translatedMeaning = await TranslateTextAsync(client, meaning, translationInput.SourceLanguage, destinationLanguage);
-                    translatedMeanings.Add(translatedMeaning);
-                }
-
-                translations.Add(new TranslationOutput(destinationLanguage, translatedHeadWord, translatedMeanings));
+                var translatedMeaningsTextItems = translatedMeanings.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
+                translations.Add(new TranslationOutput(destinationLanguage, translatedHeadWord, translatedMeaningsTextItems.Select(x => x?.Text)));
             }
 
             return translations;
-        }
-
-        private async Task<string?> TranslateTextAsync(TextTranslationClient client, string inputText, string sourceLanguage, string targetLanguage)
-        {
-            if (string.IsNullOrEmpty(inputText) || string.IsNullOrEmpty(sourceLanguage) || string.IsNullOrEmpty(targetLanguage))
-            {
-                return null;
-            }
-
-            Response<IReadOnlyList<TranslatedTextItem>> response = await client.TranslateAsync(targetLanguage, inputText, sourceLanguage).ConfigureAwait(false);
-            IReadOnlyList<TranslatedTextItem> translations = response.Value;
-            TranslatedTextItem? translation = translations.FirstOrDefault();
-
-            return translation?.Translations?.FirstOrDefault()?.Text;
         }
     }
 }
