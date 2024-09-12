@@ -14,3 +14,7 @@ stages:
 
     # Deploy application to single specific environment
     - template: /.azuredevops/templates/release.yml
+
+    - template: /.azuredevops/templates/stages-sync-with-github.yaml
+      parameters:
+          repository: Translations
