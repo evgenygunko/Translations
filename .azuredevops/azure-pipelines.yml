@@ -4,9 +4,9 @@ trigger:
             - master
 
 pool:
-    #vmImage: windows-latest
+    vmImage: 'ubuntu-latest'
     #name: windows-private
-    name: Default
+    #name: Default
 
 stages:
     # Build and Lint
