@@ -28,14 +28,22 @@ namespace TranslationsFunc.Services
             var response = await client.TranslateAsync(options).ConfigureAwait(false);
             IReadOnlyList<TranslatedTextItem> translatedHeadWords = response.Value;
 
-            // Translate meanings in one request
-            options = new TextTranslationTranslateOptions(
-                sourceLanguage: translationInput.SourceLanguage,
-                targetLanguages: translationInput.DestinationLanguages,
-                content: translationInput.Meanings);
+            IReadOnlyList<TranslatedTextItem> translatedMeanings;
+            if (translationInput.Meanings.Any())
+            {
+                // Translate meanings in one request
+                options = new TextTranslationTranslateOptions(
+                    sourceLanguage: translationInput.SourceLanguage,
+                    targetLanguages: translationInput.DestinationLanguages,
+                    content: translationInput.Meanings);
 
-            response = await client.TranslateAsync(options).ConfigureAwait(false);
-            IReadOnlyList<TranslatedTextItem> translatedMeanings = response.Value;
+                response = await client.TranslateAsync(options).ConfigureAwait(false);
+                translatedMeanings = response.Value;
+            }
+            else
+            {
+                translatedMeanings = new List<TranslatedTextItem>().AsReadOnly();
+            }
 
             // Create response
             foreach (string destinationLanguage in translationInput.DestinationLanguages)
