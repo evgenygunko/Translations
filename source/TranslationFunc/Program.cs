@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using TranslationsFunc.Services;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
+    .ConfigureFunctionsWebApplication()
     .ConfigureServices(services =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
