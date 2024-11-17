@@ -19,6 +19,20 @@ Content-Type: application/json
   ]
 }
 
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body[0]["Language"] === "ru");
+    client.assert(response.body[0]["HeadWord"] === "конечность");
+    client.assert(response.body[1]["Language"] === "en");
+    client.assert(response.body[1]["HeadWord"] === "lim");
+  });
+%}
+
+
+
 ### Translate from Danish to English + Russian, where meanings are empty
 
 POST {{HostAddress}}/api/Translate?code={{code}}
@@ -33,6 +47,20 @@ Content-Type: application/json
     "ru"
   ]
 }
+
+> {%
+
+  // Assert status code
+  client.test('When smeanings are empty, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body[0]["Language"] === "en");
+    client.assert(response.body[0]["HeadWord"] === "such as");
+    client.assert(response.body[1]["Language"] === "ru");
+    client.assert(response.body[1]["HeadWord"] === "как");
+  });
+%}
+
+
 
 ### BadRequest - SourceLanguage is null
 
@@ -51,6 +79,15 @@ Content-Type: application/json
     "ru"
   ]
 }
+
+> {%
+
+  // Assert status code
+  client.test('When SourceLanguage is null, we expect to get an error', () => {
+    client.assert(response.status === 500, "Response status is not 500");
+  });
+%}
+
 
 
 ### BadRequest - HeadWord is null
@@ -71,6 +108,16 @@ Content-Type: application/json
   ]
 }
 
+> {%
+
+  // Assert status code
+  client.test('When HeadWord is null, we expect to get an error', () => {
+    client.assert(response.status === 500, "Response status is not 500");
+  });
+%}
+
+
+
 ### BadRequest - DestinationLanguages has too many elements
 
 POST {{HostAddress}}/api/Translate?code={{code}}
@@ -89,6 +136,15 @@ Content-Type: application/json
     "es"
   ]
 }
+
+> {%
+
+  // Assert status code
+  client.test('When DestinationLanguages has too many elements, we expect to get an error', () => {
+    client.assert(response.status === 500, "Response status is not 500");
+  });
+%}
+
 
 
 ### Test connection to Azure Translator Service
