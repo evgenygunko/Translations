@@ -11,14 +11,17 @@ namespace My.Function
     public class HttpTranslate
     {
         private readonly ILogger _logger;
-        private readonly ITranslationService _translationService;
+        private readonly IAzureTranslationService _azureTranslationService;
+        private readonly IOpenAITranslationService _openAITranslationService;
 
         public HttpTranslate(
             ILoggerFactory loggerFactory,
-            ITranslationService translationService)
+            IAzureTranslationService azureTranslationService,
+            IOpenAITranslationService openAITranslationService)
         {
             _logger = loggerFactory.CreateLogger<HttpTranslate>();
-            _translationService = translationService;
+            _azureTranslationService = azureTranslationService;
+            _openAITranslationService = openAITranslationService;
         }
 
         [Function("Translate")]
@@ -42,11 +45,19 @@ namespace My.Function
 
             // todo: add a check for languages
 
-            _logger.LogInformation($"Will translate '{translationInput.HeadWord}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "'.");
-
+            List<TranslationOutput> translations;
             try
             {
-                var translations = await _translationService.TranslateAsync(translationInput);
+                if (string.Equals(req.Query["service"], "openai", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    _logger.LogInformation($"Will translate '{translationInput.HeadWord}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
+                    translations = await _openAITranslationService.TranslateAsync(translationInput);
+                }
+                else
+                {
+                    _logger.LogInformation($"Will translate '{translationInput.HeadWord}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with Azure Translator Service.");
+                    translations = await _azureTranslationService.TranslateAsync(translationInput);
+                }
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await response.WriteAsJsonAsync(translations);

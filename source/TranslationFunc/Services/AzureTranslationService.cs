@@ -4,12 +4,11 @@ using TranslationsFunc.Models;
 
 namespace TranslationsFunc.Services
 {
-    public interface ITranslationService
+    public interface IAzureTranslationService : ITranslationService
     {
-        Task<List<TranslationOutput>> TranslateAsync(TranslationInput translationInput);
     }
 
-    public class TranslationService : ITranslationService
+    public class AzureTranslationService : IAzureTranslationService
     {
         public async Task<List<TranslationOutput>> TranslateAsync(TranslationInput translationInput)
         {

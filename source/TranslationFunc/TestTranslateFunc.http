@@ -1,8 +1,11 @@
+#@service=azuretranslator
+@service=openai
+
 ### Translate from Danish to English + Russian
 
-POST {{HostAddress}}/api/Translate?code={{code}}
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
-Accept-Language: en-US,en;q=0.5
+
 {
   "HeadWord": "såsom",
   "Meanings": [
@@ -20,7 +23,7 @@ Accept-Language: en-US,en;q=0.5
 
 POST {{HostAddress}}/api/Translate?code={{code}}
 Content-Type: application/json
-Accept-Language: en-US,en;q=0.5
+
 {
   "HeadWord": "såsom",
   "Meanings": [],
@@ -35,7 +38,7 @@ Accept-Language: en-US,en;q=0.5
 
 POST {{HostAddress}}/api/Translate?code={{code}}
 Content-Type: application/json
-Accept-Language: en-US,en;q=0.5
+
 {
   "HeadWord": "såsom",
   "Meanings": [
@@ -54,7 +57,7 @@ Accept-Language: en-US,en;q=0.5
 
 POST {{HostAddress}}/api/Translate?code={{code}}
 Content-Type: application/json
-Accept-Language: en-US,en;q=0.5
+
 {
   "HeadWord": "",
   "Meanings": [
@@ -72,7 +75,7 @@ Accept-Language: en-US,en;q=0.5
 
 POST {{HostAddress}}/api/Translate?code={{code}}
 Content-Type: application/json
-Accept-Language: en-US,en;q=0.5
+
 {
   "HeadWord": "såsom",
   "Meanings": [
@@ -87,6 +90,9 @@ Accept-Language: en-US,en;q=0.5
   ]
 }
 
-###
+
+### Test connection to Azure Translator Service
 
 https://api.cognitive.microsofttranslator.com/languages?api-version=3.0
+
+###
