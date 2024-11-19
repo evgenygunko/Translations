@@ -1,4 +1,4 @@
-#@service=azuretranslator
+#@service=azure
 @service=openai
 
 ### Translate from Danish to English + Russian
@@ -7,15 +7,13 @@ POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "HeadWord": "såsom",
-  "Meanings": [
-      "bruges til angivelse af et eller flere eksempler på noget",
-      "bruges som indledning til en ledsætning der angiver en begrundelse"
-  ],
+  "Word": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "da",
   "DestinationLanguages": [
-    "en",
-    "ru"
+    "ru",
+    "en"
   ]
 }
 
@@ -25,38 +23,39 @@ Content-Type: application/json
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is not 200");
     client.assert(response.body[0]["Language"] === "ru");
-    client.assert(response.body[0]["HeadWord"] === "конечность");
+    client.assert(response.body[0]["Translation"] !== "");
     client.assert(response.body[1]["Language"] === "en");
-    client.assert(response.body[1]["HeadWord"] === "lim");
+    client.assert(response.body[1]["Translation"] === "such as");
   });
 %}
 
 
 
-### Translate from Danish to English + Russian, where meanings are empty
+### Translate from Danish to English + Russian, where meaning is empty
 
-POST {{HostAddress}}/api/Translate?code={{code}}
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "HeadWord": "såsom",
-  "Meanings": [],
+  "Word": "såsom",
+  "Meaning": "",
+  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "da",
   "DestinationLanguages": [
-    "en",
-    "ru"
+    "ru",
+    "en"
   ]
 }
 
 > {%
 
   // Assert status code
-  client.test('When smeanings are empty, we expect to get json back', () => {
+  client.test('When meaning is empty, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is not 200");
-    client.assert(response.body[0]["Language"] === "en");
-    client.assert(response.body[0]["HeadWord"] === "such as");
-    client.assert(response.body[1]["Language"] === "ru");
-    client.assert(response.body[1]["HeadWord"] === "как");
+    client.assert(response.body[0]["Language"] === "ru");
+    client.assert(response.body[0]["Translation"] !== "");
+    client.assert(response.body[1]["Language"] === "en");
+    client.assert(response.body[1]["Translation"] === "such as");
   });
 %}
 
@@ -64,15 +63,13 @@ Content-Type: application/json
 
 ### BadRequest - SourceLanguage is null
 
-POST {{HostAddress}}/api/Translate?code={{code}}
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
   "HeadWord": "såsom",
-  "Meanings": [
-      "bruges til angivelse af et eller flere eksempler på noget",
-      "bruges som indledning til en ledsætning der angiver en begrundelse"
-  ],
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "",
   "DestinationLanguages": [
     "en",
@@ -92,15 +89,13 @@ Content-Type: application/json
 
 ### BadRequest - HeadWord is null
 
-POST {{HostAddress}}/api/Translate?code={{code}}
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
   "HeadWord": "",
-  "Meanings": [
-      "bruges til angivelse af et eller flere eksempler på noget",
-      "bruges som indledning til en ledsætning der angiver en begrundelse"
-  ],
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "Danish",
   "DestinationLanguages": [
     "en",
@@ -120,15 +115,13 @@ Content-Type: application/json
 
 ### BadRequest - DestinationLanguages has too many elements
 
-POST {{HostAddress}}/api/Translate?code={{code}}
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "HeadWord": "såsom",
-  "Meanings": [
-      "bruges til angivelse af et eller flere eksempler på noget",
-      "bruges som indledning til en ledsætning der angiver en begrundelse"
-  ],
+  "Word": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "Danish",
   "DestinationLanguages": [
     "en",

@@ -17,41 +17,24 @@ namespace TranslationsFunc.Services
 
             AzureKeyCredential credential = new(key);
             TextTranslationClient client = new(credential, region);
-            var translations = new List<TranslationOutput>();
 
-            // Translate headwords in one request
             var options = new TextTranslationTranslateOptions(
                 sourceLanguage: translationInput.SourceLanguage,
                 targetLanguages: translationInput.DestinationLanguages,
-                content: new[] { translationInput.HeadWord });
+                content: [translationInput.Word]);
+
             var response = await client.TranslateAsync(options).ConfigureAwait(false);
-            IReadOnlyList<TranslatedTextItem> translatedHeadWords = response.Value;
-
-            IReadOnlyList<TranslatedTextItem> translatedMeanings;
-            if (translationInput.Meanings.Any())
-            {
-                // Translate meanings in one request
-                options = new TextTranslationTranslateOptions(
-                    sourceLanguage: translationInput.SourceLanguage,
-                    targetLanguages: translationInput.DestinationLanguages,
-                    content: translationInput.Meanings);
-
-                response = await client.TranslateAsync(options).ConfigureAwait(false);
-                translatedMeanings = response.Value;
-            }
-            else
-            {
-                translatedMeanings = new List<TranslatedTextItem>().AsReadOnly();
-            }
+            IReadOnlyList<TranslatedTextItem> translatedWords = response.Value;
 
             // Create response
+            var translations = new List<TranslationOutput>();
+
             foreach (string destinationLanguage in translationInput.DestinationLanguages)
             {
-                var translatedHeadWordTextItems = translatedHeadWords.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
-                string? translatedHeadWord = translatedHeadWordTextItems.FirstOrDefault()?.Text;
+                var translatedWordTextItems = translatedWords.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
+                string? translatedWord = translatedWordTextItems.FirstOrDefault()?.Text;
 
-                var translatedMeaningsTextItems = translatedMeanings.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
-                translations.Add(new TranslationOutput(destinationLanguage, translatedHeadWord, translatedMeaningsTextItems.Select(x => x?.Text)));
+                translations.Add(new TranslationOutput(destinationLanguage, translatedWord));
             }
 
             return translations;

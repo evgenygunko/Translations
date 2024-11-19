@@ -33,14 +33,14 @@ namespace My.Function
                 return CreateBadRequestResponse(req, "SourceLanguage cannot be null or empty");
             }
 
-            if (string.IsNullOrEmpty(translationInput.HeadWord))
+            if (string.IsNullOrEmpty(translationInput.Word))
             {
-                return CreateBadRequestResponse(req, "HeadWord cannot be null or empty");
+                return CreateBadRequestResponse(req, "Word cannot be null or empty");
             }
 
             if (translationInput.DestinationLanguages.Count() == 0 || translationInput.DestinationLanguages.Count() > 2)
             {
-                return CreateBadRequestResponse(req, "DestinationLanguages need to at least one element and less than two.");
+                return CreateBadRequestResponse(req, "DestinationLanguages must have at least one element and fewer than two.");
             }
 
             // todo: add a check for languages
@@ -48,15 +48,16 @@ namespace My.Function
             List<TranslationOutput> translations;
             try
             {
-                if (string.Equals(req.Query["service"], "openai", StringComparison.InvariantCultureIgnoreCase))
+                if (string.Equals(req.Query["service"], "azure", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    _logger.LogInformation($"Will translate '{translationInput.HeadWord}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
-                    translations = await _openAITranslationService.TranslateAsync(translationInput);
+                    _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with Azure Translator Service.");
+                    translations = await _azureTranslationService.TranslateAsync(translationInput);
                 }
                 else
                 {
-                    _logger.LogInformation($"Will translate '{translationInput.HeadWord}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with Azure Translator Service.");
-                    translations = await _azureTranslationService.TranslateAsync(translationInput);
+                    // By default translate with OpenAI, it should return better results because it can analyze context and requested part of speech.
+                    _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
+                    translations = await _openAITranslationService.TranslateAsync(translationInput);
                 }
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
