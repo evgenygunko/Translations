@@ -45,26 +45,26 @@ namespace My.Function
 
             // todo: add a check for languages
 
-            List<TranslationOutput> translations;
+            TranslationOutput translationOutput;
             try
             {
                 if (string.Equals(req.Query["service"], "azure", StringComparison.InvariantCultureIgnoreCase))
                 {
                     _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with Azure Translator Service.");
-                    translations = await _azureTranslationService.TranslateAsync(translationInput);
+                    translationOutput = await _azureTranslationService.TranslateAsync(translationInput);
                 }
                 else
                 {
                     // By default translate with OpenAI, it should return better results because it can analyze context and requested part of speech.
                     _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
-                    translations = await _openAITranslationService.TranslateAsync(translationInput);
+                    translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
                 }
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                await response.WriteAsJsonAsync(translations);
+                await response.WriteAsJsonAsync(translationOutput);
 
                 _logger.LogInformation($"Returning translations: " + JsonSerializer.Serialize(
-                    translations,
+                    translationOutput,
                     new JsonSerializerOptions
                     {
                         WriteIndented = true,

@@ -1,4 +1,6 @@
 ﻿namespace TranslationsFunc.Models
 {
-    public record TranslationOutput(string Language, string? Translation);
+    public record TranslationOutput(TranslationItem[] Translations);
+
+    public record TranslationItem(string Language, string? Translation);
 }

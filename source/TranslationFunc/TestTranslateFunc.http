@@ -1,19 +1,52 @@
 #@service=azure
 @service=openai
 
-### Translate from Danish to English + Russian
+### Translate "såsom" from Danish to English + Russian
 
 POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "Word": "såsom",
-  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
-  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "da",
   "DestinationLanguages": [
     "ru",
     "en"
+  ],
+  "Word": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "PartOfSpeech": "konjunktion"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.body.Translations[0]["Language"] === "ru");
+    client.assert(response.body.Translations[0]["Translation"] !== "");
+    client.assert(response.body.Translations[1]["Language"] === "en");
+    client.assert(response.body.Translations[1]["Translation"] === "such as");
+  });
+%}
+
+
+### Translate "støbe" from Danish to English + Russian
+
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
+Content-Type: application/json
+
+{
+  "SourceLanguage": "da",
+  "DestinationLanguages": [
+    "ru",
+    "en"
+  ],
+  "Word": "støbe",
+  "Meaning": "fremstille en genstand ved at lade en flydende masse størkne eller stivne til en bestemt form, ofte i en tildannet støbeform",
+  "PartOfSpeech": "verbum",
+  "Examples": [
+      "kemikalierne, især tungmetaller, skal støbes ind i beton",
+      "I denne del af verden er vores moral støbt sammen af de ti bud"
   ]
 }
 
@@ -22,13 +55,12 @@ Content-Type: application/json
   // Assert status code
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is not 200");
-    client.assert(response.body[0]["Language"] === "ru");
-    client.assert(response.body[0]["Translation"] !== "");
-    client.assert(response.body[1]["Language"] === "en");
-    client.assert(response.body[1]["Translation"] === "such as");
+    client.assert(response.body.Translations[0]["Language"] === "ru");
+    client.assert(response.body.Translations[0]["Translation"] !== "");
+    client.assert(response.body.Translations[1]["Language"] === "en");
+    client.assert(response.body.Translations[1]["Translation"] === "to cast");
   });
 %}
-
 
 
 ### Translate from Danish to English + Russian, where meaning is empty
@@ -37,14 +69,14 @@ POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "Word": "såsom",
-  "Meaning": "",
-  "PartOfSpeech": "konjunktion",
   "SourceLanguage": "da",
   "DestinationLanguages": [
     "ru",
     "en"
-  ]
+  ],
+  "Word": "såsom",
+  "Meaning": "",
+  "PartOfSpeech": "konjunktion"
 }
 
 > {%
@@ -52,10 +84,10 @@ Content-Type: application/json
   // Assert status code
   client.test('When meaning is empty, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is not 200");
-    client.assert(response.body[0]["Language"] === "ru");
-    client.assert(response.body[0]["Translation"] !== "");
-    client.assert(response.body[1]["Language"] === "en");
-    client.assert(response.body[1]["Translation"] === "such as");
+    client.assert(response.body.Translations[0]["Language"] === "ru");
+    client.assert(response.body.Translations[0]["Translation"] !== "");
+    client.assert(response.body.Translations[1]["Language"] === "en");
+    client.assert(response.body.Translations[1]["Translation"] !== "");
   });
 %}
 

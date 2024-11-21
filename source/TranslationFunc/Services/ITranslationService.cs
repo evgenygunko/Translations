@@ -4,6 +4,6 @@ namespace TranslationsFunc.Services
 {
     public interface ITranslationService
     {
-        Task<List<TranslationOutput>> TranslateAsync(TranslationInput translationInput);
+        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput);
     }
 }

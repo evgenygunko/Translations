@@ -10,7 +10,7 @@ namespace TranslationsFunc.Services
 
     public class AzureTranslationService : IAzureTranslationService
     {
-        public async Task<List<TranslationOutput>> TranslateAsync(TranslationInput translationInput)
+        public async Task<TranslationOutput> TranslateAsync(TranslationInput translationInput)
         {
             string key = Environment.GetEnvironmentVariable("TRANSLATIONS_APP_KEY")!;
             string region = Environment.GetEnvironmentVariable("TRANSLATIONS_APP_REGION")!;
@@ -27,17 +27,18 @@ namespace TranslationsFunc.Services
             IReadOnlyList<TranslatedTextItem> translatedWords = response.Value;
 
             // Create response
-            var translations = new List<TranslationOutput>();
-
+            List<TranslationItem> translationItems = new();
             foreach (string destinationLanguage in translationInput.DestinationLanguages)
             {
                 var translatedWordTextItems = translatedWords.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
                 string? translatedWord = translatedWordTextItems.FirstOrDefault()?.Text;
 
-                translations.Add(new TranslationOutput(destinationLanguage, translatedWord));
+                translationItems.Add(new TranslationItem(destinationLanguage, translatedWord));
             }
 
-            return translations;
+            var translationOutput = new TranslationOutput(translationItems.ToArray());
+
+            return translationOutput;
         }
     }
 }
