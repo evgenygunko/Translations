@@ -25,22 +25,43 @@ namespace My.Function
         }
 
         [Function("Translate")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req,
-            [FromBody] TranslationInput translationInput)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
         {
+            string? inputJson = await req.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(inputJson))
+            {
+                return await CreateBadRequestResponseAsync(req, "Input data is null");
+            }
+
+            TranslationInput? translationInput;
+
+            try
+            {
+                translationInput = JsonSerializer.Deserialize<TranslationInput>(inputJson);
+            }
+            catch (Exception ex)
+            {
+                return await CreateBadRequestResponseAsync(req, $"Cannot deserialize input data. Exception: '{ex}'");
+            }
+
+            if (translationInput is null)
+            {
+                return await CreateBadRequestResponseAsync(req, "Cannot deserialize input data.");
+            }
+
             if (string.IsNullOrEmpty(translationInput.SourceLanguage))
             {
-                return CreateBadRequestResponse(req, "SourceLanguage cannot be null or empty");
+                return await CreateBadRequestResponseAsync(req, "SourceLanguage cannot be null or empty");
             }
 
             if (string.IsNullOrEmpty(translationInput.Word))
             {
-                return CreateBadRequestResponse(req, "Word cannot be null or empty");
+                return await CreateBadRequestResponseAsync(req, "Word cannot be null or empty");
             }
 
             if (translationInput.DestinationLanguages.Count() == 0 || translationInput.DestinationLanguages.Count() > 2)
             {
-                return CreateBadRequestResponse(req, "DestinationLanguages must have at least one element and fewer than two.");
+                return await CreateBadRequestResponseAsync(req, "DestinationLanguages must have at least one element and fewer than two.");
             }
 
             // todo: add a check for languages
@@ -80,13 +101,15 @@ namespace My.Function
             }
         }
 
-        private static HttpResponseData CreateBadRequestResponse(HttpRequestData req, string message)
+        private async Task<HttpResponseData> CreateBadRequestResponseAsync(HttpRequestData req, string message)
         {
             var response = req.CreateResponse(HttpStatusCode.BadRequest);
             response.Headers.Add("Content-Type", "application/json; charset=utf-8");
 
             var responseBody = new { Error = message };
-            response.WriteString(JsonSerializer.Serialize(responseBody));
+            await response.WriteStringAsync(JsonSerializer.Serialize(responseBody));
+
+            _logger.LogWarning($"Returning BadRequest: '{message}'");
 
             return response;
         }

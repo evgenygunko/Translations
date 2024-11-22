@@ -113,7 +113,7 @@ Content-Type: application/json
 
   // Assert status code
   client.test('When SourceLanguage is null, we expect to get an error', () => {
-    client.assert(response.status === 500, "Response status is not 500");
+    client.assert(response.status === 400, "Response status is BadRequest");
   });
 %}
 
@@ -139,7 +139,7 @@ Content-Type: application/json
 
   // Assert status code
   client.test('When HeadWord is null, we expect to get an error', () => {
-    client.assert(response.status === 500, "Response status is not 500");
+    client.assert(response.status === 400, "Response status is BadRequest");
   });
 %}
 
@@ -166,7 +166,7 @@ Content-Type: application/json
 
   // Assert status code
   client.test('When DestinationLanguages has too many elements, we expect to get an error', () => {
-    client.assert(response.status === 500, "Response status is not 500");
+    client.assert(response.status === 400, "Response status is BadRequest");
   });
 %}
 
