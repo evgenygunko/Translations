@@ -25,11 +25,17 @@ stages:
                 - script: yarn prettier:check
                   displayName: 'Check prettier adherence'
 
+                - task: UseDotNet@2
+                  inputs:
+                      version: '9.0.100'
+
                 - script: |
                       dotnet restore
                       dotnet build --configuration Release
+                  displayName: 'dotnet restore and build'
 
                 - task: DotNetCoreCLI@2
+                  displayName: 'dotnet publish: TranslationsFunc.csproj'
                   inputs:
                       command: publish
                       arguments: '--configuration Release --output publish_output'
@@ -46,6 +52,7 @@ stages:
                       archiveFile: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
 
                 - task: PublishBuildArtifacts@1
+                  displayName: 'Publish artifact: drop'
                   inputs:
                       PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
                       artifactName: 'drop'
