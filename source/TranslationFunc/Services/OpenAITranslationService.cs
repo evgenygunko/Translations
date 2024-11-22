@@ -1,6 +1,9 @@
 ﻿using TranslationsFunc.Models;
 using OpenAI.Chat;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Schema;
+using System.Text.Json.Serialization;
 
 namespace TranslationsFunc.Services
 {
@@ -32,33 +35,7 @@ namespace TranslationsFunc.Services
                 new UserChatMessage(prompt),
             ];
 
-            ChatCompletionOptions options = new()
-            {
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                jsonSchemaFormatName: "translation_output",
-                jsonSchema: BinaryData.FromBytes("""
-                    {
-                        "type": "object",
-                        "properties": {
-                        "translations": {
-                            "type": "array",
-                            "items": {
-                            "type": "object",
-                            "properties": {
-                                "Language": { "type": "string" },
-                                "Translation": { "type": "string" }
-                            },
-                            "required": ["Language", "Translation"],
-                            "additionalProperties": false
-                            }
-                        }
-                        },
-                        "required": ["translations"],
-                        "additionalProperties": false
-                    }
-                    """u8.ToArray()),
-                jsonSchemaIsStrict: true)
-            };
+            ChatCompletionOptions options = CreateChatCompletionOptions();
 
             ChatClient client = new(model: "gpt-4o-mini", apiKey: key);
             ChatCompletion completion = await client.CompleteChatAsync(messages, options);
@@ -73,5 +50,33 @@ namespace TranslationsFunc.Services
 
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
+
+        private static ChatCompletionOptions CreateChatCompletionOptions()
+        {
+            JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerOptions.Default)
+            {
+                UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+            };
+
+            JsonSchemaExporterOptions exporterOptions = new()
+            {
+                TreatNullObliviousAsNonNullable = true,
+            };
+
+            JsonNode schema = jsonSerializerOptions.GetJsonSchemaAsNode(typeof(TranslationOutput), exporterOptions);
+
+            BinaryData jsonSchema = BinaryData.FromString(schema.ToString());
+
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                    jsonSchemaFormatName: "translation_output",
+                    jsonSchema: jsonSchema,
+                jsonSchemaIsStrict: true)
+            };
+
+            return options;
+        }
+
     }
 }
