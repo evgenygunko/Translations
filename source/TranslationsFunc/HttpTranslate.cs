@@ -38,6 +38,10 @@ namespace My.Function
                 return await CreateBadRequestResponseAsync(req, "Input data is null");
             }
 
+            // clean up request manually until VS 2022 starts support this syntax: trim everything after "> {%"
+            int index = inputJson.IndexOf("> {%");
+            inputJson = index >= 0 ? inputJson.Substring(0, index) : inputJson;
+
             TranslationInput? translationInput;
 
             try
