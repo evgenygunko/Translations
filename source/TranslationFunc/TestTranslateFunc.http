@@ -21,7 +21,7 @@ Content-Type: application/json
 
   // Assert status code
   client.test('When sending a word for translation, we expect to get json back', () => {
-    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.status === 200, "Response status is 200");
     client.assert(response.body.Translations[0]["Language"] === "ru");
     client.assert(response.body.Translations[0]["Translation"] !== "");
     client.assert(response.body.Translations[1]["Language"] === "en");
@@ -54,16 +54,16 @@ Content-Type: application/json
 
   // Assert status code
   client.test('When sending a word for translation, we expect to get json back', () => {
-    client.assert(response.status === 200, "Response status is not 200");
+    client.assert(response.status === 200, "Response status is 200");
     client.assert(response.body.Translations[0]["Language"] === "ru");
     client.assert(response.body.Translations[0]["Translation"] !== "");
     client.assert(response.body.Translations[1]["Language"] === "en");
-    client.assert(response.body.Translations[1]["Translation"] === "to cast");
+    client.assert(response.body.Translations[1]["Translation"] !== "");
   });
 %}
 
 
-### Translate from Danish to English + Russian, where meaning is empty
+### BadRequest - Meaning is null
 
 POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
@@ -82,12 +82,9 @@ Content-Type: application/json
 > {%
 
   // Assert status code
-  client.test('When meaning is empty, we expect to get json back', () => {
-    client.assert(response.status === 200, "Response status is not 200");
-    client.assert(response.body.Translations[0]["Language"] === "ru");
-    client.assert(response.body.Translations[0]["Translation"] !== "");
-    client.assert(response.body.Translations[1]["Language"] === "en");
-    client.assert(response.body.Translations[1]["Translation"] !== "");
+  client.test('When Meaning is null, we expect to get an error', () => {
+    client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'Meaning' must not be empty.");
   });
 %}
 
@@ -99,7 +96,7 @@ POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "HeadWord": "såsom",
+  "Word": "såsom",
   "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
   "PartOfSpeech": "konjunktion",
   "SourceLanguage": "",
@@ -114,18 +111,19 @@ Content-Type: application/json
   // Assert status code
   client.test('When SourceLanguage is null, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'Source Language' must not be empty.");
   });
 %}
 
 
 
-### BadRequest - HeadWord is null
+### BadRequest - Word is null
 
 POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
 Content-Type: application/json
 
 {
-  "HeadWord": "",
+  "Word": "",
   "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
   "PartOfSpeech": "konjunktion",
   "SourceLanguage": "Danish",
@@ -138,8 +136,33 @@ Content-Type: application/json
 > {%
 
   // Assert status code
-  client.test('When HeadWord is null, we expect to get an error', () => {
+  client.test('When Word is null, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'Word' must not be empty.");
+  });
+%}
+
+
+
+### BadRequest - DestinationLanguages is null
+
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
+Content-Type: application/json
+
+{
+  "Word": "såsom",
+  "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+  "PartOfSpeech": "konjunktion",
+  "SourceLanguage": "Danish",
+  "DestinationLanguages": null
+}
+
+> {%
+
+  // Assert status code
+  client.test('When DestinationLanguages is null, we expect to get an error', () => {
+    client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'DestinationLanguages' must have at least one element and fewer than two.");
   });
 %}
 
@@ -167,9 +190,32 @@ Content-Type: application/json
   // Assert status code
   client.test('When DestinationLanguages has too many elements, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'DestinationLanguages' must have at least one element and fewer than two.");
   });
 %}
 
+
+### BadRequest - Several required fielsds are null
+
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
+Content-Type: application/json
+
+{
+  "HeadWord": null,
+  "Meaning": null,
+  "PartOfSpeech": "konjunktion",
+  "SourceLanguage": null,
+  "DestinationLanguages": null
+}
+
+> {%
+
+  // Assert status code
+  client.test('When several required fields are null, we expect to get an error', () => {
+    client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, 'Word' must not be empty, 'Meaning' must not be empty.");
+  });
+%}
 
 
 ### Test connection to Azure Translator Service

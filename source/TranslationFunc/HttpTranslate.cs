@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using TranslationsFunc.Models;
 using TranslationsFunc.Services;
+using FluentValidation;
+using FluentValidation.Results;
 
 namespace My.Function
 {
@@ -13,15 +15,18 @@ namespace My.Function
         private readonly ILogger _logger;
         private readonly IAzureTranslationService _azureTranslationService;
         private readonly IOpenAITranslationService _openAITranslationService;
+        private readonly IValidator<TranslationInput> _translationInputValidator;
 
         public HttpTranslate(
             ILoggerFactory loggerFactory,
             IAzureTranslationService azureTranslationService,
-            IOpenAITranslationService openAITranslationService)
+            IOpenAITranslationService openAITranslationService,
+            IValidator<TranslationInput> translationInputValidator)
         {
             _logger = loggerFactory.CreateLogger<HttpTranslate>();
             _azureTranslationService = azureTranslationService;
             _openAITranslationService = openAITranslationService;
+            _translationInputValidator = translationInputValidator;
         }
 
         [Function("Translate")]
@@ -44,27 +49,14 @@ namespace My.Function
                 return await CreateBadRequestResponseAsync(req, $"Cannot deserialize input data. Exception: '{ex}'");
             }
 
-            if (translationInput is null)
+#pragma warning disable CS8604 // Possible null reference argument.
+            var validation = await _translationInputValidator.ValidateAsync(translationInput);
+#pragma warning restore CS8604 // Possible null reference argument.
+            if (!validation.IsValid)
             {
-                return await CreateBadRequestResponseAsync(req, "Cannot deserialize input data.");
+                string errorMessage = FormatValidationErrorMessage(validation);
+                return await CreateBadRequestResponseAsync(req, errorMessage);
             }
-
-            if (string.IsNullOrEmpty(translationInput.SourceLanguage))
-            {
-                return await CreateBadRequestResponseAsync(req, "SourceLanguage cannot be null or empty");
-            }
-
-            if (string.IsNullOrEmpty(translationInput.Word))
-            {
-                return await CreateBadRequestResponseAsync(req, "Word cannot be null or empty");
-            }
-
-            if (translationInput.DestinationLanguages.Count() == 0 || translationInput.DestinationLanguages.Count() > 2)
-            {
-                return await CreateBadRequestResponseAsync(req, "DestinationLanguages must have at least one element and fewer than two.");
-            }
-
-            // todo: add a check for languages
 
             TranslationOutput translationOutput;
             try
@@ -99,6 +91,18 @@ namespace My.Function
                 _logger.LogError(ex, $"Error occurred while calling translator API.");
                 throw;
             }
+        }
+
+        internal string FormatValidationErrorMessage(ValidationResult validation)
+        {
+            string errorMessage = "Error: ";
+            foreach (var failure in validation.Errors)
+            {
+                errorMessage += failure.ErrorMessage.TrimEnd('.') + ", ";
+            }
+            errorMessage = errorMessage.TrimEnd([',', ' ']) + '.';
+
+            return errorMessage;
         }
 
         private async Task<HttpResponseData> CreateBadRequestResponseAsync(HttpRequestData req, string message)

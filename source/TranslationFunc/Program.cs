@@ -1,6 +1,8 @@
-﻿using Microsoft.Azure.Functions.Worker;
+﻿using FluentValidation;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TranslationsFunc.Models;
 using TranslationsFunc.Services;
 
 var host = new HostBuilder()
@@ -12,6 +14,8 @@ var host = new HostBuilder()
 
         services.AddScoped<IAzureTranslationService, AzureTranslationService>();
         services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
+
+        services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
     })
     .Build();
 
