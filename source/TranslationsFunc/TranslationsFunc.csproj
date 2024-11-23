@@ -36,6 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="TranslationFunc.Tests" />
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 </Project>

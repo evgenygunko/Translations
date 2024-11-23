@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "TranslationsFunc": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7014",
-      "launchBrowser": false
-    }
-  }
-}

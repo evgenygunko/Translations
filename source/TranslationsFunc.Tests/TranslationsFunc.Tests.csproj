@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TranslationFunc\TranslationsFunc.csproj" />
+    <ProjectReference Include="..\TranslationsFunc\TranslationsFunc.csproj" />
   </ItemGroup>
 
   <ItemGroup>
