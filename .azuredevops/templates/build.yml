@@ -29,10 +29,13 @@ stages:
                   inputs:
                       version: '9.0.100'
 
-                - script: |
-                      dotnet restore
-                      dotnet build --configuration Release
-                  displayName: 'dotnet restore and build'
+                - task: DotNetCoreCLI@2
+                  displayName: 'dotnet test'
+                  inputs:
+                      command: 'test'
+                      projects: '**/*Tests.csproj'
+                      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
+                      publishTestResults: true
 
                 - task: DotNetCoreCLI@2
                   displayName: 'dotnet publish: TranslationsFunc.csproj'

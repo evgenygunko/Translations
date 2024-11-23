@@ -77,6 +77,5 @@ namespace TranslationsFunc.Services
 
             return options;
         }
-
     }
 }
