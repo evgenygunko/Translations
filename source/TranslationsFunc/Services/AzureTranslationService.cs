@@ -32,12 +32,12 @@ namespace TranslationsFunc.Services
             {
                 var translatedWordTextItems = translatedWords.Select(x => x.Translations.FirstOrDefault(y => y.TargetLanguage == destinationLanguage));
                 string? translatedWord = translatedWordTextItems.FirstOrDefault()?.Text;
+                var translationVariants = string.IsNullOrEmpty(translatedWord) ? Enumerable.Empty<string>() : [translatedWord];
 
-                translationItems.Add(new TranslationItem(destinationLanguage, translatedWord));
+                translationItems.Add(new TranslationItem(destinationLanguage, translationVariants));
             }
 
             var translationOutput = new TranslationOutput(translationItems.ToArray());
-
             return translationOutput;
         }
     }

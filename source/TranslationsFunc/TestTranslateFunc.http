@@ -23,9 +23,9 @@ Content-Type: application/json
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is 200");
     client.assert(response.body.Translations[0]["Language"] === "ru");
-    client.assert(response.body.Translations[0]["Translation"] !== "");
+    client.assert(response.body.Translations[0]["TranslationVariants"].length > 0);
     client.assert(response.body.Translations[1]["Language"] === "en");
-    client.assert(response.body.Translations[1]["Translation"] === "such as");
+    client.assert(response.body.Translations[1]["TranslationVariants"].length > 0);
   });
 %}
 
@@ -56,9 +56,9 @@ Content-Type: application/json
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is 200");
     client.assert(response.body.Translations[0]["Language"] === "ru");
-    client.assert(response.body.Translations[0]["Translation"] !== "");
+    client.assert(response.body.Translations[0]["TranslationVariants"].length > 0);
     client.assert(response.body.Translations[1]["Language"] === "en");
-    client.assert(response.body.Translations[1]["Translation"] !== "");
+    client.assert(response.body.Translations[1]["TranslationVariants"].length > 0);
   });
 %}
 

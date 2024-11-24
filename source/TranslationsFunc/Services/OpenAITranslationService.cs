@@ -20,7 +20,7 @@ namespace TranslationsFunc.Services
             string formattedLanguages = string.Join(", ", input.DestinationLanguages.Select(lang => $"'{lang}'"));
 
             var prompt = $"Translate the word '{input.Word}' from the language '{input.SourceLanguage}' into the languages {formattedLanguages}, where the part of speech is: '{input.PartOfSpeech}'. " +
-                $"The word, in this context, means: '{input.Meaning}'. ";
+                $"The word, in this context, means: '{input.Meaning}'. Provide between 1 and 3 possible answers so I can choose the best one. ";
 
             if (input.Examples?.Count() > 0)
             {
