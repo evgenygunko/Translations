@@ -87,16 +87,26 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenPartOfSpeechIsEmpty_ReturnsFalse()
+        public void Validate_WhenPartOfSpeechIsEmpty_ReturnsTrue()
         {
+            // PartOfSpeech is not always present for words in DDO
             TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "word", Meaning: "meaning", PartOfSpeech: "", []);
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Part Of Speech' must not be empty.");
+            result.IsValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Validate_WhenPartOfSpeechIsNotEmpty_ReturnsTrue()
+        {
+            TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "word", Meaning: "meaning", PartOfSpeech: "part of speech", []);
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeTrue();
         }
     }
 }

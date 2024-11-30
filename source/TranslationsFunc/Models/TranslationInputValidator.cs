@@ -18,7 +18,6 @@ namespace TranslationsFunc.Models
 
             RuleFor(model => model.Word).NotEmpty();
             RuleFor(model => model.Meaning).NotEmpty();
-            RuleFor(model => model.PartOfSpeech).NotEmpty();
         }
 
         protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)

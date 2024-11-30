@@ -17,24 +17,9 @@ namespace TranslationsFunc.Services
         {
             string key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!;
 
-            string formattedLanguages = string.Join(", ", input.DestinationLanguages.Select(lang => $"'{lang}'"));
+            var prompt = CreatePrompt(input);
 
-            var prompt = $"Translate the word '{input.Word}' from the language '{input.SourceLanguage}' into the languages {formattedLanguages}, where the part of speech is: '{input.PartOfSpeech}'. " +
-                $"The word, in this context, means: '{input.Meaning}'. Provide between 1 and 3 possible answers so I can choose the best one. ";
-
-            if (input.Examples?.Count() > 0)
-            {
-                string examplesFlat = "'" + string.Join("', '", input.Examples) + "'";
-                prompt += $"Check also examples to get a better context: {examplesFlat}. ";
-            }
-
-            prompt += "Maintain the same part of speech in the translations. When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.";
-
-            List<ChatMessage> messages =
-            [
-                new UserChatMessage(prompt),
-            ];
-
+            List<ChatMessage> messages = [new UserChatMessage(prompt)];
             ChatCompletionOptions options = CreateChatCompletionOptions();
 
             ChatClient client = new(model: "gpt-4o-mini", apiKey: key);
@@ -49,6 +34,31 @@ namespace TranslationsFunc.Services
             var translationOutput = JsonSerializer.Deserialize<TranslationOutput>(json, jsonOptions);
 
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
+        }
+
+        internal string CreatePrompt(TranslationInput input)
+        {
+            string formattedLanguages = string.Join(", ", input.DestinationLanguages.Select(lang => $"'{lang}'"));
+
+            string meaningPlaceholder = !string.IsNullOrEmpty(input.PartOfSpeech) ? $", where the part of speech is: '{input.PartOfSpeech}'" : "";
+
+            var prompt = $"Translate the word '{input.Word}' from the language '{input.SourceLanguage}' into the languages {formattedLanguages}{meaningPlaceholder}. "
+                + $"The word, in this context, means: '{input.Meaning}'. Provide between 1 and 3 possible answers so I can choose the best one. ";
+
+            if (input.Examples?.Count() > 0)
+            {
+                string examplesFlat = "'" + string.Join("', '", input.Examples) + "'";
+                prompt += $"Check also examples to get a better context: {examplesFlat}. ";
+            }
+
+            if (!string.IsNullOrEmpty(input.PartOfSpeech))
+            {
+                prompt += "Maintain the same part of speech in the translations. ";
+            }
+
+            prompt += "When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.";
+
+            return prompt;
         }
 
         private static ChatCompletionOptions CreateChatCompletionOptions()
