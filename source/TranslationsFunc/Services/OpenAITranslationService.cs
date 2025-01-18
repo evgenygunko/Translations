@@ -40,10 +40,11 @@ namespace TranslationsFunc.Services
         {
             string formattedLanguages = string.Join(", ", input.DestinationLanguages.Select(lang => $"'{lang}'"));
 
-            string meaningPlaceholder = !string.IsNullOrEmpty(input.PartOfSpeech) ? $", where the part of speech is: '{input.PartOfSpeech}'" : "";
+            string partOfSpeechPlaceholder = !string.IsNullOrEmpty(input.PartOfSpeech) ? $", where the part of speech is: '{input.PartOfSpeech}'" : "";
+            string meaningPlaceholder = !string.IsNullOrEmpty(input.Meaning) ? $"The word, in this context, means: '{input.Meaning}'. " : "";
 
-            var prompt = $"Translate the word '{input.Word}' from the language '{input.SourceLanguage}' into the languages {formattedLanguages}{meaningPlaceholder}. "
-                + $"The word, in this context, means: '{input.Meaning}'. Provide between 1 and 3 possible answers so I can choose the best one. ";
+            var prompt = $"Translate the word '{input.Word}' from the language '{input.SourceLanguage}' into the languages {formattedLanguages}{partOfSpeechPlaceholder}. "
+                + $"{meaningPlaceholder}Provide between 1 and 3 possible answers so I can choose the best one. ";
 
             if (input.Examples?.Count() > 0)
             {
