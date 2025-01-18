@@ -8,6 +8,9 @@ pool:
     #name: windows-private
     #name: Default
 
+variables:
+    - group: AccessTokens
+
 stages:
     # Build and Lint
     - template: /.azuredevops/templates/build.yml

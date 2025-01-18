@@ -1,7 +1,5 @@
 stages:
     - stage: Build
-      variables:
-          - group: AccessTokens
 
       jobs:
           - job: Build
