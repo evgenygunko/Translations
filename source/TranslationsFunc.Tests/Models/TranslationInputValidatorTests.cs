@@ -74,16 +74,14 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenMeaningIsEmpty_ReturnsFalse()
+        public void Validate_WhenMeaningIsEmpty_ReturnsTrue()
         {
             TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "word", Meaning: "", PartOfSpeech: "part of speech", []);
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Meaning' must not be empty.");
+            result.IsValid.Should().BeTrue();
         }
 
         [TestMethod]

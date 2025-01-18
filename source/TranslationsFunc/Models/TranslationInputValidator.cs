@@ -17,7 +17,6 @@ namespace TranslationsFunc.Models
                 .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
 
             RuleFor(model => model.Word).NotEmpty();
-            RuleFor(model => model.Meaning).NotEmpty();
         }
 
         protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)
