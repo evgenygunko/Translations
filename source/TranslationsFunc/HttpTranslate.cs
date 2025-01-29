@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿// Ignore Spelling: Validator req
+
+using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

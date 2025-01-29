@@ -1,4 +1,6 @@
-﻿using AutoFixture;
+﻿// Ignore Spelling: Validator
+
+using AutoFixture;
 using FluentAssertions;
 using FluentValidation.Results;
 using TranslationsFunc.Models;
@@ -61,22 +63,33 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenWordIsEmpty_ReturnsFalse()
+        public void Validate_WhenWordAndMeaningAreEmpty_ReturnsFalse()
         {
-            TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "", Meaning: "meaning", PartOfSpeech: "part of speech", []);
+            TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "", Meaning: "", PartOfSpeech: "part of speech", []);
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Word' must not be empty.");
+            result.Errors.First().ErrorMessage.Should().Be("'Word' or 'Meaning' must not be empty.");
         }
 
         [TestMethod]
-        public void Validate_WhenMeaningIsEmpty_ReturnsTrue()
+        public void Validate_WhenWordIsNotEmptyAndMeaningIsEmpty_ReturnsTrue()
         {
             TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "word", Meaning: "", PartOfSpeech: "part of speech", []);
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Validate_WhenWordIsEmptyAndMeaningIsNotEmpty_ReturnsTrue()
+        {
+            TranslationInput translationInput = new(SourceLanguage: "da", DestinationLanguages: ["ru", "en"], Word: "", Meaning: "meaning", PartOfSpeech: "part of speech", []);
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);

@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿// Ignore Spelling: Validator
+
+using FluentValidation;
 using FluentValidation.Results;
 
 namespace TranslationsFunc.Models
@@ -16,7 +18,9 @@ namespace TranslationsFunc.Models
                 .Must(collection => collection == null || collection.Count() > 0 && collection.Count() <= 2)
                 .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
 
-            RuleFor(model => model.Word).NotEmpty();
+            RuleFor(x => x.Word).NotEmpty()
+                .When(x => !HasEitherWordOrMeaning(x))
+                .WithMessage("'Word' or 'Meaning' must not be empty.");
         }
 
         protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)
@@ -27,6 +31,12 @@ namespace TranslationsFunc.Models
                 return false;
             }
             return true;
+        }
+
+        private bool HasEitherWordOrMeaning(TranslationInput model)
+        {
+            return !string.IsNullOrEmpty(model.Word)
+                || !string.IsNullOrEmpty(model.Meaning);
         }
     }
 }

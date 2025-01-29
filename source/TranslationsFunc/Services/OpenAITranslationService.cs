@@ -40,6 +40,34 @@ namespace TranslationsFunc.Services
         {
             string formattedLanguages = string.Join(", ", input.DestinationLanguages.Select(lang => $"'{lang}'"));
 
+            string prompt;
+            if (string.IsNullOrEmpty(input.Word) && !string.IsNullOrEmpty(input.Meaning))
+            {
+                prompt = CreatePromptForMeaning(input, formattedLanguages);
+            }
+            else
+            {
+                prompt = CreatePromptForWord(input, formattedLanguages);
+            }
+
+            return prompt;
+        }
+
+        private string CreatePromptForMeaning(TranslationInput input, string formattedLanguages)
+        {
+            var prompt = $"Translate '{input.Meaning}' from the language '{input.SourceLanguage}' into the languages {formattedLanguages}. ";
+
+            if (input.Examples?.Count() > 0)
+            {
+                string examplesFlat = "'" + string.Join("', '", input.Examples) + "'";
+                prompt += $"Check also examples to get a better context: {examplesFlat}.";
+            }
+
+            return prompt;
+        }
+
+        private static string CreatePromptForWord(TranslationInput input, string formattedLanguages)
+        {
             string partOfSpeechPlaceholder = !string.IsNullOrEmpty(input.PartOfSpeech) ? $", where the part of speech is: '{input.PartOfSpeech}'" : "";
             string meaningPlaceholder = !string.IsNullOrEmpty(input.Meaning) ? $"The word, in this context, means: '{input.Meaning}'. " : "";
 
@@ -58,7 +86,6 @@ namespace TranslationsFunc.Services
             }
 
             prompt += "When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.";
-
             return prompt;
         }
 

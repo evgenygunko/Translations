@@ -17,11 +17,7 @@ namespace TranslationsFunc.Services
 
             AzureKeyCredential credential = new(key);
             TextTranslationClient client = new(credential, region);
-
-            var options = new TextTranslationTranslateOptions(
-                sourceLanguage: translationInput.SourceLanguage,
-                targetLanguages: translationInput.DestinationLanguages,
-                content: [translationInput.Word]);
+            TextTranslationTranslateOptions options = CreateTranslationOptions(translationInput);
 
             var response = await client.TranslateAsync(options).ConfigureAwait(false);
             IReadOnlyList<TranslatedTextItem> translatedWords = response.Value;
@@ -39,6 +35,24 @@ namespace TranslationsFunc.Services
 
             var translationOutput = new TranslationOutput(translationItems.ToArray());
             return translationOutput;
+        }
+
+        internal static TextTranslationTranslateOptions CreateTranslationOptions(TranslationInput input)
+        {
+            string content;
+            if (string.IsNullOrEmpty(input.Word) && !string.IsNullOrEmpty(input.Meaning))
+            {
+                content = input.Meaning;
+            }
+            else
+            {
+                content = input.Word;
+            }
+
+            return new TextTranslationTranslateOptions(
+                sourceLanguage: input.SourceLanguage,
+                targetLanguages: input.DestinationLanguages,
+                content: [content]);
         }
     }
 }

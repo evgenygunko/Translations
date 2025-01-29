@@ -11,6 +11,8 @@ namespace TranslationsFunc.Tests.Services
     {
         private readonly Fixture _fixture = FixtureFactory.CreateFixture();
 
+        #region Translation for Word
+
         [TestMethod]
         public void CreatePrompt_WhenPartOfSpeechIsNotEmpty_AddsItToPrompt()
         {
@@ -95,5 +97,24 @@ namespace TranslationsFunc.Tests.Services
                 + "The word, in this context, means: 'Meaning'. Provide between 1 and 3 possible answers so I can choose the best one. "
                 + "Maintain the same part of speech in the translations. When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.");
         }
+
+        #endregion
+
+        #region Translations for Meaning
+
+        [TestMethod]
+        public void CreatePrompt_WhenWordIsEmptyButMeaningIsNot_CreatesPromptForMeaning()
+        {
+            IEnumerable<string> examples = ["example 1", "example 2"];
+            TranslationInput input = new TranslationInput("da", ["en", "ru"], Word: "", "Meaning", PartOfSpeech: "", examples);
+
+            var sut = _fixture.Create<OpenAITranslationService>();
+            string result = sut.CreatePrompt(input);
+
+            result.Should().Be("Translate 'Meaning' from the language 'da' into the languages 'en', 'ru'. "
+                + "Check also examples to get a better context: 'example 1', 'example 2'.");
+        }
+
+        #endregion
     }
 }
