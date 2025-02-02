@@ -9,10 +9,13 @@ namespace TranslationsFunc.Services
 {
     public interface IOpenAITranslationService : ITranslationService
     {
+        Task<TranslationOutput> Translate2Async(TranslationInput2 translationInput);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
     {
+        #region Public Methods
+
         public async Task<TranslationOutput> TranslateAsync(TranslationInput input)
         {
             string key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!;
@@ -36,6 +39,15 @@ namespace TranslationsFunc.Services
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
 
+        public Task<TranslationOutput> Translate2Async(TranslationInput2 translationInput)
+        {
+            return Task.FromResult(new TranslationOutput([]));
+        }
+
+        #endregion
+
+        #region Internal Methods
+
         internal string CreatePrompt(TranslationInput input)
         {
             string formattedLanguages = string.Join(", ", input.DestinationLanguages.Select(lang => $"'{lang}'"));
@@ -52,6 +64,10 @@ namespace TranslationsFunc.Services
 
             return prompt;
         }
+
+        #endregion
+
+        #region Private Methods
 
         private string CreatePromptForMeaning(TranslationInput input, string formattedLanguages)
         {
@@ -115,5 +131,7 @@ namespace TranslationsFunc.Services
 
             return options;
         }
+
+        #endregion
     }
 }

@@ -17,7 +17,7 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenPartOfSpeechIsNotEmpty_AddsItToPrompt()
         {
             const string partOfSpeech = "PartOfSpeech";
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], "Word", "Meaning", partOfSpeech, []);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: partOfSpeech, Examples: []);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);
@@ -31,7 +31,7 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenPartOfSpeechIsEmpty_DoesNotAddItToPrompt()
         {
             const string partOfSpeech = "";
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], "Word", "Meaning", partOfSpeech, []);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: partOfSpeech, Examples: []);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);
@@ -45,7 +45,7 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenMeaningIsNotEmpty_AddsItToPrompt()
         {
             const string meaning = "Meaning1";
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], "Word", meaning, "PartOfSpeech", []);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: meaning, PartOfSpeech: "PartOfSpeech", Examples: []);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);
@@ -59,7 +59,7 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenMeaningIsEmpty_DoesNotAddItToPrompt()
         {
             const string meaning = "";
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], "Word", meaning, "PartOfSpeech", []);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: meaning, PartOfSpeech: "PartOfSpeech", Examples: []);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);
@@ -73,7 +73,7 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenExamplesAreNotEmpty_AddsThemToPrompt()
         {
             IEnumerable<string> examples = ["example 1", "example 2"];
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], "Word", "Meaning", "PartOfSpeech", examples);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: "PartOfSpeech", Examples: examples);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);
@@ -88,12 +88,12 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenExamplesAreEmpty_DoesNotAddThemToPrompt()
         {
             IEnumerable<string> examples = [];
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], "Word", "Meaning", "Meaning", examples);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: "PartOfSpeech", Examples: examples);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);
 
-            result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'Meaning'. "
+            result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'PartOfSpeech'. "
                 + "The word, in this context, means: 'Meaning'. Provide between 1 and 3 possible answers so I can choose the best one. "
                 + "Maintain the same part of speech in the translations. When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.");
         }
@@ -106,7 +106,7 @@ namespace TranslationsFunc.Tests.Services
         public void CreatePrompt_WhenWordIsEmptyButMeaningIsNot_CreatesPromptForMeaning()
         {
             IEnumerable<string> examples = ["example 1", "example 2"];
-            TranslationInput input = new TranslationInput("da", ["en", "ru"], Word: "", "Meaning", PartOfSpeech: "", examples);
+            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "", Meaning: "Meaning", PartOfSpeech: "", Examples: examples);
 
             var sut = _fixture.Create<OpenAITranslationService>();
             string result = sut.CreatePrompt(input);

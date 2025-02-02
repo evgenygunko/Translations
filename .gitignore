@@ -267,3 +267,4 @@ __pycache__/
 *.pyc
 
 **/http-client.env.json
+**/.DS_Store

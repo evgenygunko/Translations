@@ -10,7 +10,7 @@ using System.Collections.Specialized;
 namespace TranslationFunc.Tests
 {
     // see this example: https://stackoverflow.com/a/76396639
-    public class MockHttpRequestData
+    public static class MockHttpRequestData
     {
         public static HttpRequestData Create()
         {

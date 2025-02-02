@@ -29,6 +29,55 @@ Content-Type: application/json
   });
 %}
 
+### Translate "såsom" from Danish to English + Russian
+
+POST {{HostAddress}}/api/Translate?code={{code}}&service={{service}}
+Content-Type: application/json
+
+{
+    "Version": "1",
+    "SourceLanguage": "da",
+    "DestinationLanguages": [
+        "ru",
+        "en"
+    ],
+    "Word": "såsom",
+    "Headword": {
+        "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+        "PartOfSpeech": "konjunktion",
+        "Examples": [
+            "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+        ]
+    },
+    "Meanings": [
+        {
+            "id": 1,
+            "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+            "Examples": [
+                "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+            ]
+        },
+        {
+            "id": 2,
+            "Meaning": "bruges som indledning til en ledsætning der angiver en begrundelse",
+            "Examples": [
+                "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
+            ]
+        }
+    ]
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.Translations[0]["Language"] === "ru");
+    client.assert(response.body.Translations[0]["TranslationVariants"].length > 0);
+    client.assert(response.body.Translations[1]["Language"] === "en");
+    client.assert(response.body.Translations[1]["TranslationVariants"].length > 0);
+  });
+%}
 
 ### Translate "støbe" from Danish to English + Russian
 

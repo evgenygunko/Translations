@@ -18,17 +18,20 @@ namespace My.Function
         private readonly IAzureTranslationService _azureTranslationService;
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IValidator<TranslationInput> _translationInputValidator;
+        private readonly IValidator<TranslationInput2> _translationInput2Validator;
 
         public HttpTranslate(
             ILoggerFactory loggerFactory,
             IAzureTranslationService azureTranslationService,
             IOpenAITranslationService openAITranslationService,
-            IValidator<TranslationInput> translationInputValidator)
+            IValidator<TranslationInput> translationInputValidator,
+            IValidator<TranslationInput2> translationInput2Validator)
         {
             _logger = loggerFactory.CreateLogger<HttpTranslate>();
             _azureTranslationService = azureTranslationService;
             _openAITranslationService = openAITranslationService;
             _translationInputValidator = translationInputValidator;
+            _translationInput2Validator = translationInput2Validator;
         }
 
         [Function("Translate")]
@@ -44,39 +47,44 @@ namespace My.Function
             int index = inputJson.IndexOf("> {%");
             inputJson = index >= 0 ? inputJson.Substring(0, index) : inputJson;
 
-            TranslationInput? translationInput;
+            TranslationInput translationInput;
 
             try
             {
-                translationInput = JsonSerializer.Deserialize<TranslationInput>(inputJson);
+                TranslationInput2 translationInput2 = JsonSerializer.Deserialize<TranslationInput2>(inputJson)!;
+
+                if (int.TryParse(translationInput2.Version, out int inputVersion) && inputVersion == 1)
+                {
+                    return await TranslateVersion2Async(req, translationInput2);
+                }
+
+                translationInput = JsonSerializer.Deserialize<TranslationInput>(inputJson)!;
             }
             catch (Exception ex)
             {
                 return await CreateBadRequestResponseAsync(req, $"Cannot deserialize input data. Exception: '{ex}'");
             }
 
-#pragma warning disable CS8604 // Possible null reference argument.
-            var validation = await _translationInputValidator.ValidateAsync(translationInput);
-#pragma warning restore CS8604 // Possible null reference argument.
+            var validation = await _translationInputValidator.ValidateAsync((TranslationInput)translationInput);
             if (!validation.IsValid)
             {
                 string errorMessage = FormatValidationErrorMessage(validation);
                 return await CreateBadRequestResponseAsync(req, errorMessage);
             }
 
-            TranslationOutput translationOutput;
             try
             {
+                TranslationOutput translationOutput;
                 if (string.Equals(req.Query["service"], "azure", StringComparison.InvariantCultureIgnoreCase))
                 {
                     _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with Azure Translator Service.");
-                    translationOutput = await _azureTranslationService.TranslateAsync(translationInput);
+                    translationOutput = await _azureTranslationService.TranslateAsync((TranslationInput)translationInput);
                 }
                 else
                 {
                     // By default translate with OpenAI, it should return better results because it can analyze context and requested part of speech.
                     _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
-                    translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
+                    translationOutput = await _openAITranslationService.TranslateAsync((TranslationInput)translationInput);
                 }
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
@@ -122,6 +130,42 @@ namespace My.Function
             _logger.LogWarning($"Returning BadRequest: '{message}'");
 
             return response;
+        }
+
+        private async Task<HttpResponseData> TranslateVersion2Async(HttpRequestData req, TranslationInput2 translationInput)
+        {
+            // todo: merge this code into the main function when TranslationInput is not supported anymore
+            var validation = await _translationInput2Validator.ValidateAsync(translationInput);
+            if (!validation.IsValid)
+            {
+                string errorMessage = FormatValidationErrorMessage(validation);
+                return await CreateBadRequestResponseAsync(req, errorMessage);
+            }
+
+            try
+            {
+                _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
+
+                TranslationOutput translationOutput = await _openAITranslationService.Translate2Async(translationInput);
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                await response.WriteAsJsonAsync(translationOutput);
+
+                _logger.LogInformation($"Returning translations: " + JsonSerializer.Serialize(
+                    translationOutput,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    }));
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while calling translator API.");
+                throw;
+            }
         }
     }
 }
