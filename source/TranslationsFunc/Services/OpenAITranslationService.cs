@@ -14,23 +14,27 @@ namespace TranslationsFunc.Services
 
     public class OpenAITranslationService : IOpenAITranslationService
     {
+        private readonly ChatClient _chatClient;
+
+        public OpenAITranslationService(ChatClient chatClient)
+        {
+            _chatClient = chatClient;
+        }
+
         #region Public Methods
 
         public async Task<TranslationOutput> TranslateAsync(TranslationInput input)
         {
-            string key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!;
-
             var prompt = CreatePrompt(input);
 
-            List<ChatMessage> messages = [new UserChatMessage(prompt)];
+            List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
             ChatCompletionOptions options = CreateChatCompletionOptions();
 
-            ChatClient client = new(model: "gpt-4o-mini", apiKey: key);
-            ChatCompletion completion = await client.CompleteChatAsync(messages, options);
+            ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options);
 
             string json = completion.Content[0].Text;
 
-            var jsonOptions = new JsonSerializerOptions
+            var jsonOptions = new JsonSerializerOptions()
             {
                 PropertyNameCaseInsensitive = true
             };
@@ -39,9 +43,26 @@ namespace TranslationsFunc.Services
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
 
-        public Task<TranslationOutput> Translate2Async(TranslationInput2 translationInput)
+        public async Task<TranslationOutput> Translate2Async(TranslationInput2 translationInput)
         {
-            return Task.FromResult(new TranslationOutput([]));
+            // todo: to implement
+            //var prompt = CreatePrompt2(input);
+            string prompt = "Translate2Async";
+
+            List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
+            ChatCompletionOptions options = CreateChatCompletionOptions();
+
+            ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options);
+
+            string json = completion.Content[0].Text;
+
+            var jsonOptions = new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var translationOutput = JsonSerializer.Deserialize<TranslationOutput>(json, jsonOptions);
+
+            return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
 
         #endregion

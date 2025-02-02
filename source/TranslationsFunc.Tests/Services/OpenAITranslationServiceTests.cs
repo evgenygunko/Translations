@@ -1,5 +1,10 @@
-﻿using AutoFixture;
+﻿using System.ClientModel;
+using System.ClientModel.Primitives;
+using System.Reflection;
+using AutoFixture;
 using FluentAssertions;
+using Moq;
+using OpenAI.Chat;
 using TranslationFunc.Tests;
 using TranslationsFunc.Models;
 using TranslationsFunc.Services;
@@ -9,7 +14,48 @@ namespace TranslationsFunc.Tests.Services
     [TestClass]
     public class OpenAITranslationServiceTests
     {
+        private static string s_testDataPath;
+
         private readonly Fixture _fixture = FixtureFactory.CreateFixture();
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
+        {
+            string currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+            s_testDataPath = Path.Combine(currentDir, "TestData");
+        }
+
+        #region Tests for Translate2Async
+
+        [TestMethod]
+        [DeploymentItem(@"../../TestData/TranslationOutput.json")]
+        public async Task Translate2Async_Should_CallChatClient()
+        {
+            TranslationInput2 translationInput2 = _fixture.Create<TranslationInput2>();
+
+            string mockResponse = File.ReadAllText(Path.Combine(s_testDataPath, "TranslationOutput.json"));
+            ChatMessageContent content = [
+                ChatMessageContentPart.CreateTextPart(mockResponse)
+            ];
+            ChatCompletion chatCompletion = OpenAIChatModelFactory.ChatCompletion(content: content);
+
+            ClientResult<ChatCompletion> clientResult = ClientResult.FromValue(chatCompletion, new Mock<PipelineResponse>().Object);
+
+            var chatClientMock = new Mock<ChatClient>();
+            chatClientMock.Setup(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(clientResult);
+
+            var sut = new OpenAITranslationService(chatClientMock.Object);
+
+            TranslationOutput result = await sut.Translate2Async(translationInput2);
+
+            result.Should().NotBeNull();
+            result.Translations.Should().HaveCount(2);
+        }
+
+        #endregion
+
+        #region Tests for CreatePrompt
 
         #region Translation for Word
 
@@ -114,6 +160,8 @@ namespace TranslationsFunc.Tests.Services
             result.Should().Be("Translate 'Meaning' from the language 'da' into the languages 'en', 'ru'. "
                 + "Check also examples to get a better context: 'example 1', 'example 2'.");
         }
+
+        #endregion
 
         #endregion
     }
