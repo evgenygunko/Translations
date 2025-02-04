@@ -108,10 +108,10 @@ namespace TranslationFunc.Tests
             query["service"] = "azure";
 
             var httpRequestData = MockHttpRequestData.Create(translationInput2, query);
-            var translationOutput = _fixture.Create<TranslationOutput>();
+            var translationOutput2 = _fixture.Create<TranslationOutput2>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
-            openAITranslationServiceMock.Setup(x => x.Translate2Async(It.IsAny<TranslationInput2>())).ReturnsAsync(translationOutput);
+            openAITranslationServiceMock.Setup(x => x.Translate2Async(It.IsAny<TranslationInput2>())).ReturnsAsync(translationOutput2);
 
             var sut = _fixture.Create<HttpTranslate>();
             HttpResponseData result = await sut.Run(httpRequestData);
@@ -122,8 +122,8 @@ namespace TranslationFunc.Tests
             using var streamReader = new StreamReader(result.Body);
             string responseBody = await streamReader.ReadToEndAsync();
 
-            var jsonResponse = JsonSerializer.Deserialize<TranslationOutput>(responseBody);
-            jsonResponse.Should().BeEquivalentTo(translationOutput);
+            var deserializedResponse = JsonSerializer.Deserialize<TranslationOutput2>(responseBody);
+            deserializedResponse.Should().BeEquivalentTo(translationOutput2);
         }
 
         [TestMethod]

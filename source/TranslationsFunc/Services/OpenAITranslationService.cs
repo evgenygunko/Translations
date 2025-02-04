@@ -10,7 +10,7 @@ namespace TranslationsFunc.Services
 {
     public interface IOpenAITranslationService : ITranslationService
     {
-        Task<TranslationOutput> Translate2Async(TranslationInput2 translationInput);
+        Task<TranslationOutput2> Translate2Async(TranslationInput2 translationInput);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
@@ -44,7 +44,7 @@ namespace TranslationsFunc.Services
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
 
-        public async Task<TranslationOutput> Translate2Async(TranslationInput2 translationInput)
+        public async Task<TranslationOutput2> Translate2Async(TranslationInput2 translationInput)
         {
             // todo: to implement
             //var prompt = CreatePrompt2(input);
@@ -61,9 +61,11 @@ namespace TranslationsFunc.Services
             {
                 PropertyNameCaseInsensitive = true
             };
-            var translationOutput = JsonSerializer.Deserialize<TranslationOutput>(json, jsonOptions);
+            var translationOutput = JsonSerializer.Deserialize<TranslationOutput2>(json, jsonOptions);
 
-            return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
+            return translationOutput ?? new TranslationOutput2(
+                Headword: [],
+                Meanings: []);
         }
 
         #endregion

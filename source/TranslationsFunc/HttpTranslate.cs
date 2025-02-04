@@ -147,7 +147,7 @@ namespace My.Function
             {
                 _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
 
-                TranslationOutput translationOutput = await _openAITranslationService.Translate2Async(translationInput);
+                TranslationOutput2 translationOutput = await _openAITranslationService.Translate2Async(translationInput);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await response.WriteAsJsonAsync(translationOutput);

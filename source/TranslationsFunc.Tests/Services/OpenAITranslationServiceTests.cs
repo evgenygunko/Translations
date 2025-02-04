@@ -1,6 +1,7 @@
 ﻿using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Reflection;
+using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Moq;
@@ -33,7 +34,12 @@ namespace TranslationsFunc.Tests.Services
         {
             TranslationInput2 translationInput2 = _fixture.Create<TranslationInput2>();
 
-            string mockResponse = File.ReadAllText(Path.Combine(s_testDataPath, "TranslationOutput.json"));
+            string mockResponse = File.ReadAllText(Path.Combine(s_testDataPath, "TranslationOutput2.json"));
+            var translationOutput2 = JsonSerializer.Deserialize<TranslationOutput2>(mockResponse);
+            translationOutput2.Should().NotBeNull();
+            translationOutput2!.Headword.Should().NotBeNull();
+            translationOutput2!.Meanings.Should().HaveCount(2);
+
             ChatMessageContent content = [
                 ChatMessageContentPart.CreateTextPart(mockResponse)
             ];
@@ -47,10 +53,10 @@ namespace TranslationsFunc.Tests.Services
 
             var sut = new OpenAITranslationService(chatClientMock.Object);
 
-            TranslationOutput result = await sut.Translate2Async(translationInput2);
+            TranslationOutput2 result = await sut.Translate2Async(translationInput2);
 
             result.Should().NotBeNull();
-            result.Translations.Should().HaveCount(2);
+            result.Should().BeEquivalentTo(translationOutput2);
         }
 
         #endregion
