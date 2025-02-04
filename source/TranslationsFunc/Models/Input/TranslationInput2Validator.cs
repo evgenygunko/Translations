@@ -18,7 +18,8 @@ namespace TranslationsFunc.Models.Input
                 .Must(collection => collection == null || collection.Count() > 0 && collection.Count() <= 2)
                 .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
 
-            RuleFor(model => model.Word).NotEmpty();
+            RuleFor(model => model.Headword).NotNull();
+            RuleFor(model => model.Headword.Text).NotEmpty();
 
             RuleFor(model => model.Meanings)
                 .Must(collection => collection == null || collection.Count() > 0)

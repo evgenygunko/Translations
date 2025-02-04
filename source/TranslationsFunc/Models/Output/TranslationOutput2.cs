@@ -2,9 +2,9 @@
 {
     public record TranslationOutput2(Headword[] Headword, Meaning[] Meanings);
 
-    public record Headword(string Language, IEnumerable<string> TranslationVariants);
+    public record Headword(string Language, IEnumerable<string> HeadwordTranslations);
 
-    public record Meaning(int id, TranslatedMeaning[] TranslatedMeanings);
+    public record Meaning(int id, MeaningTranslation[] MeaningTranslations);
 
-    public record TranslatedMeaning(string Language, string Text);
+    public record MeaningTranslation(string Language, string Text);
 }

@@ -2,7 +2,7 @@
     "Headword": [
         {
             "Language": "ru",
-            "TranslationVariants": [
+            "HeadwordTranslations": [
                 "такие как",
                 "например",
                 "как"
@@ -10,7 +10,7 @@
         },
         {
             "Language": "en",
-            "TranslationVariants": [
+            "HeadwordTranslations": [
                 "such as",
                 "for example",
                 "like"
@@ -20,27 +20,27 @@
     "Meanings": [
         {
             "id": 1,
-            "TranslatedMeanings": [
+            "MeaningTranslations": [
                 {
                     "Language": "ru",
-                    "TranslatedMeaning": "используется для указания одного или нескольких примеров чего-либо"
+                    "Text": "используется для указания одного или нескольких примеров чего-либо"
                 },
                 {
                     "Language": "en",
-                    "TranslatedMeaning": "used to indicate one or more examples of something"
+                    "Text": "used to indicate one or more examples of something"
                 }
             ]
         },
         {
             "id": 2,
-            "TranslatedMeanings": [
+            "MeaningTranslations": [
                 {
                     "Language": "ru",
-                    "TranslatedMeaning": "используется как введение к пункту, в котором приводится причина"
+                    "Text": "используется как введение к пункту, в котором приводится причина"
                 },
                 {
                     "Language": "en",
-                    "TranslatedMeaning": "used as an introduction to a clause that gives a reason"
+                    "Text": "used as an introduction to a clause that gives a reason"
                 }
             ]
         }

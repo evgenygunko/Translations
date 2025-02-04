@@ -97,8 +97,7 @@ namespace TranslationFunc.Tests
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
-                Word: "word to translate",
-                Headword: new TranslationsFunc.Models.Input.Headword(Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
                 Meanings: [
                     new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
                     new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),

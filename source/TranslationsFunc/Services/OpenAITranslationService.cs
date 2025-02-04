@@ -29,7 +29,7 @@ namespace TranslationsFunc.Services
             var prompt = CreatePrompt(input);
 
             List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
-            ChatCompletionOptions options = CreateChatCompletionOptions();
+            ChatCompletionOptions options = CreateChatCompletionOptions<TranslationOutput>();
 
             ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options);
 
@@ -44,14 +44,12 @@ namespace TranslationsFunc.Services
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
 
-        public async Task<TranslationOutput2> Translate2Async(TranslationInput2 translationInput)
+        public async Task<TranslationOutput2> Translate2Async(TranslationInput2 input)
         {
-            // todo: to implement
-            //var prompt = CreatePrompt2(input);
-            string prompt = "Translate2Async";
+            string prompt = CreatePrompt2(input);
 
             List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
-            ChatCompletionOptions options = CreateChatCompletionOptions();
+            ChatCompletionOptions options = CreateChatCompletionOptions<TranslationOutput2>();
 
             ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options);
 
@@ -87,6 +85,12 @@ namespace TranslationsFunc.Services
             }
 
             return prompt;
+        }
+
+        private string CreatePrompt2(TranslationInput2 input)
+        {
+            // todo: to implement
+            return string.Empty;
         }
 
         #endregion
@@ -129,7 +133,7 @@ namespace TranslationsFunc.Services
             return prompt;
         }
 
-        private static ChatCompletionOptions CreateChatCompletionOptions()
+        private static ChatCompletionOptions CreateChatCompletionOptions<T>()
         {
             JsonSerializerOptions jsonSerializerOptions = new(JsonSerializerOptions.Default)
             {
@@ -141,11 +145,11 @@ namespace TranslationsFunc.Services
                 TreatNullObliviousAsNonNullable = true,
             };
 
-            JsonNode schema = jsonSerializerOptions.GetJsonSchemaAsNode(typeof(TranslationOutput), exporterOptions);
+            JsonNode schema = jsonSerializerOptions.GetJsonSchemaAsNode(typeof(T), exporterOptions);
 
             BinaryData jsonSchema = BinaryData.FromString(schema.ToString());
 
-            ChatCompletionOptions options = new()
+            var options = new ChatCompletionOptions()
             {
                 ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
                     jsonSchemaFormatName: "translation_output",

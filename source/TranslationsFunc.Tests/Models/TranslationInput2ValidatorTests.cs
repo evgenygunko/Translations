@@ -19,8 +19,7 @@ namespace TranslationFunc.Tests.Models
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
-                Word: "word",
-                Headword: new Headword("Meaning", "PartOfSpeech", Examples: []),
+                Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
             var sut = _fixture.Create<TranslationInput2Validator>();
@@ -36,8 +35,7 @@ namespace TranslationFunc.Tests.Models
                 Version: "1",
                 SourceLanguage: "",
                 DestinationLanguages: ["ru", "en"],
-                Word: "word",
-                Headword: new Headword("Meaning", "PartOfSpeech", Examples: []),
+                Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
             var sut = _fixture.Create<TranslationInput2Validator>();
@@ -55,8 +53,7 @@ namespace TranslationFunc.Tests.Models
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: null!,
-                Word: "word",
-                Headword: new Headword("Meaning", "PartOfSpeech", Examples: []),
+                Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
             var sut = _fixture.Create<TranslationInput2Validator>();
@@ -74,8 +71,7 @@ namespace TranslationFunc.Tests.Models
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en", "es"],
-                Word: "word",
-                Headword: new Headword("Meaning", "PartOfSpeech", Examples: []),
+                Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
             var sut = _fixture.Create<TranslationInput2Validator>();
@@ -87,14 +83,13 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenWordIsEmpty_ReturnsFalse()
+        public void Validate_WhenHeadwordIsNull_ReturnsFalse()
         {
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
-                Word: "",
-                Headword: new Headword("Meaning", "PartOfSpeech", Examples: []),
+                Headword: default!,
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
             var sut = _fixture.Create<TranslationInput2Validator>();
@@ -102,7 +97,25 @@ namespace TranslationFunc.Tests.Models
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Word' must not be empty.");
+            result.Errors.First().ErrorMessage.Should().Be("'Headword' must not be empty.");
+        }
+
+        [TestMethod]
+        public void Validate_WhenHeadwordTextIsEmpty_ReturnsFalse()
+        {
+            TranslationInput2 translationInput = new TranslationInput2(
+                Version: "1",
+                SourceLanguage: "da",
+                DestinationLanguages: ["ru", "en"],
+                Headword: new Headword("", "Meaning", "PartOfSpeech", Examples: []),
+                Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
+
+            var sut = _fixture.Create<TranslationInput2Validator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(1);
+            result.Errors.First().ErrorMessage.Should().Be("'Headword Text' must not be empty.");
         }
 
         [TestMethod]
@@ -112,8 +125,7 @@ namespace TranslationFunc.Tests.Models
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
-                Word: "word",
-                Headword: new Headword("Meaning", "PartOfSpeech", Examples: []),
+                Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: []);
 
             var sut = _fixture.Create<TranslationInput2Validator>();
