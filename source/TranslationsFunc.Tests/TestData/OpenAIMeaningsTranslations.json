@@ -1,0 +1,30 @@
+{
+    "Translations": [
+        {
+            "id": 1,
+            "MeaningTranslations": [
+                {
+                    "Language": "ru",
+                    "Text": "используется для указания одного или нескольких примеров чего-либо"
+                },
+                {
+                    "Language": "en",
+                    "Text": "used to indicate one or more examples of something"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "MeaningTranslations": [
+                {
+                    "Language": "ru",
+                    "Text": "используется как вводное для придаточного предложения, указывающего на причину"
+                },
+                {
+                    "Language": "en",
+                    "Text": "used as an introduction to a subordinate clause that indicates a reason"
+                }
+            ]
+        }
+    ]
+}

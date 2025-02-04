@@ -52,14 +52,14 @@ Content-Type: application/json
     "Meanings": [
         {
             "id": 1,
-            "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+            "Text": "bruges til angivelse af et eller flere eksempler på noget",
             "Examples": [
                 "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
             ]
         },
         {
             "id": 2,
-            "Meaning": "bruges som indledning til en ledsætning der angiver en begrundelse",
+            "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
             "Examples": [
                 "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
             ]
@@ -76,6 +76,18 @@ Content-Type: application/json
     client.assert(response.body.Headword[0]["HeadwordTranslations"].length > 0);
     client.assert(response.body.Headword[1]["Language"] === "en");
     client.assert(response.body.Headword[1]["HeadwordTranslations"].length > 0);
+
+    client.assert(response.body.Meanings[0]["id"] === 1);
+    client.assert(response.body.Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+
+    client.assert(response.body.Meanings[1]["id"] === 2);
+    client.assert(response.body.Meanings[1].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Meanings[1].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Meanings[1].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Meanings[1].MeaningTranslations[1]["Text"].length > 0);
   });
 %}
 

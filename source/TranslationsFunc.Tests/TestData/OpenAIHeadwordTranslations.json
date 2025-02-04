@@ -1,0 +1,20 @@
+{
+    "Translations": [
+        {
+            "Language": "ru",
+            "HeadwordTranslations": [
+                "такие как",
+                "например",
+                "как"
+            ]
+        },
+        {
+            "Language": "en",
+            "HeadwordTranslations": [
+                "such as",
+                "for example",
+                "like"
+            ]
+        }
+    ]
+}

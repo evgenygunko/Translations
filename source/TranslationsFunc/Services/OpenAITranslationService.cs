@@ -28,7 +28,7 @@ namespace TranslationsFunc.Services
         public async Task<TranslationOutput> TranslateAsync(TranslationInput input)
         {
             var prompt = CreatePrompt(input);
-            TranslationOutput? translationOutput = await TranslateHeadwordAsync(prompt);
+            TranslationOutput? translationOutput = await CallOpenAIAsync<TranslationOutput>(prompt);
 
             return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
         }
@@ -44,18 +44,7 @@ namespace TranslationsFunc.Services
                     partOfSpeech: input.Headword.PartOfSpeech,
                     examples: input.Headword.Examples);
 
-            TranslationOutput? headWordTranslationsOutput = await TranslateHeadwordAsync(promptForHeadword);
-
-            var headwords = new List<Models.Output.Headword>();
-            if (headWordTranslationsOutput != null)
-            {
-                for (int i = 0; i < headWordTranslationsOutput.Translations.Length; i++)
-                {
-                    headwords.Add(new Models.Output.Headword(
-                                Language: headWordTranslationsOutput.Translations[i].Language,
-                                HeadwordTranslations: headWordTranslationsOutput.Translations[i].TranslationVariants));
-                }
-            }
+            OpenAIHeadwordTranslations? openAIHeadwordTranslations = await CallOpenAIAsync<OpenAIHeadwordTranslations>(promptForHeadword);
 
             // Translate meanings
             string promptForMeanings = CreatePromptForMeanings(
@@ -63,9 +52,11 @@ namespace TranslationsFunc.Services
                     destinationLanguages: input.DestinationLanguages,
                     meanings: input.Meanings);
 
+            OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
+
             return new TranslationOutput2(
-                Headword: headwords.ToArray(),
-                Meanings: []);
+                Headword: openAIHeadwordTranslations?.Translations ?? [],
+                Meanings: openAIMeaningsTranslations?.Translations ?? []);
         }
 
         #endregion
@@ -129,8 +120,8 @@ namespace TranslationsFunc.Services
 
             StringBuilder prompt = new StringBuilder();
             prompt.AppendLine($"Translate strings from the language '{sourceLanguage}' into the languages {formattedLanguages}.");
-            prompt.AppendLine("Check also examples to get a better context.");
-            prompt.AppendLine("For the output, keep id of the input text when returning translations.");
+            prompt.AppendLine("Check examples to better understand the context.");
+            prompt.AppendLine("In the output, retain the ID of the input text when returning translations.");
 
             foreach (var meaning in meanings)
             {
@@ -138,7 +129,7 @@ namespace TranslationsFunc.Services
                 prompt.AppendLine($"id=\"{meaning.id}\", text=\"{meaning.Text}\", examples=\"{examplesFlat}\".");
             }
 
-            return prompt.ToString();
+            return prompt.ToString().Trim();
         }
 
         internal static string CreatePromptForHeadword(
@@ -151,46 +142,52 @@ namespace TranslationsFunc.Services
         {
             string formattedLanguages = string.Join(", ", destinationLanguages.Select(lang => $"'{lang}'"));
 
-            string partOfSpeechPlaceholder = !string.IsNullOrEmpty(partOfSpeech) ? $", where the part of speech is: '{partOfSpeech}'" : "";
-            string meaningPlaceholder = !string.IsNullOrEmpty(meaning) ? $"The word, in this context, means: '{meaning}'. " : "";
+            StringBuilder prompt = new StringBuilder();
+            prompt.Append($"Translate the word '{word}' from the language '{sourceLanguage}' into the languages {formattedLanguages}");
+            if (!string.IsNullOrEmpty(partOfSpeech))
+            {
+                prompt.Append($", where the part of speech is: '{partOfSpeech}'");
+            }
+            prompt.AppendLine(".");
 
-            var prompt = $"Translate the word '{word}' from the language '{sourceLanguage}' into the languages {formattedLanguages}{partOfSpeechPlaceholder}. "
-                + $"{meaningPlaceholder}Provide between 1 and 3 possible answers so I can choose the best one. ";
+            if (!string.IsNullOrEmpty(meaning))
+            {
+                prompt.AppendLine($"The word, in this context, means: '{meaning}'.");
+            }
 
             if (examples?.Count() > 0)
             {
                 string examplesFlat = "'" + string.Join("', '", examples) + "'";
-                prompt += $"Check also examples to get a better context: {examplesFlat}. ";
+                prompt.AppendLine($"Check examples to better understand the context: {examplesFlat}.");
             }
+
+            prompt.AppendLine("Provide between 1 and 3 possible answers so I can choose the best one.");
 
             if (!string.IsNullOrEmpty(partOfSpeech))
             {
-                prompt += "Maintain the same part of speech in the translations. ";
+                prompt.AppendLine("Maintain the same part of speech in the translations.");
             }
 
-            prompt += "When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.";
-            return prompt;
+            prompt.Append("When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.");
+
+            return prompt.ToString();
         }
 
         #endregion
 
         #region Private Methods
 
-        private async Task<TranslationOutput?> TranslateHeadwordAsync(string prompt)
+        private async Task<T?> CallOpenAIAsync<T>(string prompt)
         {
             List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
-            ChatCompletionOptions options = CreateChatCompletionOptions<TranslationOutput>();
+            ChatCompletionOptions options = CreateChatCompletionOptions<T>();
 
             ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options);
 
             string json = completion.Content[0].Text;
 
-            var jsonOptions = new JsonSerializerOptions()
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var translationOutput = JsonSerializer.Deserialize<TranslationOutput>(json, jsonOptions);
-            return translationOutput;
+            var translations = JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            return translations;
         }
 
         private static ChatCompletionOptions CreateChatCompletionOptions<T>()
