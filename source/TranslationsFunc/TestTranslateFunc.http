@@ -72,10 +72,10 @@ Content-Type: application/json
   // Assert status code
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is 200");
-    client.assert(response.body.Translations[0]["Language"] === "ru");
-    client.assert(response.body.Translations[0]["TranslationVariants"].length > 0);
-    client.assert(response.body.Translations[1]["Language"] === "en");
-    client.assert(response.body.Translations[1]["TranslationVariants"].length > 0);
+    client.assert(response.body.Headword[0]["Language"] === "ru");
+    client.assert(response.body.Headword[0]["HeadwordTranslations"].length > 0);
+    client.assert(response.body.Headword[1]["Language"] === "en");
+    client.assert(response.body.Headword[1]["HeadwordTranslations"].length > 0);
   });
 %}
 

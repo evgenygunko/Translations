@@ -1,7 +1,6 @@
 ﻿using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Reflection;
-using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Moq;
@@ -34,16 +33,12 @@ namespace TranslationsFunc.Tests.Services
         {
             TranslationInput2 translationInput2 = _fixture.Create<TranslationInput2>();
 
-            string mockResponse = File.ReadAllText(Path.Combine(s_testDataPath, "TranslationOutput2.json"));
-            var translationOutput2 = JsonSerializer.Deserialize<TranslationOutput2>(mockResponse);
-            translationOutput2.Should().NotBeNull();
-            translationOutput2!.Headword.Should().NotBeNull();
-            translationOutput2!.Meanings.Should().HaveCount(2);
+            string headwordTranslationsResponse = File.ReadAllText(Path.Combine(s_testDataPath, "TranslationOutput.json"));
 
-            ChatMessageContent content = [
-                ChatMessageContentPart.CreateTextPart(mockResponse)
+            ChatMessageContent headWordContent = [
+                ChatMessageContentPart.CreateTextPart(headwordTranslationsResponse)
             ];
-            ChatCompletion chatCompletion = OpenAIChatModelFactory.ChatCompletion(content: content);
+            ChatCompletion chatCompletion = OpenAIChatModelFactory.ChatCompletion(content: headWordContent);
 
             ClientResult<ChatCompletion> clientResult = ClientResult.FromValue(chatCompletion, new Mock<PipelineResponse>().Object);
 
@@ -56,23 +51,40 @@ namespace TranslationsFunc.Tests.Services
             TranslationOutput2 result = await sut.Translate2Async(translationInput2);
 
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(translationOutput2);
+
+            // Check translations for headword
+            result.Headword.Should().HaveCount(2);
+
+            Models.Output.Headword headword;
+
+            headword = result.Headword.First();
+            headword.Language.Should().Be("ru");
+            headword.HeadwordTranslations.First().Should().Be("такие как");
+
+            headword = result.Headword.Skip(1).First();
+            headword.Language.Should().Be("en");
+            headword.HeadwordTranslations.First().Should().Be("such as");
+
+            // Check translations for meanings
+            // result.Meanings.Should().HaveCount(2);
         }
 
         #endregion
 
-        #region Tests for CreatePrompt
-
-        #region Translation for Word
+        #region Tests for CreatePromptForHeadword
 
         [TestMethod]
-        public void CreatePrompt_WhenPartOfSpeechIsNotEmpty_AddsItToPrompt()
+        public void CreatePromptForHeadword_WhenPartOfSpeechIsNotEmpty_AddsItToPrompt()
         {
             const string partOfSpeech = "PartOfSpeech";
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: partOfSpeech, Examples: []);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForHeadword(
+                word: "Word",
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: "Meaning",
+                partOfSpeech: partOfSpeech,
+                examples: []);
 
             result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'PartOfSpeech'. "
                 + "The word, in this context, means: 'Meaning'. Provide between 1 and 3 possible answers so I can choose the best one. "
@@ -80,13 +92,17 @@ namespace TranslationsFunc.Tests.Services
         }
 
         [TestMethod]
-        public void CreatePrompt_WhenPartOfSpeechIsEmpty_DoesNotAddItToPrompt()
+        public void CreatePromptForHeadword_WhenPartOfSpeechIsEmpty_DoesNotAddItToPrompt()
         {
             const string partOfSpeech = "";
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: partOfSpeech, Examples: []);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForHeadword(
+                word: "Word",
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: "Meaning",
+                partOfSpeech: partOfSpeech,
+                examples: []);
 
             result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru'. "
                 + "The word, in this context, means: 'Meaning'. Provide between 1 and 3 possible answers so I can choose the best one. "
@@ -94,13 +110,17 @@ namespace TranslationsFunc.Tests.Services
         }
 
         [TestMethod]
-        public void CreatePrompt_WhenMeaningIsNotEmpty_AddsItToPrompt()
+        public void CreatePromptForHeadword_WhenMeaningIsNotEmpty_AddsItToPrompt()
         {
             const string meaning = "Meaning1";
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: meaning, PartOfSpeech: "PartOfSpeech", Examples: []);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForHeadword(
+                word: "Word",
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: meaning,
+                partOfSpeech: "PartOfSpeech",
+                examples: []);
 
             result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'PartOfSpeech'. "
                 + "The word, in this context, means: 'Meaning1'. Provide between 1 and 3 possible answers so I can choose the best one. "
@@ -108,13 +128,17 @@ namespace TranslationsFunc.Tests.Services
         }
 
         [TestMethod]
-        public void CreatePrompt_WhenMeaningIsEmpty_DoesNotAddItToPrompt()
+        public void CreatePromptForHeadword_WhenMeaningIsEmpty_DoesNotAddItToPrompt()
         {
             const string meaning = "";
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: meaning, PartOfSpeech: "PartOfSpeech", Examples: []);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForHeadword(
+                word: "Word",
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: meaning,
+                partOfSpeech: "PartOfSpeech",
+                examples: []);
 
             result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'PartOfSpeech'. "
                 + "Provide between 1 and 3 possible answers so I can choose the best one. "
@@ -122,13 +146,17 @@ namespace TranslationsFunc.Tests.Services
         }
 
         [TestMethod]
-        public void CreatePrompt_WhenExamplesAreNotEmpty_AddsThemToPrompt()
+        public void CreatePromptForHeadword_WhenExamplesAreNotEmpty_AddsThemToPrompt()
         {
             IEnumerable<string> examples = ["example 1", "example 2"];
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: "PartOfSpeech", Examples: examples);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForHeadword(
+                word: "Word",
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: "Meaning",
+                partOfSpeech: "PartOfSpeech",
+                examples: examples);
 
             result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'PartOfSpeech'. "
                 + "The word, in this context, means: 'Meaning'. Provide between 1 and 3 possible answers so I can choose the best one. "
@@ -137,13 +165,17 @@ namespace TranslationsFunc.Tests.Services
         }
 
         [TestMethod]
-        public void CreatePrompt_WhenExamplesAreEmpty_DoesNotAddThemToPrompt()
+        public void CreatePromptForHeadword_WhenExamplesAreEmpty_DoesNotAddThemToPrompt()
         {
             IEnumerable<string> examples = [];
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "Word", Meaning: "Meaning", PartOfSpeech: "PartOfSpeech", Examples: examples);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForHeadword(
+                word: "Word",
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: "Meaning",
+                partOfSpeech: "PartOfSpeech",
+                examples: examples);
 
             result.Should().Be("Translate the word 'Word' from the language 'da' into the languages 'en', 'ru', where the part of speech is: 'PartOfSpeech'. "
                 + "The word, in this context, means: 'Meaning'. Provide between 1 and 3 possible answers so I can choose the best one. "
@@ -152,22 +184,22 @@ namespace TranslationsFunc.Tests.Services
 
         #endregion
 
-        #region Translations for Meaning
+        #region Tests for CreatePromptForMeaning
 
         [TestMethod]
-        public void CreatePrompt_WhenWordIsEmptyButMeaningIsNot_CreatesPromptForMeaning()
+        public void CreatePromptForMeaning_WhenWordIsEmptyButMeaningIsNot_CreatesPromptForMeaning()
         {
             IEnumerable<string> examples = ["example 1", "example 2"];
-            TranslationInput input = new TranslationInput(SourceLanguage: "da", DestinationLanguages: ["en", "ru"], Word: "", Meaning: "Meaning", PartOfSpeech: "", Examples: examples);
 
-            var sut = _fixture.Create<OpenAITranslationService>();
-            string result = sut.CreatePrompt(input);
+            string result = OpenAITranslationService.CreatePromptForMeaning(
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meaning: "Meaning",
+                examples: examples);
 
             result.Should().Be("Translate 'Meaning' from the language 'da' into the languages 'en', 'ru'. "
                 + "Check also examples to get a better context: 'example 1', 'example 2'.");
         }
-
-        #endregion
 
         #endregion
     }

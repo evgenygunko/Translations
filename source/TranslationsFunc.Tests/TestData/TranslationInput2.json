@@ -16,14 +16,14 @@
     "Meanings": [
         {
             "id": 1,
-            "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+            "Text": "bruges til angivelse af et eller flere eksempler på noget",
             "Examples": [
                 "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
             ]
         },
         {
             "id": 2,
-            "Meaning": "bruges som indledning til en ledsætning der angiver en begrundelse",
+            "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
             "Examples": [
                 "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
             ]
