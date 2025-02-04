@@ -10,7 +10,8 @@ using FluentValidation.Results;
 using Microsoft.Azure.Functions.Worker.Http;
 using Moq;
 using My.Function;
-using TranslationsFunc.Models;
+using TranslationsFunc.Models.Input;
+using TranslationsFunc.Models.Output;
 using TranslationsFunc.Services;
 
 namespace TranslationFunc.Tests
@@ -97,10 +98,10 @@ namespace TranslationFunc.Tests
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
                 Word: "word to translate",
-                Headword: new Headword(Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                Headword: new TranslationsFunc.Models.Input.Headword(Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
                 Meanings: [
-                    new Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
-                    new Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
+                    new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
+                    new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
                     ]);
 
             NameValueCollection query = new();

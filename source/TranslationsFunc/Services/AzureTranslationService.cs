@@ -1,6 +1,7 @@
 ﻿using Azure.AI.Translation.Text;
 using Azure;
-using TranslationsFunc.Models;
+using TranslationsFunc.Models.Output;
+using TranslationsFunc.Models.Input;
 
 namespace TranslationsFunc.Services
 {

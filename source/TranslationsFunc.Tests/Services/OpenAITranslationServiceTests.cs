@@ -6,7 +6,8 @@ using FluentAssertions;
 using Moq;
 using OpenAI.Chat;
 using TranslationFunc.Tests;
-using TranslationsFunc.Models;
+using TranslationsFunc.Models.Input;
+using TranslationsFunc.Models.Output;
 using TranslationsFunc.Services;
 
 namespace TranslationsFunc.Tests.Services
@@ -14,7 +15,7 @@ namespace TranslationsFunc.Tests.Services
     [TestClass]
     public class OpenAITranslationServiceTests
     {
-        private static string s_testDataPath;
+        private static string s_testDataPath = default!;
 
         private readonly Fixture _fixture = FixtureFactory.CreateFixture();
 
@@ -28,7 +29,6 @@ namespace TranslationsFunc.Tests.Services
         #region Tests for Translate2Async
 
         [TestMethod]
-        [DeploymentItem(@"../../TestData/TranslationOutput.json")]
         public async Task Translate2Async_Should_CallChatClient()
         {
             TranslationInput2 translationInput2 = _fixture.Create<TranslationInput2>();

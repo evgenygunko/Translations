@@ -5,10 +5,11 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using TranslationsFunc.Models;
 using TranslationsFunc.Services;
 using FluentValidation;
 using FluentValidation.Results;
+using TranslationsFunc.Models.Input;
+using TranslationsFunc.Models.Output;
 
 namespace My.Function
 {

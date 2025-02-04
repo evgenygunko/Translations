@@ -3,7 +3,7 @@
 using AutoFixture;
 using FluentAssertions;
 using FluentValidation.Results;
-using TranslationsFunc.Models;
+using TranslationsFunc.Models.Input;
 
 namespace TranslationFunc.Tests.Models
 {

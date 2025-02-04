@@ -3,7 +3,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenAI.Chat;
-using TranslationsFunc.Models;
+using TranslationsFunc.Models.Input;
 using TranslationsFunc.Services;
 
 var host = new HostBuilder()

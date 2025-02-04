@@ -1,9 +1,10 @@
-﻿using TranslationsFunc.Models;
-using OpenAI.Chat;
+﻿using OpenAI.Chat;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Json.Serialization;
+using TranslationsFunc.Models.Input;
+using TranslationsFunc.Models.Output;
 
 namespace TranslationsFunc.Services
 {

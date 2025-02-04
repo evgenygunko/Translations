@@ -1,4 +1,4 @@
-﻿namespace TranslationsFunc.Models
+﻿namespace TranslationsFunc.Models.Output
 {
     public record TranslationOutput(TranslationItem[] Translations);
 

@@ -1,6 +1,6 @@
 ﻿using Azure.AI.Translation.Text;
 using FluentAssertions;
-using TranslationsFunc.Models;
+using TranslationsFunc.Models.Input;
 using TranslationsFunc.Services;
 
 namespace TranslationsFunc.Tests.Services

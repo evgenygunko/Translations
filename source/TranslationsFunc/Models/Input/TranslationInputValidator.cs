@@ -3,11 +3,11 @@
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace TranslationsFunc.Models
+namespace TranslationsFunc.Models.Input
 {
-    public class TranslationInput2Validator : AbstractValidator<TranslationInput2>
+    public class TranslationInputValidator : AbstractValidator<TranslationInput>
     {
-        public TranslationInput2Validator()
+        public TranslationInputValidator()
         {
             RuleFor(model => model.SourceLanguage).NotEmpty();
 
@@ -15,17 +15,15 @@ namespace TranslationsFunc.Models
                 .NotEmpty()
                 .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
             RuleFor(model => model.DestinationLanguages)
-                .Must(collection => collection == null || (collection.Count() > 0 && collection.Count() <= 2))
+                .Must(collection => collection == null || collection.Count() > 0 && collection.Count() <= 2)
                 .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
 
-            RuleFor(model => model.Word).NotEmpty();
-
-            RuleFor(model => model.Meanings)
-                .Must(collection => collection == null || collection.Count() > 0)
-                .WithMessage("'Meanings' must have at least one element.");
+            RuleFor(x => x.Word).NotEmpty()
+                .When(x => !HasEitherWordOrMeaning(x))
+                .WithMessage("'Word' or 'Meaning' must not be empty.");
         }
 
-        protected override bool PreValidate(ValidationContext<TranslationInput2> context, ValidationResult result)
+        protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)
         {
             if (context.InstanceToValidate == null)
             {
@@ -33,6 +31,12 @@ namespace TranslationsFunc.Models
                 return false;
             }
             return true;
+        }
+
+        private bool HasEitherWordOrMeaning(TranslationInput model)
+        {
+            return !string.IsNullOrEmpty(model.Word)
+                || !string.IsNullOrEmpty(model.Meaning);
         }
     }
 }
