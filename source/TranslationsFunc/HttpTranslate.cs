@@ -96,20 +96,26 @@ namespace My.Function
         {
             try
             {
-                _logger.LogInformation($"Will translate '{translationInput.Headword.Text}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
+                _logger.LogInformation(new EventId(30),
+                    "Will translate '{Text}' from '{SourceLanguage}' to '{DestinationLanguages}' with OpenAI API.",
+                    translationInput.Headword.Text,
+                    translationInput.SourceLanguage,
+                    string.Join(',', translationInput.DestinationLanguages));
 
                 TranslationOutput translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await response.WriteAsJsonAsync(translationOutput);
 
-                _logger.LogInformation("Returning translations: " + JsonSerializer.Serialize(
-                    translationOutput,
-                    new JsonSerializerOptions
-                    {
-                        WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                    }));
+                _logger.LogInformation(new EventId(31),
+                    "Returning translations: {TranslationOutput}",
+                    JsonSerializer.Serialize(
+                        translationOutput,
+                        new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
 
                 return response;
             }
