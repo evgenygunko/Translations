@@ -1,31 +1,49 @@
 {
-    "version": "0.2",
-    "SourceLanguage": "da",
+    "Version": "2",
+    "SourceLanguage": "es",
     "DestinationLanguages": [
         "ru",
         "en"
     ],
-    "Headword": {
-        "Text": "såsom",
-        "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
-        "PartOfSpeech": "konjunktion",
-        "Examples": [
-            "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
-        ]
-    },
-    "Meanings": [
+    "Definitions": [
         {
             "id": 1,
-            "Text": "bruges til angivelse af et eller flere eksempler på noget",
-            "Examples": [
-                "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+            "Headword": {
+                "Text": "afeitar",
+                "Meaning": "to shave (to remove hair)",
+                "PartOfSpeech": "transitive verb",
+                "Examples": [
+                    "Para el verano, papá decidió afeitar al perro."
+                ]
+            },
+            "Meanings": [
+                {
+                    "id": 1,
+                    "Text": "to shave (to remove hair)",
+                    "Examples": [
+                        "Para el verano, papá decidió afeitar al perro."
+                    ]
+                }
             ]
         },
         {
             "id": 2,
-            "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
-            "Examples": [
-                "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
+            "Headword": {
+                "Text": "afeitarse",
+                "Meaning": "to shave (to shave oneself)",
+                "PartOfSpeech": "transitive verb",
+                "Examples": [
+                    "¿Con qué frecuencia te afeitas la barba?"
+                ]
+            },
+            "Meanings": [
+                {
+                    "id": 1,
+                    "Text": "to shave (to shave oneself)",
+                    "Examples": [
+                        "¿Con qué frecuencia te afeitas la barba?"
+                    ]
+                }
             ]
         }
     ]

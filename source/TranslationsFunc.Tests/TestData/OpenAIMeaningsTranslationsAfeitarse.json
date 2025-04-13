@@ -1,0 +1,17 @@
+{
+    "Translations": [
+        {
+            "id": 1,
+            "MeaningTranslations": [
+                {
+                    "Language": "ru",
+                    "Text": "бриться (бриться самому)"
+                },
+                {
+                    "Language": "en",
+                    "Text": "to shave (to shave oneself)"
+                }
+            ]
+        }
+    ]
+}

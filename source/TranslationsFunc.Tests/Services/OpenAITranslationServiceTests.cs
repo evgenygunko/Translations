@@ -79,6 +79,111 @@ namespace TranslationsFunc.Tests.Services
 
         #endregion
 
+        #region Tests for Translate2Async
+
+        [TestMethod]
+        public async Task Translate2Async_Should_CallChatClientForEachDefinition()
+        {
+            // Input doesn't matter, but it must have 2 definitions, because we mock 2 responses
+            var translationInput = new TranslationInput2(
+                Version: "2",
+                SourceLanguage: "es",
+                DestinationLanguages: ["ru", "en"],
+                Definitions: [
+                    new Definition(
+                        id: 1,
+                        Headword: new Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                        Meanings: [ new Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]) ]
+                    ),
+                    new Definition(
+                        id: 2,
+                        Headword: new Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                        Meanings: [ new Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]) ]
+                    )
+                ]);
+
+            var headwordTranslationsResponse1 = CreateChatCompletionFromJson("OpenAIHeadwordTranslationsAfeitar.json");
+            var meaningsTranslationsResponse1 = CreateChatCompletionFromJson("OpenAIMeaningsTranslationsAfeitar.json");
+            var headwordTranslationsResponse2 = CreateChatCompletionFromJson("OpenAIHeadwordTranslationsAfeitarse.json");
+            var meaningsTranslationsResponse2 = CreateChatCompletionFromJson("OpenAIMeaningsTranslationsAfeitarse.json");
+
+            var chatClientMock = new Mock<ChatClient>();
+            chatClientMock
+                .SetupSequence(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(headwordTranslationsResponse1)
+                .ReturnsAsync(meaningsTranslationsResponse1)
+                .ReturnsAsync(headwordTranslationsResponse2)
+                .ReturnsAsync(meaningsTranslationsResponse2);
+
+            var sut = new OpenAITranslationService(chatClientMock.Object);
+
+            TranslationOutput2 result = await sut.Translate2Async(translationInput);
+
+            result.Should().NotBeNull();
+
+            result.Definitions.Should().HaveCount(2);
+
+            DefinitionTranslations definition;
+            Models.Output.Headword headword;
+            Models.Output.Meaning meaning;
+
+            /***********************************************************************/
+            // Afeitar
+            /***********************************************************************/
+            definition = result.Definitions[0];
+            definition.id.Should().Be(1);
+
+            // Check translations for headword
+            definition.Headword.Should().HaveCount(2);
+
+            headword = definition.Headword.First();
+            headword.Language.Should().Be("ru");
+            headword.HeadwordTranslations.First().Should().Be("брить");
+
+            headword = definition.Headword.Skip(1).First();
+            headword.Language.Should().Be("en");
+            headword.HeadwordTranslations.First().Should().Be("to shave");
+
+            // Check translations for meanings
+            definition.Meanings.Should().HaveCount(1);
+
+            meaning = definition.Meanings[0];
+            meaning.id.Should().Be(1);
+            meaning.MeaningTranslations[0].Language.Should().Be("ru");
+            meaning.MeaningTranslations[0].Text.Should().Be("брить");
+            meaning.MeaningTranslations[1].Language.Should().Be("en");
+            meaning.MeaningTranslations[1].Text.Should().Be("to shave (to remove hair)");
+
+            /***********************************************************************/
+            // Afeitarse
+            /***********************************************************************/
+            definition = result.Definitions[1];
+            definition.id.Should().Be(2);
+
+            // Check translations for headword
+            definition.Headword.Should().HaveCount(2);
+
+            headword = definition.Headword.First();
+            headword.Language.Should().Be("ru");
+            headword.HeadwordTranslations.First().Should().Be("брить себя");
+
+            headword = definition.Headword.Skip(1).First();
+            headword.Language.Should().Be("en");
+            headword.HeadwordTranslations.First().Should().Be("to shave oneself");
+
+            // Check translations for meanings
+            definition.Meanings.Should().HaveCount(1);
+
+            meaning = definition.Meanings[0];
+            meaning.id.Should().Be(1);
+            meaning.MeaningTranslations[0].Language.Should().Be("ru");
+            meaning.MeaningTranslations[0].Text.Should().Be("бриться (бриться самому)");
+            meaning.MeaningTranslations[1].Language.Should().Be("en");
+            meaning.MeaningTranslations[1].Text.Should().Be("to shave (to shave oneself)");
+        }
+
+        #endregion
+
         #region Tests for CreatePromptForHeadword
 
         [TestMethod]

@@ -1,0 +1,32 @@
+{
+    "version": "0.2",
+    "SourceLanguage": "da",
+    "DestinationLanguages": [
+        "ru",
+        "en"
+    ],
+    "Headword": {
+        "Text": "såsom",
+        "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+        "PartOfSpeech": "konjunktion",
+        "Examples": [
+            "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+        ]
+    },
+    "Meanings": [
+        {
+            "id": 1,
+            "Text": "bruges til angivelse af et eller flere eksempler på noget",
+            "Examples": [
+                "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+            ]
+        },
+        {
+            "id": 2,
+            "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
+            "Examples": [
+                "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
+            ]
+        }
+    ]
+}

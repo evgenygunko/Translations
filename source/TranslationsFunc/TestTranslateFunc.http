@@ -1,4 +1,4 @@
-### Translate "såsom" from Danish to English + Russian
+### (Version 1) Translate "såsom" from Danish to English + Russian
 
 POST {{HostAddress}}/api/Translate?code={{code}}
 Content-Type: application/json
@@ -61,12 +61,13 @@ Content-Type: application/json
 %}
 
 
-### BadRequest - Several required fields are null
+### (Version 1) BadRequest - Several required fields are null
 
 POST {{HostAddress}}/api/Translate?code={{code}}
 Content-Type: application/json
 
 {
+  "Version": "1",
   "HeadWord": null,
   "Meaning": null,
   "PartOfSpeech": null,
@@ -79,6 +80,185 @@ Content-Type: application/json
   // Assert status code
   client.test('When several required fields are null, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
-    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, 'Headword' must not be empty, 'Version' must be equal to '1'.")
+    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, 'Headword' must not be empty.")
+  });
+%}
+
+### (Version 2) Translate "såsom" from Danish to English + Russian
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+
+{
+    "Version": "2",
+    "SourceLanguage": "da",
+    "DestinationLanguages": [
+        "ru",
+        "en"
+    ],
+    "Definitions": [
+        {
+            "id": 1,
+            "Headword": {
+                "Text": "såsom",
+                "Meaning": "bruges til angivelse af et eller flere eksempler på noget",
+                "PartOfSpeech": "konjunktion",
+                "Examples": [
+                    "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+                ]
+            },
+            "Meanings": [
+                {
+                    "id": 1,
+                    "Text": "bruges til angivelse af et eller flere eksempler på noget",
+                    "Examples": [
+                        "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+                    ]
+                },
+                {
+                    "id": 2,
+                    "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
+                    "Examples": [
+                        "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.Definitions[0].Headword[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Headword[0]["HeadwordTranslations"].length > 0);
+    client.assert(response.body.Definitions[0].Headword[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Headword[1]["HeadwordTranslations"].length > 0);
+
+    client.assert(response.body.Definitions[0].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+
+    client.assert(response.body.Definitions[0].Meanings[1]["id"] === 2);
+    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[1]["Text"].length > 0);
+  });
+%}
+
+### (Version 2) Translate "afeitar" from Spanish to English + Russian
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+
+{
+    "Version": "2",
+    "SourceLanguage": "es",
+    "DestinationLanguages": [
+        "ru",
+        "en"
+    ],
+    "Definitions": [
+        {
+            "id": 1,
+            "Headword": {
+                "Text": "afeitar",
+                "Meaning": "to shave (to remove hair)",
+                "PartOfSpeech": "transitive verb",
+                "Examples": [
+                    "Para el verano, papá decidió afeitar al perro."
+                ]
+            },
+            "Meanings": [
+                {
+                    "id": 1,
+                    "Text": "to shave (to remove hair)",
+                    "Examples": [
+                        "Para el verano, papá decidió afeitar al perro."
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "Headword": {
+                "Text": "afeitarse",
+                "Meaning": "to shave (to shave oneself)",
+                "PartOfSpeech": "transitive verb",
+                "Examples": [
+                    "¿Con qué frecuencia te afeitas la barba?"
+                ]
+            },
+            "Meanings": [
+                {
+                    "id": 1,
+                    "Text": "to shave (to shave oneself)",
+                    "Examples": [
+                        "¿Con qué frecuencia te afeitas la barba?"
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.Definitions[0].Headword[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Headword[0]["HeadwordTranslations"].length > 0);
+    client.assert(response.body.Definitions[0].Headword[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Headword[1]["HeadwordTranslations"].length > 0);
+
+    client.assert(response.body.Definitions[0].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+
+    client.assert(response.body.Definitions[1].Headword[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[1].Headword[0]["HeadwordTranslations"].length > 0);
+    client.assert(response.body.Definitions[1].Headword[1]["Language"] === "en");
+    client.assert(response.body.Definitions[1].Headword[1]["HeadwordTranslations"].length > 0);
+
+    client.assert(response.body.Definitions[1].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+  });
+%}
+
+
+### (Version 2) BadRequest - Several required fields are null
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+
+{
+  "Version": "2",
+  "SourceLanguage": null,
+  "DestinationLanguages": null,
+  "Definitions": [
+    {
+      "Headword": null,
+      "Meanings": null
+    }
+  ]
+}
+
+> {%
+
+  // Assert status code
+  client.test('When several required fields are null, we expect to get an error', () => {
+    client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, Each definition id must be an integer greater than 0, Each definition must have a Headword, Each definition must have at least one Meaning.")
   });
 %}

@@ -12,6 +12,8 @@ namespace TranslationsFunc.Services
     public interface IOpenAITranslationService
     {
         Task<TranslationOutput> TranslateAsync(TranslationInput translationInput);
+
+        Task<TranslationOutput2> Translate2Async(TranslationInput2 translationInput);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
@@ -49,6 +51,40 @@ namespace TranslationsFunc.Services
             return new TranslationOutput(
                 Headword: openAIHeadwordTranslations?.Translations ?? [],
                 Meanings: openAIMeaningsTranslations?.Translations ?? []);
+        }
+
+        public async Task<TranslationOutput2> Translate2Async(TranslationInput2 input)
+        {
+            var definitionTranslations = new List<DefinitionTranslations>();
+
+            foreach (Definition definition in input.Definitions)
+            {
+                // Translate headword
+                string promptForHeadword = CreatePromptForHeadword(
+                        word: definition.Headword.Text,
+                        sourceLanguage: input.SourceLanguage,
+                        destinationLanguages: input.DestinationLanguages,
+                        meaning: definition.Headword.Meaning,
+                        partOfSpeech: definition.Headword.PartOfSpeech,
+                        examples: definition.Headword.Examples);
+
+                OpenAIHeadwordTranslations? openAIHeadwordTranslations = await CallOpenAIAsync<OpenAIHeadwordTranslations>(promptForHeadword);
+
+                // Translate meanings
+                string promptForMeanings = CreatePromptForMeanings(
+                        sourceLanguage: input.SourceLanguage,
+                        destinationLanguages: input.DestinationLanguages,
+                        meanings: definition.Meanings);
+
+                OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
+
+                definitionTranslations.Add(new DefinitionTranslations(
+                    id: definition.id,
+                    Headword: openAIHeadwordTranslations?.Translations ?? [],
+                    Meanings: openAIMeaningsTranslations?.Translations ?? []));
+            }
+
+            return new TranslationOutput2(definitionTranslations.ToArray());
         }
 
         #endregion

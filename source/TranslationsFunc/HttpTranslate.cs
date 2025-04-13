@@ -18,15 +18,18 @@ namespace My.Function
         private readonly ILogger _logger;
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IValidator<TranslationInput> _translationInputValidator;
+        private readonly IValidator<TranslationInput2> _translationInput2Validator;
 
         public HttpTranslate(
             ILoggerFactory loggerFactory,
             IOpenAITranslationService openAITranslationService,
-            IValidator<TranslationInput> translationInputValidator)
+            IValidator<TranslationInput> translationInputValidator,
+            IValidator<TranslationInput2> translationInput2Validator)
         {
             _logger = loggerFactory.CreateLogger<HttpTranslate>();
             _openAITranslationService = openAITranslationService;
             _translationInputValidator = translationInputValidator;
+            _translationInput2Validator = translationInput2Validator;
         }
 
         [Function("Translate")]
@@ -52,19 +55,42 @@ namespace My.Function
                 return await CreateBadRequestResponseAsync(req, $"Cannot deserialize input data. Exception: '{ex}'");
             }
 
-            if (translationInput == null)
+            if (translationInput?.Version == "1")
             {
-                return await CreateBadRequestResponseAsync(req, "Cannot deserialize input data.");
+                var validation = await _translationInputValidator.ValidateAsync(translationInput);
+                if (!validation.IsValid)
+                {
+                    string errorMessage = FormatValidationErrorMessage(validation);
+                    return await CreateBadRequestResponseAsync(req, errorMessage);
+                }
+
+                return await TranslateVersionAsync(req, translationInput);
             }
 
-            var validation = await _translationInputValidator.ValidateAsync(translationInput);
-            if (!validation.IsValid)
+            // Try version 2
+            TranslationInput2? translationInput2;
+            try
             {
-                string errorMessage = FormatValidationErrorMessage(validation);
-                return await CreateBadRequestResponseAsync(req, errorMessage);
+                translationInput2 = JsonSerializer.Deserialize<TranslationInput2>(inputJson);
+            }
+            catch (Exception ex)
+            {
+                return await CreateBadRequestResponseAsync(req, $"Cannot deserialize input data. Exception: '{ex}'");
             }
 
-            return await TranslateVersionAsync(req, translationInput);
+            if (translationInput2?.Version == "2")
+            {
+                var validation = await _translationInput2Validator.ValidateAsync(translationInput2);
+                if (!validation.IsValid)
+                {
+                    string errorMessage = FormatValidationErrorMessage(validation);
+                    return await CreateBadRequestResponseAsync(req, errorMessage);
+                }
+
+                return await TranslateVersion2Async(req, translationInput2);
+            }
+
+            return await CreateBadRequestResponseAsync(req, "Cannot deserialize input data.");
         }
 
         internal string FormatValidationErrorMessage(ValidationResult validation)
@@ -108,6 +134,42 @@ namespace My.Function
                 await response.WriteAsJsonAsync(translationOutput);
 
                 _logger.LogInformation(new EventId(31),
+                    "Returning translations: {TranslationOutput}",
+                    JsonSerializer.Serialize(
+                        translationOutput,
+                        new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while calling translator API.");
+                throw;
+            }
+        }
+
+        private async Task<HttpResponseData> TranslateVersion2Async(HttpRequestData req, TranslationInput2 translationInput)
+        {
+            try
+            {
+                IEnumerable<string> headwords = translationInput.Definitions.Select(d => d.Headword.Text).Distinct();
+
+                _logger.LogInformation(new EventId(32),
+                    "Will translate '{Headwords}' from '{SourceLanguage}' to '{DestinationLanguages}' with OpenAI API.",
+                    string.Join(",", headwords),
+                    translationInput.SourceLanguage,
+                    string.Join(',', translationInput.DestinationLanguages));
+
+                TranslationOutput2 translationOutput = await _openAITranslationService.Translate2Async(translationInput);
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                await response.WriteAsJsonAsync(translationOutput);
+
+                _logger.LogInformation(new EventId(33),
                     "Returning translations: {TranslationOutput}",
                     JsonSerializer.Serialize(
                         translationOutput,
