@@ -26,12 +26,12 @@ namespace TranslationsFunc.Tests.Services
             s_testDataPath = Path.Combine(currentDir, "TestData");
         }
 
-        #region Tests for Translate2Async
+        #region Tests for TranslateAsync
 
         [TestMethod]
-        public async Task Translate2Async_Should_CallChatClient()
+        public async Task TranslateAsync_Should_CallChatClient()
         {
-            TranslationInput2 translationInput2 = _fixture.Create<TranslationInput2>();
+            TranslationInput translationInput = _fixture.Create<TranslationInput>();
 
             ClientResult<ChatCompletion> headwordTranslationsResponse = CreateChatCompletionFromJson("OpenAIHeadwordTranslations.json");
             ClientResult<ChatCompletion> meaningsTranslationsResponse = CreateChatCompletionFromJson("OpenAIMeaningsTranslations.json");
@@ -44,7 +44,7 @@ namespace TranslationsFunc.Tests.Services
 
             var sut = new OpenAITranslationService(chatClientMock.Object);
 
-            TranslationOutput2 result = await sut.Translate2Async(translationInput2);
+            TranslationOutput result = await sut.TranslateAsync(translationInput);
 
             result.Should().NotBeNull();
 
@@ -204,25 +204,6 @@ namespace TranslationsFunc.Tests.Services
                 "Provide between 1 and 3 possible answers so I can choose the best one." + Environment.NewLine +
                 "Maintain the same part of speech in the translations." + Environment.NewLine +
                 "When translating to English and the part of the speech is a verb, include the infinitive marker 'to'.");
-        }
-
-        #endregion
-
-        #region Tests for CreatePromptForMeaning
-
-        [TestMethod]
-        public void CreatePromptForMeaning_WhenWordIsEmptyButMeaningIsNot_CreatesPromptForMeaning()
-        {
-            IEnumerable<string> examples = ["example 1", "example 2"];
-
-            string result = OpenAITranslationService.CreatePromptForMeaning(
-                sourceLanguage: "da",
-                destinationLanguages: ["en", "ru"],
-                meaning: "Meaning",
-                examples: examples);
-
-            result.Should().Be(@"Translate 'Meaning' from the language 'da' into the languages 'en', 'ru'. "
-                + "Check also examples to get a better context: 'example 1', 'example 2'.");
         }
 
         #endregion

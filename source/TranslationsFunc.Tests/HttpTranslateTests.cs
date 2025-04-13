@@ -8,6 +8,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 using Moq;
 using My.Function;
 using TranslationsFunc.Models.Input;
@@ -58,44 +59,11 @@ namespace TranslationFunc.Tests
         }
 
         [TestMethod]
-        public async Task Run_WhenCanDeserializeAsInputObject_ReturnsTranslationOutput()
+        public async Task Run_WhenValidationDoesNotPass_ReturnsBadRequest()
         {
             var translationInput = new TranslationInput(
-                SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
-                Word: "word to translate",
-                Meaning: "meaning",
-                PartOfSpeech: "noun",
-                Examples: []);
-
-            NameValueCollection query = new();
-            query["service"] = "azure";
-
-            var httpRequestData = MockHttpRequestData.Create(translationInput, query);
-            var translationOutput = _fixture.Create<TranslationOutput>();
-
-            var azureTranslationServiceMock = _fixture.Freeze<Mock<IAzureTranslationService>>();
-            azureTranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ReturnsAsync(translationOutput);
-
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
-
-            result.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            result.Body.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(result.Body);
-            string responseBody = await streamReader.ReadToEndAsync();
-
-            var jsonResponse = JsonSerializer.Deserialize<TranslationOutput>(responseBody);
-            jsonResponse.Should().BeEquivalentTo(translationOutput);
-        }
-
-        [TestMethod]
-        public async Task Run_WhenCanDeserializeAsInput2Object_ReturnsTranslationOutput2()
-        {
-            var translationInput2 = new TranslationInput2(
                 Version: "1",
-                SourceLanguage: "da",
+                SourceLanguage: "",
                 DestinationLanguages: ["ru", "en"],
                 Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
                 Meanings: [
@@ -103,44 +71,11 @@ namespace TranslationFunc.Tests
                     new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
                     ]);
 
-            NameValueCollection query = new();
-            query["service"] = "azure";
-
-            var httpRequestData = MockHttpRequestData.Create(translationInput2, query);
-            var translationOutput2 = _fixture.Create<TranslationOutput2>();
-
-            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
-            openAITranslationServiceMock.Setup(x => x.Translate2Async(It.IsAny<TranslationInput2>())).ReturnsAsync(translationOutput2);
-
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
-
-            result.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            result.Body.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(result.Body);
-            string responseBody = await streamReader.ReadToEndAsync();
-
-            var deserializedResponse = JsonSerializer.Deserialize<TranslationOutput2>(responseBody);
-            deserializedResponse.Should().BeEquivalentTo(translationOutput2);
-        }
-
-        [TestMethod]
-        public async Task Run_WhenValidationDoesNotPassForInput_ReturnsBadRequest()
-        {
-            TranslationInput translationInput = new TranslationInput(
-                SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
-                Word: "word to translate",
-                Meaning: "meaning",
-                PartOfSpeech: "noun",
-                Examples: []);
-
             var httpRequestData = MockHttpRequestData.Create(translationInput, []);
 
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
-            validationResult.Errors.Add(new ValidationFailure("property1", "property1 cannot be null"));
+            validationResult.Errors.Add(new ValidationFailure("SourceLanguage", "SourceLanguage cannot be null or empty"));
 
             var translationInputValidatorMock = _fixture.Freeze<Mock<IValidator<TranslationInput>>>();
             translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslationInput>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
@@ -153,89 +88,86 @@ namespace TranslationFunc.Tests
             result.Body.Seek(0, SeekOrigin.Begin);
             using var streamReader = new StreamReader(result.Body);
             string responseBody = await streamReader.ReadToEndAsync();
-            responseBody.Should().Be("{\"Error\":\"Error: property1 cannot be null.\"}");
+            responseBody.Should().Be("{\"Error\":\"Error: SourceLanguage cannot be null or empty.\"}");
         }
 
         [TestMethod]
-        public async Task Run_WhenQueryParameterServiceIsAzure_CallsAzureTranslationService()
-        {
-            TranslationInput translationInput = new TranslationInput(
-                SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
-                Word: "word to translate",
-                Meaning: "meaning",
-                PartOfSpeech: "noun",
-                Examples: []);
-
-            NameValueCollection query = new();
-            query["service"] = "azure";
-
-            var httpRequestData = MockHttpRequestData.Create(translationInput, query);
-            var translationOutput = _fixture.Create<TranslationOutput>();
-
-            var azureTranslationServiceMock = _fixture.Freeze<Mock<IAzureTranslationService>>();
-            azureTranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ReturnsAsync(translationOutput);
-
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
-
-            result.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            azureTranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslationInput>()));
-        }
-
-        [TestMethod]
-        public async Task Run_WhenQueryParameterServiceIsNotAzure_CallsOpenAITranslationService()
-        {
-            TranslationInput translationInput = new TranslationInput(
-                SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
-                Word: "word to translate",
-                Meaning: "meaning",
-                PartOfSpeech: "noun",
-                Examples: []);
-            var httpRequestData = MockHttpRequestData.Create(translationInput, []);
-            var translationOutput = _fixture.Create<TranslationOutput>();
-
-            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
-            openAITranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ReturnsAsync(translationOutput);
-
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
-
-            result.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslationInput>()));
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(Exception))]
         public async Task Run_WhenExceptionOccurs_LogsError()
         {
-            TranslationInput translationInput = new TranslationInput(
+            var translationInput = new TranslationInput(
+                Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
-                Word: "word to translate",
-                Meaning: "meaning",
-                PartOfSpeech: "noun",
-                Examples: []);
+                Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                Meanings: [
+                    new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
+                    new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
+                    ]);
             var httpRequestData = MockHttpRequestData.Create(translationInput, []);
             var translationOutput = _fixture.Create<TranslationOutput>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
             openAITranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ThrowsAsync(new Exception("exception from unit test"));
 
+            var loggerMock = _fixture.Create<Mock<ILogger<HttpTranslate>>>();
+
+            var loggerFactoryMock = _fixture.Freeze<Mock<ILoggerFactory>>();
+            loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+
             var sut = _fixture.Create<HttpTranslate>();
 
-            try
-            {
-                HttpResponseData result = await sut.Run(httpRequestData);
-            }
-            catch (Exception ex)
-            {
-                ex.Message.Should().Be("exception from unit test");
-                throw;
-            }
+            await sut.Invoking(x => x.Run(httpRequestData))
+                .Should().ThrowAsync<Exception>()
+                .WithMessage("exception from unit test");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error occurred while calling translator API.")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Run_Should_CallsOpenAITranslationServiceAndReturnTranslationOutput2()
+        {
+            // Arrange
+            var translationInput = new TranslationInput(
+                Version: "1",
+                SourceLanguage: "da",
+                DestinationLanguages: ["ru", "en"],
+                Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                Meanings: [
+                    new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
+                    new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
+                    ]);
+
+            NameValueCollection query = new();
+            query["service"] = "azure";
+
+            var httpRequestData = MockHttpRequestData.Create(translationInput, query);
+            var translationOutput2 = _fixture.Create<TranslationOutput>();
+
+            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
+            openAITranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ReturnsAsync(translationOutput2);
+
+            // Act
+            var sut = _fixture.Create<HttpTranslate>();
+            HttpResponseData result = await sut.Run(httpRequestData);
+
+            // Assert
+            result.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            result.Body.Seek(0, SeekOrigin.Begin);
+            using var streamReader = new StreamReader(result.Body);
+            string responseBody = await streamReader.ReadToEndAsync();
+
+            var deserializedResponse = JsonSerializer.Deserialize<TranslationOutput>(responseBody);
+            deserializedResponse.Should().BeEquivalentTo(translationOutput2);
+
+            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslationInput>()));
         }
 
         #endregion

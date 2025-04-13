@@ -9,9 +9,9 @@ using TranslationsFunc.Models.Output;
 
 namespace TranslationsFunc.Services
 {
-    public interface IOpenAITranslationService : ITranslationService
+    public interface IOpenAITranslationService
     {
-        Task<TranslationOutput2> Translate2Async(TranslationInput2 translationInput);
+        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
@@ -26,14 +26,6 @@ namespace TranslationsFunc.Services
         #region Public Methods
 
         public async Task<TranslationOutput> TranslateAsync(TranslationInput input)
-        {
-            var prompt = CreatePrompt(input);
-            TranslationOutput? translationOutput = await CallOpenAIAsync<TranslationOutput>(prompt);
-
-            return translationOutput ?? new TranslationOutput(Array.Empty<TranslationItem>());
-        }
-
-        public async Task<TranslationOutput2> Translate2Async(TranslationInput2 input)
         {
             // Translate headword
             string promptForHeadword = CreatePromptForHeadword(
@@ -54,7 +46,7 @@ namespace TranslationsFunc.Services
 
             OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
 
-            return new TranslationOutput2(
+            return new TranslationOutput(
                 Headword: openAIHeadwordTranslations?.Translations ?? [],
                 Meanings: openAIMeaningsTranslations?.Translations ?? []);
         }
@@ -62,54 +54,6 @@ namespace TranslationsFunc.Services
         #endregion
 
         #region Internal Methods
-
-        internal string CreatePrompt(TranslationInput input)
-        {
-            string prompt;
-            if (string.IsNullOrEmpty(input.Word) && !string.IsNullOrEmpty(input.Meaning))
-            {
-                prompt = CreatePromptForMeaning(
-                    sourceLanguage: input.SourceLanguage,
-                    destinationLanguages: input.DestinationLanguages,
-                    meaning: input.Meaning,
-                    examples: input.Examples);
-            }
-            else
-            {
-                prompt = CreatePromptForHeadword(
-                    word: input.Word,
-                    sourceLanguage: input.SourceLanguage,
-                    destinationLanguages: input.DestinationLanguages,
-                    meaning: input.Meaning,
-                    partOfSpeech: input.PartOfSpeech,
-                    examples: input.Examples);
-            }
-
-            return prompt;
-        }
-
-        #endregion
-
-        #region Internal Methods
-
-        internal static string CreatePromptForMeaning(
-            string sourceLanguage,
-            IEnumerable<string> destinationLanguages,
-            string meaning,
-            IEnumerable<string> examples)
-        {
-            string formattedLanguages = string.Join(", ", destinationLanguages.Select(lang => $"'{lang}'"));
-
-            var prompt = $"Translate '{meaning}' from the language '{sourceLanguage}' into the languages {formattedLanguages}. ";
-
-            if (examples?.Count() > 0)
-            {
-                string examplesFlat = "'" + string.Join("', '", examples) + "'";
-                prompt += $"Check also examples to get a better context: {examplesFlat}.";
-            }
-
-            return prompt;
-        }
 
         internal static string CreatePromptForMeanings(
             string sourceLanguage,

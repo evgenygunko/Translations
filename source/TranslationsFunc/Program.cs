@@ -13,11 +13,9 @@ var host = new HostBuilder()
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
 
-        services.AddScoped<IAzureTranslationService, AzureTranslationService>();
         services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
 
         services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
-        services.AddScoped<IValidator<TranslationInput2>, TranslationInput2Validator>();
 
         services.AddSingleton<ChatClient>(_ =>
         {

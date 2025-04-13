@@ -16,23 +16,17 @@ namespace My.Function
     public class HttpTranslate
     {
         private readonly ILogger _logger;
-        private readonly IAzureTranslationService _azureTranslationService;
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IValidator<TranslationInput> _translationInputValidator;
-        private readonly IValidator<TranslationInput2> _translationInput2Validator;
 
         public HttpTranslate(
             ILoggerFactory loggerFactory,
-            IAzureTranslationService azureTranslationService,
             IOpenAITranslationService openAITranslationService,
-            IValidator<TranslationInput> translationInputValidator,
-            IValidator<TranslationInput2> translationInput2Validator)
+            IValidator<TranslationInput> translationInputValidator)
         {
             _logger = loggerFactory.CreateLogger<HttpTranslate>();
-            _azureTranslationService = azureTranslationService;
             _openAITranslationService = openAITranslationService;
             _translationInputValidator = translationInputValidator;
-            _translationInput2Validator = translationInput2Validator;
         }
 
         [Function("Translate")]
@@ -48,64 +42,29 @@ namespace My.Function
             int index = inputJson.IndexOf("> {%");
             inputJson = index >= 0 ? inputJson.Substring(0, index) : inputJson;
 
-            TranslationInput translationInput;
-
+            TranslationInput? translationInput;
             try
             {
-                TranslationInput2 translationInput2 = JsonSerializer.Deserialize<TranslationInput2>(inputJson)!;
-
-                if (int.TryParse(translationInput2.Version, out int inputVersion) && inputVersion == 1)
-                {
-                    return await TranslateVersion2Async(req, translationInput2);
-                }
-
-                translationInput = JsonSerializer.Deserialize<TranslationInput>(inputJson)!;
+                translationInput = JsonSerializer.Deserialize<TranslationInput>(inputJson);
             }
             catch (Exception ex)
             {
                 return await CreateBadRequestResponseAsync(req, $"Cannot deserialize input data. Exception: '{ex}'");
             }
 
-            var validation = await _translationInputValidator.ValidateAsync((TranslationInput)translationInput);
+            if (translationInput == null)
+            {
+                return await CreateBadRequestResponseAsync(req, "Cannot deserialize input data.");
+            }
+
+            var validation = await _translationInputValidator.ValidateAsync(translationInput);
             if (!validation.IsValid)
             {
                 string errorMessage = FormatValidationErrorMessage(validation);
                 return await CreateBadRequestResponseAsync(req, errorMessage);
             }
 
-            try
-            {
-                TranslationOutput translationOutput;
-                if (string.Equals(req.Query["service"], "azure", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with Azure Translator Service.");
-                    translationOutput = await _azureTranslationService.TranslateAsync((TranslationInput)translationInput);
-                }
-                else
-                {
-                    // By default translate with OpenAI, it should return better results because it can analyze context and requested part of speech.
-                    _logger.LogInformation($"Will translate '{translationInput.Word}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
-                    translationOutput = await _openAITranslationService.TranslateAsync((TranslationInput)translationInput);
-                }
-
-                var response = req.CreateResponse(HttpStatusCode.OK);
-                await response.WriteAsJsonAsync(translationOutput);
-
-                _logger.LogInformation($"Returning translations: " + JsonSerializer.Serialize(
-                    translationOutput,
-                    new JsonSerializerOptions
-                    {
-                        WriteIndented = true,
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                    }));
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error occurred while calling translator API.");
-                throw;
-            }
+            return await TranslateVersionAsync(req, translationInput);
         }
 
         internal string FormatValidationErrorMessage(ValidationResult validation)
@@ -133,26 +92,18 @@ namespace My.Function
             return response;
         }
 
-        private async Task<HttpResponseData> TranslateVersion2Async(HttpRequestData req, TranslationInput2 translationInput)
+        private async Task<HttpResponseData> TranslateVersionAsync(HttpRequestData req, TranslationInput translationInput)
         {
-            // todo: merge this code into the main function when TranslationInput is not supported anymore
-            var validation = await _translationInput2Validator.ValidateAsync(translationInput);
-            if (!validation.IsValid)
-            {
-                string errorMessage = FormatValidationErrorMessage(validation);
-                return await CreateBadRequestResponseAsync(req, errorMessage);
-            }
-
             try
             {
                 _logger.LogInformation($"Will translate '{translationInput.Headword.Text}' from '{translationInput.SourceLanguage}' to '" + string.Join(',', translationInput.DestinationLanguages) + "' with OpenAI API.");
 
-                TranslationOutput2 translationOutput = await _openAITranslationService.Translate2Async(translationInput);
+                TranslationOutput translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await response.WriteAsJsonAsync(translationOutput);
 
-                _logger.LogInformation($"Returning translations: " + JsonSerializer.Serialize(
+                _logger.LogInformation("Returning translations: " + JsonSerializer.Serialize(
                     translationOutput,
                     new JsonSerializerOptions
                     {
@@ -164,7 +115,7 @@ namespace My.Function
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred while calling translator API.");
+                _logger.LogError(ex, "Error occurred while calling translator API.");
                 throw;
             }
         }

@@ -18,9 +18,16 @@ namespace TranslationsFunc.Models.Input
                 .Must(collection => collection == null || collection.Count() > 0 && collection.Count() <= 2)
                 .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
 
-            RuleFor(x => x.Word).NotEmpty()
-                .When(x => !HasEitherWordOrMeaning(x))
-                .WithMessage("'Word' or 'Meaning' must not be empty.");
+            RuleFor(model => model.Headword).NotNull();
+            RuleFor(model => model.Headword.Text)
+               .NotEmpty()
+               .When(model => model.Headword != null);
+
+            RuleFor(model => model.Meanings)
+                .Must(collection => collection == null || collection.Count() > 0)
+                .WithMessage("'Meanings' must have at least one element.");
+
+            RuleFor(model => model.Version).Equal("1");
         }
 
         protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)
@@ -31,12 +38,6 @@ namespace TranslationsFunc.Models.Input
                 return false;
             }
             return true;
-        }
-
-        private bool HasEitherWordOrMeaning(TranslationInput model)
-        {
-            return !string.IsNullOrEmpty(model.Word)
-                || !string.IsNullOrEmpty(model.Meaning);
         }
     }
 }

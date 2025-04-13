@@ -15,14 +15,14 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenAllRequiredFieldsHaveValues_ReturnsTrue()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeTrue();
@@ -31,14 +31,14 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenSourceLanguageIsEmpty_ReturnsFalse()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "",
                 DestinationLanguages: ["ru", "en"],
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -49,14 +49,14 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenDestinationLanguagesIsNull_ReturnsFalse()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: null!,
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -67,14 +67,14 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenDestinationLanguagesHasTooManyElements_ReturnsFalse()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en", "es"],
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -85,14 +85,14 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenHeadwordIsNull_ReturnsFalse()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
                 Headword: default!,
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -103,14 +103,14 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenHeadwordTextIsEmpty_ReturnsFalse()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
                 Headword: new Headword("", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -121,14 +121,32 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenMeaningsAreEmpty_ReturnsFalse()
         {
-            TranslationInput2 translationInput = new TranslationInput2(
+            TranslationInput translationInput = new TranslationInput(
                 Version: "1",
                 SourceLanguage: "da",
                 DestinationLanguages: ["ru", "en"],
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
                 Meanings: []);
 
-            var sut = _fixture.Create<TranslationInput2Validator>();
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+        }
+
+        [DataTestMethod]
+        [DataRow("1")]
+        [DataRow("3")]
+        public void Validate_WhenVersionDoesNotEqual2_ReturnsFalse(string version)
+        {
+            TranslationInput translationInput = new TranslationInput(
+                Version: version,
+                SourceLanguage: "da",
+                DestinationLanguages: ["ru", "en"],
+                Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                Meanings: []);
+
+            var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
