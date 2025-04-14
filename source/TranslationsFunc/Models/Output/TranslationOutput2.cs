@@ -6,5 +6,9 @@
     public record DefinitionTranslations(
         int id,
         Headword[] Headword,
+        Context[] Contexts);
+
+    public record Context(
+        int id,
         Meaning[] Meanings);
 }

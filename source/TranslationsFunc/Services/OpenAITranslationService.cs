@@ -44,7 +44,8 @@ namespace TranslationsFunc.Services
             string promptForMeanings = CreatePromptForMeanings(
                     sourceLanguage: input.SourceLanguage,
                     destinationLanguages: input.DestinationLanguages,
-                    meanings: input.Meanings);
+                    meanings: input.Meanings,
+                    context: null);
 
             OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
 
@@ -70,18 +71,26 @@ namespace TranslationsFunc.Services
 
                 OpenAIHeadwordTranslations? openAIHeadwordTranslations = await CallOpenAIAsync<OpenAIHeadwordTranslations>(promptForHeadword);
 
-                // Translate meanings
-                string promptForMeanings = CreatePromptForMeanings(
+                var outputContexts = new List<Models.Output.Context>();
+                foreach (var context in definition.Contexts)
+                {
+                    // Translate meanings
+                    string promptForMeanings = CreatePromptForMeanings(
                         sourceLanguage: input.SourceLanguage,
                         destinationLanguages: input.DestinationLanguages,
-                        meanings: definition.Meanings);
+                        meanings: context.Meanings,
+                        context: context.ContextEN);
+                    OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
 
-                OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
+                    outputContexts.Add(new Models.Output.Context(
+                        id: context.id,
+                        Meanings: openAIMeaningsTranslations?.Translations ?? []));
+                }
 
                 definitionTranslations.Add(new DefinitionTranslations(
-                    id: definition.id,
-                    Headword: openAIHeadwordTranslations?.Translations ?? [],
-                    Meanings: openAIMeaningsTranslations?.Translations ?? []));
+                        id: definition.id,
+                        Headword: openAIHeadwordTranslations?.Translations ?? [],
+                        Contexts: outputContexts.ToArray()));
             }
 
             return new TranslationOutput2(definitionTranslations.ToArray());
@@ -94,12 +103,19 @@ namespace TranslationsFunc.Services
         internal static string CreatePromptForMeanings(
             string sourceLanguage,
             IEnumerable<string> destinationLanguages,
-            IEnumerable<Models.Input.Meaning> meanings)
+            IEnumerable<Models.Input.Meaning> meanings,
+            string? context)
         {
             string formattedLanguages = string.Join(", ", destinationLanguages.Select(lang => $"'{lang}'"));
 
             StringBuilder prompt = new StringBuilder();
             prompt.AppendLine($"Translate strings from the language '{sourceLanguage}' into the languages {formattedLanguages}.");
+
+            if (!string.IsNullOrEmpty(context))
+            {
+                prompt.AppendLine($"The current context means: '{context}'.");
+            }
+
             prompt.AppendLine("Check examples to better understand the context.");
             prompt.AppendLine("In the output, retain the ID of the input text when returning translations.");
 

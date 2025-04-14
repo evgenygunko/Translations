@@ -33,7 +33,7 @@ namespace TranslationFunc.Tests.Models
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
-            result.Errors[0].ErrorMessage.Should().Be("Each meaning id must be an integer greater than 0.");
+            result.Errors[0].ErrorMessage.Should().Be("'id' must be greater than '0'.");
         }
 
         [TestMethod]

@@ -8,8 +8,7 @@ namespace TranslationsFunc.Models.Input
     {
         public MeaningValidator()
         {
-            RuleFor(model => model.id).GreaterThan(0)
-                .WithMessage("Each meaning id must be an integer greater than 0."); ;
+            RuleFor(model => model.id).GreaterThan(0);
 
             RuleFor(model => model.Text).NotNull();
 

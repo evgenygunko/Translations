@@ -187,10 +187,16 @@ namespace TranslationFunc.Tests
                     new Definition(
                         id: 1,
                         Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
-                        Meanings: [
-                            new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
-                            new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
-                            ]
+                        Contexts: [
+                            new TranslationsFunc.Models.Input.Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [
+                                    new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
+                                    new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
+                                ]
+                            ),
+                        ]
                     )
                 ]);
 
@@ -225,12 +231,19 @@ namespace TranslationFunc.Tests
                     new Definition(
                         id: 1,
                         Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
-                        Meanings: [
-                            new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
-                            new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
-                            ]
+                        Contexts: [
+                            new TranslationsFunc.Models.Input.Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [
+                                    new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
+                                    new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
+                                ]
+                            )
+                        ]
                     )
                 ]);
+
             var httpRequestData = MockHttpRequestData.Create(translationInput, []);
             var translationOutput = _fixture.Create<TranslationOutput2>();
 
@@ -270,17 +283,20 @@ namespace TranslationFunc.Tests
                     new Definition(
                         id: 1,
                         Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
-                        Meanings: [
-                            new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
-                            new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
-                            ]
+                        Contexts: [
+                            new TranslationsFunc.Models.Input.Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [
+                                    new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
+                                    new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
+                                ]
+                            )
+                        ]
                     )
                 ]);
 
-            NameValueCollection query = new();
-            query["service"] = "azure";
-
-            var httpRequestData = MockHttpRequestData.Create(translationInput, query);
+            var httpRequestData = MockHttpRequestData.Create(translationInput, new NameValueCollection());
             var translationOutput2 = _fixture.Create<TranslationOutput2>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();

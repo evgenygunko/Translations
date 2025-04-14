@@ -22,8 +22,14 @@ namespace TranslationFunc.Tests.Models
                 Definitions: [
                     new Definition(
                         id: 1,
-                        new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                            )
+                        ]
                     )
                 ]);
 
@@ -44,7 +50,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 1,
                         Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"])]
+                            )
+                        ]
                     )
                 ]);
 
@@ -67,7 +79,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 1,
                         Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 
@@ -88,9 +106,15 @@ namespace TranslationFunc.Tests.Models
                 DestinationLanguages: ["ru", "en", "es"],
                 Definitions: [
                     new Definition(
-                        id: 1,
+                        id:1,
                         Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts :[
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 
@@ -113,7 +137,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 0,
                         Headword: default!,
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts :[
+                            new Context(
+                                id : 1,
+                                ContextEN : "context 1",
+                                Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 
@@ -122,7 +152,7 @@ namespace TranslationFunc.Tests.Models
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(2);
-            result.Errors[0].ErrorMessage.Should().Be("Each definition id must be an integer greater than 0.");
+            result.Errors[0].ErrorMessage.Should().Be("'id' must be greater than '0'.");
             result.Errors[1].ErrorMessage.Should().Be("Each definition must have a Headword.");
         }
 
@@ -137,7 +167,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 1,
                         Headword: default!,
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 
@@ -160,7 +196,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 1,
                         Headword: new Headword("", "Meaning", "PartOfSpeech", Examples: []),
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Meaning(id : 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 
@@ -183,7 +225,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 1,
                         Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        Meanings: []
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: []
+                            )
+                        ]
                     )
                 ]);
 
@@ -206,7 +254,13 @@ namespace TranslationFunc.Tests.Models
                     new Definition(
                         id: 1,
                         Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                        Contexts: [
+                            new Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 

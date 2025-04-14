@@ -18,7 +18,7 @@ namespace TranslationFunc.Tests.Models
             Definition definition = new Definition(
                 id: 1,
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                Contexts: []
             );
 
             var sut = _fixture.Create<DefinitionValidator>();
@@ -33,7 +33,7 @@ namespace TranslationFunc.Tests.Models
             Definition definition = new Definition(
                 id: 0,
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                Contexts: []
             );
 
             var sut = _fixture.Create<DefinitionValidator>();
@@ -41,7 +41,7 @@ namespace TranslationFunc.Tests.Models
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
-            result.Errors[0].ErrorMessage.Should().Be("Each definition id must be an integer greater than 0.");
+            result.Errors[0].ErrorMessage.Should().Be("'id' must be greater than '0'.");
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace TranslationFunc.Tests.Models
             Definition definition = new Definition(
                 id: 1,
                 Headword: null!,
-                Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                Contexts: []
             );
 
             var sut = _fixture.Create<DefinitionValidator>();
@@ -67,7 +67,7 @@ namespace TranslationFunc.Tests.Models
             Definition definition = new Definition(
                 id: 1,
                 Headword: new Headword("", "Meaning", "PartOfSpeech", Examples: []),
-                Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
+                Contexts: []
             );
 
             var sut = _fixture.Create<DefinitionValidator>();
@@ -79,12 +79,12 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenMeaningsAreNull_ReturnsFalse()
+        public void Validate_WhenContextsAreNull_ReturnsFalse()
         {
             Definition definition = new Definition(
                 id: 1,
                 Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                Meanings: null!
+                Contexts: null!
             );
 
             var sut = _fixture.Create<DefinitionValidator>();

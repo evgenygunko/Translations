@@ -8,16 +8,15 @@ namespace TranslationsFunc.Models.Input
     {
         public DefinitionValidator()
         {
-            RuleFor(model => model.id).GreaterThan(0)
-                .WithMessage("Each definition id must be an integer greater than 0."); ;
+            RuleFor(model => model.id).GreaterThan(0);
 
             RuleFor(model => model.Headword).NotNull()
                 .WithMessage("Each definition must have a Headword.");
             RuleFor(model => model.Headword.Text).NotEmpty().When(d => d.Headword != null);
 
-            RuleFor(model => model.Meanings).NotNull();
-            RuleForEach(model => model.Meanings)
-                .SetValidator(new MeaningValidator());
+            RuleFor(model => model.Contexts).NotNull();
+            RuleForEach(model => model.Contexts)
+                .SetValidator(new ContextValidator());
         }
     }
 }

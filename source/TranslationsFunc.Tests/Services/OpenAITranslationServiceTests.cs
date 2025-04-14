@@ -93,12 +93,24 @@ namespace TranslationsFunc.Tests.Services
                     new Definition(
                         id: 1,
                         Headword: new Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
-                        Meanings: [ new Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]) ]
+                        Contexts:[
+                            new TranslationsFunc.Models.Input.Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Models.Input.Meaning(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
+                            )
+                        ]
                     ),
                     new Definition(
                         id: 2,
                         Headword: new Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
-                        Meanings: [ new Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]) ]
+                        Contexts: [
+                            new TranslationsFunc.Models.Input.Context(
+                                id: 1,
+                                ContextEN: "context 1",
+                                Meanings: [ new Models.Input.Meaning(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
+                            )
+                        ]
                     )
                 ]);
 
@@ -145,9 +157,10 @@ namespace TranslationsFunc.Tests.Services
             headword.HeadwordTranslations.First().Should().Be("to shave");
 
             // Check translations for meanings
-            definition.Meanings.Should().HaveCount(1);
+            definition.Contexts.Should().HaveCount(1);
+            definition.Contexts[0].Meanings.Should().HaveCount(1);
 
-            meaning = definition.Meanings[0];
+            meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
             meaning.MeaningTranslations[0].Language.Should().Be("ru");
             meaning.MeaningTranslations[0].Text.Should().Be("брить");
@@ -172,9 +185,10 @@ namespace TranslationsFunc.Tests.Services
             headword.HeadwordTranslations.First().Should().Be("to shave oneself");
 
             // Check translations for meanings
-            definition.Meanings.Should().HaveCount(1);
+            definition.Contexts.Should().HaveCount(1);
+            definition.Contexts[0].Meanings.Should().HaveCount(1);
 
-            meaning = definition.Meanings[0];
+            meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
             meaning.MeaningTranslations[0].Language.Should().Be("ru");
             meaning.MeaningTranslations[0].Text.Should().Be("бриться (бриться самому)");
@@ -316,6 +330,43 @@ namespace TranslationsFunc.Tests.Services
         #region Tests for CreatePromptForMeanings
 
         [TestMethod]
+        public void CreatePromptForMeanings_WhenContextIsNotEmpty_AddsItToThePrompt()
+        {
+            IEnumerable<string> examples = ["example 1", "example 2"];
+
+            string result = OpenAITranslationService.CreatePromptForMeanings(
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meanings: [new Models.Input.Meaning(id: 1, Text: "Meaning", Examples: examples)],
+                context: "context 1");
+
+            result.Should().Be(
+                "Translate strings from the language 'da' into the languages 'en', 'ru'." + Environment.NewLine +
+                "The current context means: 'context 1'." + Environment.NewLine +
+                "Check examples to better understand the context." + Environment.NewLine +
+                "In the output, retain the ID of the input text when returning translations." + Environment.NewLine +
+                "id=\"1\", text=\"Meaning\", examples=\"'example 1', 'example 2'\".");
+        }
+
+        [TestMethod]
+        public void CreatePromptForMeanings_WhenContextIsEmpty_DoesNotAddItToThePrompt()
+        {
+            IEnumerable<string> examples = ["example 1", "example 2"];
+
+            string result = OpenAITranslationService.CreatePromptForMeanings(
+                sourceLanguage: "da",
+                destinationLanguages: ["en", "ru"],
+                meanings: [new Models.Input.Meaning(id: 1, Text: "Meaning", Examples: examples)],
+                context: null);
+
+            result.Should().Be(
+                "Translate strings from the language 'da' into the languages 'en', 'ru'." + Environment.NewLine +
+                "Check examples to better understand the context." + Environment.NewLine +
+                "In the output, retain the ID of the input text when returning translations." + Environment.NewLine +
+                "id=\"1\", text=\"Meaning\", examples=\"'example 1', 'example 2'\".");
+        }
+
+        [TestMethod]
         public void CreatePromptForMeanings_WhenExamplesAreNotEmpty_AddsThemToPrompt()
         {
             IEnumerable<string> examples = ["example 1", "example 2"];
@@ -323,10 +374,12 @@ namespace TranslationsFunc.Tests.Services
             string result = OpenAITranslationService.CreatePromptForMeanings(
                 sourceLanguage: "da",
                 destinationLanguages: ["en", "ru"],
-                meanings: [new Models.Input.Meaning(id: 1, Text: "Meaning", Examples: examples)]);
+                meanings: [new Models.Input.Meaning(id: 1, Text: "Meaning", Examples: examples)],
+                context: "context 1");
 
             result.Should().Be(
                 "Translate strings from the language 'da' into the languages 'en', 'ru'." + Environment.NewLine +
+                "The current context means: 'context 1'." + Environment.NewLine +
                 "Check examples to better understand the context." + Environment.NewLine +
                 "In the output, retain the ID of the input text when returning translations." + Environment.NewLine +
                 "id=\"1\", text=\"Meaning\", examples=\"'example 1', 'example 2'\".");
@@ -340,10 +393,12 @@ namespace TranslationsFunc.Tests.Services
             string result = OpenAITranslationService.CreatePromptForMeanings(
                 sourceLanguage: "da",
                 destinationLanguages: ["en", "ru"],
-                meanings: [new Models.Input.Meaning(id: 1, Text: "Meaning", Examples: examples)]);
+                meanings: [new Models.Input.Meaning(id: 1, Text: "Meaning", Examples: examples)],
+                context: "context 1");
 
             result.Should().Be(
                 "Translate strings from the language 'da' into the languages 'en', 'ru'." + Environment.NewLine +
+                "The current context means: 'context 1'." + Environment.NewLine +
                 "Check examples to better understand the context." + Environment.NewLine +
                 "In the output, retain the ID of the input text when returning translations." + Environment.NewLine +
                 "id=\"1\", text=\"Meaning\", examples=\"''\".");

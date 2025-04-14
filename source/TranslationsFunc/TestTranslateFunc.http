@@ -107,19 +107,24 @@ Content-Type: application/json
                     "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
                 ]
             },
-            "Meanings": [
+            "Contexts": [
                 {
                     "id": 1,
-                    "Text": "bruges til angivelse af et eller flere eksempler på noget",
-                    "Examples": [
-                        "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
-                    ]
-                },
-                {
-                    "id": 2,
-                    "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
-                    "Examples": [
-                        "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "bruges til angivelse af et eller flere eksempler på noget",
+                            "Examples": [
+                                "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen"
+                            ]
+                        },
+                        {
+                            "id": 2,
+                            "Text": "bruges som indledning til en ledsætning der angiver en begrundelse",
+                            "Examples": [
+                                "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal"
+                            ]
+                        }
                     ]
                 }
             ]
@@ -137,17 +142,17 @@ Content-Type: application/json
     client.assert(response.body.Definitions[0].Headword[1]["Language"] === "en");
     client.assert(response.body.Definitions[0].Headword[1]["HeadwordTranslations"].length > 0);
 
-    client.assert(response.body.Definitions[0].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
 
-    client.assert(response.body.Definitions[0].Meanings[1]["id"] === 2);
-    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[0]["Language"] === "ru");
-    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[0]["Text"].length > 0);
-    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[1]["Language"] === "en");
-    client.assert(response.body.Definitions[0].Meanings[1].MeaningTranslations[1]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1]["id"] === 2);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1].MeaningTranslations[1]["Text"].length > 0);
   });
 %}
 
@@ -174,12 +179,17 @@ Content-Type: application/json
                     "Para el verano, papá decidió afeitar al perro."
                 ]
             },
-            "Meanings": [
+            "Contexts": [
                 {
                     "id": 1,
-                    "Text": "to shave (to remove hair)",
-                    "Examples": [
-                        "Para el verano, papá decidió afeitar al perro."
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "to shave (to remove hair)",
+                            "Examples": [
+                                "Para el verano, papá decidió afeitar al perro."
+                            ]
+                        }
                     ]
                 }
             ]
@@ -194,12 +204,17 @@ Content-Type: application/json
                     "¿Con qué frecuencia te afeitas la barba?"
                 ]
             },
-            "Meanings": [
+            "Contexts": [
                 {
                     "id": 1,
-                    "Text": "to shave (to shave oneself)",
-                    "Examples": [
-                        "¿Con qué frecuencia te afeitas la barba?"
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "to shave (to shave oneself)",
+                            "Examples": [
+                                "¿Con qué frecuencia te afeitas la barba?"
+                            ]
+                        }
                     ]
                 }
             ]
@@ -217,24 +232,122 @@ Content-Type: application/json
     client.assert(response.body.Definitions[0].Headword[1]["Language"] === "en");
     client.assert(response.body.Definitions[0].Headword[1]["HeadwordTranslations"].length > 0);
 
-    client.assert(response.body.Definitions[0].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
-    client.assert(response.body.Definitions[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
 
     client.assert(response.body.Definitions[1].Headword[0]["Language"] === "ru");
     client.assert(response.body.Definitions[1].Headword[0]["HeadwordTranslations"].length > 0);
     client.assert(response.body.Definitions[1].Headword[1]["Language"] === "en");
     client.assert(response.body.Definitions[1].Headword[1]["HeadwordTranslations"].length > 0);
 
-    client.assert(response.body.Definitions[1].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
-    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
-    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[1]["Language"] === "en");
-    client.assert(response.body.Definitions[1].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0].MeaningTranslations[0]["Language"] === "ru");
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0].MeaningTranslations[0]["Text"].length > 0);
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0].MeaningTranslations[1]["Language"] === "en");
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0].MeaningTranslations[1]["Text"].length > 0);
   });
 %}
+
+
+### (Version 2) Translate "coche" from Spanish to English + Russian
+
+POST {{HostAddress}}/api/Translate?code={{code}}
+Content-Type: application/json
+
+{
+    "Version": "2",
+    "SourceLanguage": "es",
+    "DestinationLanguages": [
+        "ru",
+        "en"
+    ],
+    "Definitions": [
+        {
+            "id": 1,
+            "Headword": {
+                "Text": "el coche",
+                "Meaning": "car",
+                "PartOfSpeech": "masculine noun",
+                "Examples": [
+                    "Mi coche no prende porque tiene una falla en el motor."
+                ]
+            },
+            "Contexts": [
+                {
+                    "id": 1,
+                    "ContextEN": "(vehicle)",
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "car",
+                            "Examples": [
+                                "Mi coche no prende porque tiene una falla en el motor."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "ContextEN": "(vehicle led by horses)",
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "carriage",
+                            "Examples": [
+                                "Los monarcas llegaron en un coche elegante."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "ContextEN": "(train car)",
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "car",
+                            "Examples": [
+                                "Tu mamá y yo vamos a pasar al coche comedor para almorzar."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 4,
+                    "ContextEN": "(for babies)",
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "Text": "stroller",
+                            "Examples": [
+                                "La niñita no se quería subir al coche. Quería ir caminando."
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+
+    client.assert(response.body.Definitions[0].Contexts[0]["id"] === 1);
+    client.assert(response.body.Definitions[0].Contexts[1]["id"] === 2);
+    client.assert(response.body.Definitions[0].Contexts[2]["id"] === 3);
+    client.assert(response.body.Definitions[0].Contexts[3]["id"] === 4);
+
+    client.assert(response.body.Definitions[0].Contexts[3].Meanings[0]["id"] === 1);
+  });
+%}
+
 
 
 ### (Version 2) BadRequest - Several required fields are null
@@ -259,6 +372,6 @@ Content-Type: application/json
   // Assert status code
   client.test('When several required fields are null, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
-    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, Each definition id must be an integer greater than 0, Each definition must have a Headword, 'Meanings' must not be empty.")
+    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, 'id' must be greater than '0', Each definition must have a Headword, 'Contexts' must not be empty.")
   });
 %}
