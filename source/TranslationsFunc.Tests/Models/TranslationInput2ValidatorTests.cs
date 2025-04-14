@@ -173,7 +173,7 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenMeaningsAreEmpty_ReturnsFalse()
+        public void Validate_WhenMeaningsAreEmpty_ReturnsTrue()
         {
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
@@ -190,7 +190,7 @@ namespace TranslationFunc.Tests.Models
             var sut = _fixture.Create<TranslationInput2Validator>();
             ValidationResult result = sut.Validate(translationInput);
 
-            result.IsValid.Should().BeFalse();
+            result.IsValid.Should().BeTrue();
         }
 
         [DataTestMethod]

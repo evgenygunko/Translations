@@ -259,6 +259,6 @@ Content-Type: application/json
   // Assert status code
   client.test('When several required fields are null, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
-    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, Each definition id must be an integer greater than 0, Each definition must have a Headword, Each definition must have at least one Meaning.")
+    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'DestinationLanguages' must have at least one element and fewer than two, Each definition id must be an integer greater than 0, Each definition must have a Headword, 'Meanings' must not be empty.")
   });
 %}
