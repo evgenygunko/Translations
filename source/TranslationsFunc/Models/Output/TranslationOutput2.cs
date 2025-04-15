@@ -1,14 +1,19 @@
 ﻿namespace TranslationsFunc.Models.Output
 {
     // The output model returned by the Azure function.
-    public record TranslationOutput2(DefinitionTranslations[] Definitions);
+    public record TranslationOutput2(
+        DefinitionOutput2[] Definitions);
 
-    public record DefinitionTranslations(
+    public record DefinitionOutput2(
         int id,
-        Headword[] Headword,
-        Context[] Contexts);
+        string HeadwordTranslation,
+        ContextOutput2[] Contexts);
 
-    public record Context(
+    public record ContextOutput2(
         int id,
-        Meaning[] Meanings);
+        MeaningOutput2[] Meanings);
+
+    public record MeaningOutput2(
+        int id,
+        string MeaningTranslation);
 }

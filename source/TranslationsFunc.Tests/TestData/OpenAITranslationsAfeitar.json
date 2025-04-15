@@ -1,0 +1,34 @@
+{
+    "Definitions": [
+        {
+            "id": 1,
+            "HeadwordTranslation": "брить",
+            "Contexts": [
+                {
+                    "id": 1,
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "MeaningTranslation": "брить (удалять волосы), сбрить, срезать"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "HeadwordTranslation": "бриться",
+            "Contexts": [
+                {
+                    "id": 1,
+                    "Meanings": [
+                        {
+                            "id": 1,
+                            "MeaningTranslation": "брить (брить себя), самообритие, сбривать"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

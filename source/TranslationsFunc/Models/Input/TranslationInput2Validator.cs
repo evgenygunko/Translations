@@ -11,12 +11,7 @@ namespace TranslationsFunc.Models.Input
         {
             RuleFor(model => model.SourceLanguage).NotEmpty();
 
-            RuleFor(model => model.DestinationLanguages)
-                .NotEmpty()
-                .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
-            RuleFor(model => model.DestinationLanguages)
-                .Must(collection => collection == null || collection.Count() > 0 && collection.Count() <= 2)
-                .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
+            RuleFor(model => model.DestinationLanguage).NotEmpty();
 
             RuleFor(model => model.Definitions).NotNull();
             RuleForEach(o => o.Definitions)

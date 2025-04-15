@@ -18,15 +18,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                        PartOfSpeech: "PartOfSpeech",
+                        Headword: new Headword2("word", "Meaning", Examples: []),
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"])]
                             )
                         ]
@@ -45,15 +46,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                        PartOfSpeech: "PartOfSpeech",
+                        Headword: new Headword2("word", "Meaning", Examples: []),
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"])]
                             )
                         ]
@@ -69,20 +71,21 @@ namespace TranslationFunc.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_WhenDestinationLanguagesIsNull_ReturnsFalse()
+        public void Validate_WhenDestinationLanguageIsNull_ReturnsFalse()
         {
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: null!,
+                DestinationLanguage: null!,
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                        PartOfSpeech: "PartOfSpeech",
+                        Headword: new Headword2("word", "Meaning", Examples: []),
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
                             )
                         ]
@@ -94,36 +97,7 @@ namespace TranslationFunc.Tests.Models
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'DestinationLanguages' must have at least one element and fewer than two.");
-        }
-
-        [TestMethod]
-        public void Validate_WhenDestinationLanguagesHasTooManyElements_ReturnsFalse()
-        {
-            TranslationInput2 translationInput = new TranslationInput2(
-                Version: "2",
-                SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en", "es"],
-                Definitions: [
-                    new Definition(
-                        id:1,
-                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
-                        Contexts :[
-                            new Context(
-                                id: 1,
-                                ContextEN: "context 1",
-                                Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
-                            )
-                        ]
-                    )
-                ]);
-
-            var sut = _fixture.Create<TranslationInput2Validator>();
-            ValidationResult result = sut.Validate(translationInput);
-
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'DestinationLanguages' must have at least one element and fewer than two.");
+            result.Errors.First().ErrorMessage.Should().Be("'Destination Language' must not be empty.");
         }
 
         [TestMethod]
@@ -132,15 +106,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 0,
+                        PartOfSpeech: "PartOfSpeech",
                         Headword: default!,
                         Contexts :[
-                            new Context(
+                            new Context2(
                                 id : 1,
-                                ContextEN : "context 1",
+                                ContextString: "context 1",
                                 Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
                             )
                         ]
@@ -162,15 +137,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
+                        PartOfSpeech: "PartOfSpeech",
                         Headword: default!,
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [ new Meaning(id: 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"]) ]
                             )
                         ]
@@ -191,15 +167,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new Headword("", "Meaning", "PartOfSpeech", Examples: []),
+                        PartOfSpeech: "PartOfSpeech",
+                        Headword: new Headword2("", "Meaning", Examples: []),
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [ new Meaning(id : 1, Text: "meaning 1", Examples: ["Meaning 1, example 1"]) ]
                             )
                         ]
@@ -220,15 +197,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                        PartOfSpeech: "PartOfSpeech",
+                        Headword: new Headword2("word", "Meaning", Examples: []),
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: []
                             )
                         ]
@@ -249,15 +227,16 @@ namespace TranslationFunc.Tests.Models
             TranslationInput2 translationInput = new TranslationInput2(
                 Version: version,
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new Headword("word", "Meaning", "PartOfSpeech", Examples: []),
+                        PartOfSpeech: "PartOfSpeech",
+                        Headword: new Headword2("word", "Meaning", Examples: []),
                         Contexts: [
-                            new Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [ new Meaning(id : 1, Text : "meaning 1", Examples :["Meaning 1, example 1"]) ]
                             )
                         ]

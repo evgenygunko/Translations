@@ -44,8 +44,7 @@ namespace TranslationsFunc.Services
             string promptForMeanings = CreatePromptForMeanings(
                     sourceLanguage: input.SourceLanguage,
                     destinationLanguages: input.DestinationLanguages,
-                    meanings: input.Meanings,
-                    context: null);
+                    meanings: input.Meanings);
 
             OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
 
@@ -56,44 +55,36 @@ namespace TranslationsFunc.Services
 
         public async Task<TranslationOutput2> Translate2Async(TranslationInput2 input)
         {
-            var definitionTranslations = new List<DefinitionTranslations>();
+            StringBuilder prompt = new StringBuilder();
+            prompt.AppendLine($@"
+Translate the following JSON data from {input.SourceLanguage} to {input.DestinationLanguage}.
 
-            foreach (Definition definition in input.Definitions)
-            {
-                // Translate headword
-                string promptForHeadword = CreatePromptForHeadword(
-                        word: definition.Headword.Text,
-                        sourceLanguage: input.SourceLanguage,
-                        destinationLanguages: input.DestinationLanguages,
-                        meaning: definition.Headword.Meaning,
-                        partOfSpeech: definition.Headword.PartOfSpeech,
-                        examples: definition.Headword.Examples);
+Focus on translating the following properties:
+1.Headword.Text
+2.Meaning.Text
 
-                OpenAIHeadwordTranslations? openAIHeadwordTranslations = await CallOpenAIAsync<OpenAIHeadwordTranslations>(promptForHeadword);
+For Headword.Text:
+    - Use the related PartOfSpeech and Meaning to inform the translation.
+    - Review Headword.Examples to better understand the context.
+    - Maintain the same part of speech in the translation.
 
-                var outputContexts = new List<Models.Output.Context>();
-                foreach (var context in definition.Contexts)
-                {
-                    // Translate meanings
-                    string promptForMeanings = CreatePromptForMeanings(
-                        sourceLanguage: input.SourceLanguage,
-                        destinationLanguages: input.DestinationLanguages,
-                        meanings: context.Meanings,
-                        context: context.ContextEN);
-                    OpenAIMeaningsTranslations? openAIMeaningsTranslations = await CallOpenAIAsync<OpenAIMeaningsTranslations>(promptForMeanings);
+For Meaning.Text:
+    - Use the related PartOfSpeech and Context.ContextString to guide the translation.
+    - Review Meaning.Examples to understand how the word is used in context.
+    - Maintain the same part of speech in the translation.
 
-                    outputContexts.Add(new Models.Output.Context(
-                        id: context.id,
-                        Meanings: openAIMeaningsTranslations?.Translations ?? []));
-                }
+Output requirements:
+    - For each Headword.Text, provide 1 to 3 translation options in the field HeadwordTranslation, separated by commas.
+    - For each Meaning.Text, if the corresponding Context.ContextString is provided, include 1 to 3 translation options in the field MeaningTranslation, also separated by commas.");
 
-                definitionTranslations.Add(new DefinitionTranslations(
-                        id: definition.id,
-                        Headword: openAIHeadwordTranslations?.Translations ?? [],
-                        Contexts: outputContexts.ToArray()));
-            }
+            // Serialize input object to JSON and append to the prompt
+            string inputJson = JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true });
+            prompt.AppendLine("Input JSON:");
+            prompt.AppendLine(inputJson);
 
-            return new TranslationOutput2(definitionTranslations.ToArray());
+            TranslationOutput2? openAITranslations = await CallOpenAIAsync<TranslationOutput2>(prompt.ToString());
+
+            return openAITranslations ?? new TranslationOutput2([]);
         }
 
         #endregion
@@ -103,19 +94,12 @@ namespace TranslationsFunc.Services
         internal static string CreatePromptForMeanings(
             string sourceLanguage,
             IEnumerable<string> destinationLanguages,
-            IEnumerable<Models.Input.Meaning> meanings,
-            string? context)
+            IEnumerable<Models.Input.Meaning> meanings)
         {
             string formattedLanguages = string.Join(", ", destinationLanguages.Select(lang => $"'{lang}'"));
 
             StringBuilder prompt = new StringBuilder();
             prompt.AppendLine($"Translate strings from the language '{sourceLanguage}' into the languages {formattedLanguages}.");
-
-            if (!string.IsNullOrEmpty(context))
-            {
-                prompt.AppendLine($"The current context means: '{context}'.");
-            }
-
             prompt.AppendLine("Check examples to better understand the context.");
             prompt.AppendLine("In the output, retain the ID of the input text when returning translations.");
 

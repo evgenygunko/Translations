@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace TranslationsFunc.Models.Input
 {
-    public class DefinitionValidator : AbstractValidator<Definition>
+    public class DefinitionValidator : AbstractValidator<Definition2>
     {
         public DefinitionValidator()
         {

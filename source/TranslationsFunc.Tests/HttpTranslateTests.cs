@@ -182,15 +182,16 @@ namespace TranslationFunc.Tests
             var translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                        PartOfSpeech: "noun",
+                        Headword: new Headword2(Text: "word to translate", Meaning: "meaning", Examples: ["example 1"]),
                         Contexts: [
-                            new TranslationsFunc.Models.Input.Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [
                                     new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
                                     new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
@@ -226,15 +227,16 @@ namespace TranslationFunc.Tests
             var translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                        PartOfSpeech: "noun",
+                        Headword: new Headword2(Text: "word to translate", Meaning: "meaning", Examples: ["example 1"]),
                         Contexts: [
-                            new TranslationsFunc.Models.Input.Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [
                                     new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
                                     new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),
@@ -278,15 +280,16 @@ namespace TranslationFunc.Tests
             var translationInput = new TranslationInput2(
                 Version: "2",
                 SourceLanguage: "da",
-                DestinationLanguages: ["ru", "en"],
+                DestinationLanguage: "ru",
                 Definitions: [
-                    new Definition(
+                    new Definition2(
                         id: 1,
-                        Headword: new TranslationsFunc.Models.Input.Headword(Text: "word to translate", Meaning: "meaning", PartOfSpeech: "noun", Examples: ["example 1"]),
+                        PartOfSpeech: "noun",
+                        Headword: new Headword2(Text: "word to translate", Meaning: "meaning", Examples: ["example 1"]),
                         Contexts: [
-                            new TranslationsFunc.Models.Input.Context(
+                            new Context2(
                                 id: 1,
-                                ContextEN: "context 1",
+                                ContextString: "context 1",
                                 Meanings: [
                                     new TranslationsFunc.Models.Input.Meaning(id: 1, Text: "meaning 1", Examples: [ "meaning 1, example 1" ]),
                                     new TranslationsFunc.Models.Input.Meaning(id: 2, Text: "meaning 2", Examples: [ "meaning 2, example 1", "meaning 2, example 2" ]),

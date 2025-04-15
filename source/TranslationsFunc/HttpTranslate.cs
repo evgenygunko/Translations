@@ -159,10 +159,10 @@ namespace My.Function
                 IEnumerable<string> headwords = translationInput.Definitions.Select(d => d.Headword.Text).Distinct();
 
                 _logger.LogInformation(new EventId(32),
-                    "Will translate '{Headwords}' from '{SourceLanguage}' to '{DestinationLanguages}' with OpenAI API.",
+                    "Will translate '{Headwords}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
                     string.Join(",", headwords),
                     translationInput.SourceLanguage,
-                    string.Join(',', translationInput.DestinationLanguages));
+                    translationInput.DestinationLanguage);
 
                 TranslationOutput2 translationOutput = await _openAITranslationService.Translate2Async(translationInput);
 
