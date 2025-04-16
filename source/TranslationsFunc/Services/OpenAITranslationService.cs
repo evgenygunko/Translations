@@ -75,6 +75,7 @@ For Meaning.Text:
 
 Output requirements:
     - For each Headword.Text, provide 1 to 3 translation options in the field HeadwordTranslation, separated by commas.
+    - For each Headword.Text, provide 1 to 3 translation options To English in the field HeadwordTranslationEnglish, separated by commas.
     - For each Meaning.Text, if the corresponding Context.ContextString is provided, include 1 to 3 translation options in the field MeaningTranslation, also separated by commas.");
 
             // Serialize input object to JSON and append to the prompt

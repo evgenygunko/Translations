@@ -7,6 +7,7 @@
     public record DefinitionOutput2(
         int id,
         string HeadwordTranslation,
+        string HeadwordTranslationEnglish,
         ContextOutput2[] Contexts);
 
     public record ContextOutput2(

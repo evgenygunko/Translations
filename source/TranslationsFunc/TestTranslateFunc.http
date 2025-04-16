@@ -218,17 +218,19 @@ Content-Type: application/json
 
     client.assert(response.body.Definitions[0]["id"] === 1);
     client.assert(response.body.Definitions[0]["HeadwordTranslation"].length > 0);
+    client.assert(response.body.Definitions[0]["HeadwordTranslationEnglish"].length > 0);
 
     client.assert(response.body.Definitions[0].Contexts[0]["id"] === 1);
-
     client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);
     client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["MeaningTranslation"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1]["id"] === 2);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1]["MeaningTranslation"].length > 0);
-
     client.assert(response.body.Definitions[1]["id"] === 2);
     client.assert(response.body.Definitions[1]["HeadwordTranslation"].length > 0);
+    client.assert(response.body.Definitions[1]["HeadwordTranslationEnglish"].length > 0);
+
+    client.assert(response.body.Definitions[1].Contexts[0]["id"] === 1);
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0]["id"] === 1);
+    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0]["MeaningTranslation"].length > 0);
   });
 %}
 
@@ -319,6 +321,7 @@ Content-Type: application/json
 
     client.assert(response.body.Definitions[0]["id"] === 1);
     client.assert(response.body.Definitions[0]["HeadwordTranslation"].length > 0);
+    client.assert(response.body.Definitions[0]["HeadwordTranslationEnglish"].length > 0);
 
     client.assert(response.body.Definitions[0].Contexts[0]["id"] === 1);
     client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);

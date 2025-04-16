@@ -142,6 +142,7 @@ namespace TranslationsFunc.Tests.Services
 
             // Check translations for headword
             definition.HeadwordTranslation.Should().Be("брить");
+            definition.HeadwordTranslationEnglish.Should().Be("to shave");
 
             // Check translations for meanings
             definition.Contexts.Should().HaveCount(1);
@@ -159,6 +160,7 @@ namespace TranslationsFunc.Tests.Services
 
             // Check translations for headword
             definition.HeadwordTranslation.Should().Be("бриться");
+            definition.HeadwordTranslationEnglish.Should().Be("to shave (oneself)");
 
             // Check translations for meanings
             definition.Contexts.Should().HaveCount(1);

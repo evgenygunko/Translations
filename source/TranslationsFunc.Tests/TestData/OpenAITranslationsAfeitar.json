@@ -3,6 +3,7 @@
         {
             "id": 1,
             "HeadwordTranslation": "брить",
+            "HeadwordTranslationEnglish": "to shave",
             "Contexts": [
                 {
                     "id": 1,
@@ -18,6 +19,7 @@
         {
             "id": 2,
             "HeadwordTranslation": "бриться",
+            "HeadwordTranslationEnglish": "to shave (oneself)",
             "Contexts": [
                 {
                     "id": 1,
