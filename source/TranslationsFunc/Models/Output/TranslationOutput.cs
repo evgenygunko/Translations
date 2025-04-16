@@ -1,17 +1,20 @@
 ﻿namespace TranslationsFunc.Models.Output
 {
     // The output model returned by the Azure function.
-    public record TranslationOutput(Headword[] Headword, Meaning[] Meanings);
+    public record TranslationOutput(
+        DefinitionOutput[] Definitions);
 
-    public record Headword(string Language, IEnumerable<string> HeadwordTranslations);
+    public record DefinitionOutput(
+        int id,
+        string HeadwordTranslation,
+        string HeadwordTranslationEnglish,
+        ContextOutput[] Contexts);
 
-    public record Meaning(int id, MeaningTranslation[] MeaningTranslations);
+    public record ContextOutput(
+        int id,
+        MeaningOutput[] Meanings);
 
-    public record MeaningTranslation(string Language, string Text);
-
-    // The model returned by OpenAI's API.
-    public record OpenAIHeadwordTranslations(Headword[] Translations);
-
-    // The model returned by OpenAI's API.
-    public record OpenAIMeaningsTranslations(Meaning[] Translations);
+    public record MeaningOutput(
+        int id,
+        string MeaningTranslation);
 }

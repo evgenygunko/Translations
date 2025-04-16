@@ -30,7 +30,6 @@ var host = new HostBuilder()
         services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
 
         services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
-        services.AddScoped<IValidator<TranslationInput2>, TranslationInput2Validator>();
 
         services.AddSingleton<ChatClient>(_ =>
         {

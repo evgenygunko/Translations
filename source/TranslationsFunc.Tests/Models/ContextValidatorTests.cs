@@ -15,7 +15,7 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenAllRequiredFieldsHaveValues_ReturnsTrue()
         {
-            var context = new Context2(id: 1, ContextString: "context 1", Meanings: []);
+            var context = new ContextInput(id: 1, ContextString: "context 1", Meanings: []);
 
             var sut = _fixture.Create<ContextValidator>();
             ValidationResult result = sut.Validate(context);
@@ -26,7 +26,7 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenIdIsLessThanOne_ReturnsFalse()
         {
-            var context = new Context2(id: 0, ContextString: "context 1", Meanings: []);
+            var context = new ContextInput(id: 0, ContextString: "context 1", Meanings: []);
 
             var sut = _fixture.Create<ContextValidator>();
             ValidationResult result = sut.Validate(context);
@@ -39,7 +39,7 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenMeaningsAreNull_ReturnsFalse()
         {
-            var context = new Context2(id: 0, ContextString: "context 1", Meanings: null!);
+            var context = new ContextInput(id: 0, ContextString: "context 1", Meanings: null!);
 
             var sut = _fixture.Create<ContextValidator>();
             ValidationResult result = sut.Validate(context);

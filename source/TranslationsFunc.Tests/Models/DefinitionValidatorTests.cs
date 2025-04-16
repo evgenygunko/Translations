@@ -15,10 +15,10 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenAllRequiredFieldsHaveValues_ReturnsTrue()
         {
-            Definition2 definition = new Definition2(
+            DefinitionInput definition = new DefinitionInput(
                 id: 1,
                 PartOfSpeech: "PartOfSpeech",
-                Headword: new Headword2("word", "Meaning", Examples: []),
+                Headword: new HeadwordInput("word", "Meaning", Examples: []),
                 Contexts: []
             );
 
@@ -31,10 +31,10 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenIdIsLessThanOne_ReturnsFalse()
         {
-            Definition2 definition = new Definition2(
+            DefinitionInput definition = new DefinitionInput(
                 id: 0,
                 PartOfSpeech: "PartOfSpeech",
-                Headword: new Headword2("word", "Meaning", Examples: []),
+                Headword: new HeadwordInput("word", "Meaning", Examples: []),
                 Contexts: []
             );
 
@@ -49,7 +49,7 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenHeadwordIsNull_ReturnsFalse()
         {
-            Definition2 definition = new Definition2(
+            DefinitionInput definition = new DefinitionInput(
                 id: 1,
                 PartOfSpeech: "PartOfSpeech",
                 Headword: null!,
@@ -67,10 +67,10 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenHeadwordTextIsEmpty_ReturnsFalse()
         {
-            Definition2 definition = new Definition2(
+            DefinitionInput definition = new DefinitionInput(
                 id: 1,
                 PartOfSpeech: "PartOfSpeech",
-                Headword: new Headword2("", "Meaning", Examples: []),
+                Headword: new HeadwordInput("", "Meaning", Examples: []),
                 Contexts: []
             );
 
@@ -85,10 +85,10 @@ namespace TranslationFunc.Tests.Models
         [TestMethod]
         public void Validate_WhenContextsAreNull_ReturnsFalse()
         {
-            Definition2 definition = new Definition2(
+            DefinitionInput definition = new DefinitionInput(
                 id: 1,
                 PartOfSpeech: "PartOfSpeech",
-                Headword: new Headword2("word", "Meaning", Examples: []),
+                Headword: new HeadwordInput("word", "Meaning", Examples: []),
                 Contexts: null!
             );
 

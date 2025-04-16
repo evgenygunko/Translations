@@ -11,23 +11,13 @@ namespace TranslationsFunc.Models.Input
         {
             RuleFor(model => model.SourceLanguage).NotEmpty();
 
-            RuleFor(model => model.DestinationLanguages)
-                .NotEmpty()
-                .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
-            RuleFor(model => model.DestinationLanguages)
-                .Must(collection => collection == null || collection.Count() > 0 && collection.Count() <= 2)
-                .WithMessage("'DestinationLanguages' must have at least one element and fewer than two.");
+            RuleFor(model => model.DestinationLanguage).NotEmpty();
 
-            RuleFor(model => model.Headword).NotNull();
-            RuleFor(model => model.Headword.Text)
-               .NotEmpty()
-               .When(model => model.Headword != null);
+            RuleFor(model => model.Definitions).NotNull();
+            RuleForEach(o => o.Definitions)
+                .SetValidator(new DefinitionValidator());
 
-            RuleFor(model => model.Meanings)
-                .Must(collection => collection == null || collection.Count() > 0)
-                .WithMessage("'Meanings' must have at least one element.");
-
-            RuleFor(model => model.Version).Equal("1");
+            RuleFor(model => model.Version).Equal("2");
         }
 
         protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)

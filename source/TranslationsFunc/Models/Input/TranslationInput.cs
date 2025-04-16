@@ -3,17 +3,26 @@
     public record TranslationInput(
         string Version,
         string SourceLanguage,
-        IEnumerable<string> DestinationLanguages,
-        Headword Headword,
-        IEnumerable<Meaning> Meanings);
+        string DestinationLanguage,
+        IEnumerable<DefinitionInput> Definitions);
 
-    public record Headword(
+    public record DefinitionInput(
+        int id,
+        string PartOfSpeech,
+        HeadwordInput Headword,
+        IEnumerable<ContextInput> Contexts);
+
+    public record ContextInput(
+        int id,
+        string ContextString,
+        IEnumerable<MeaningInput> Meanings);
+
+    public record HeadwordInput(
         string Text,
         string Meaning,
-        string PartOfSpeech,
         IEnumerable<string> Examples);
 
-    public record Meaning(
+    public record MeaningInput(
         int id,
         string Text,
         IEnumerable<string> Examples);
