@@ -10,7 +10,7 @@ namespace TranslationFunc.Tests.Models
     [TestClass]
     public class ContextValidatorTests
     {
-        private readonly Fixture _fixture = FixtureFactory.CreateFixture();
+        private readonly IFixture _fixture = FixtureFactory.Create();
 
         [TestMethod]
         public void Validate_WhenAllRequiredFieldsHaveValues_ReturnsTrue()

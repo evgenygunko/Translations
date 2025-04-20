@@ -1,65 +1,45 @@
 ﻿// Ignore Spelling: Deserialize
 
-using System.Collections.Specialized;
 using System.Net;
-using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using My.Function;
+using TranslationFunc.Tests;
+using TranslationsFunc.Controllers;
 using TranslationsFunc.Models.Input;
 using TranslationsFunc.Models.Output;
 using TranslationsFunc.Services;
 
-namespace TranslationFunc.Tests
+namespace TranslationsFunc.Tests.Controllers
 {
     [TestClass]
-    public class HttpTranslateTests
+    public class TranslationControllerTests
     {
-        private readonly Fixture _fixture = FixtureFactory.CreateFixture();
+        private readonly IFixture _fixture = FixtureFactory.CreateWithControllerCustomizations();
 
-        #region Tests for Run
+        #region Tests for TranslateAsync
 
         [TestMethod]
-        public async Task Run_WhenInputDataIsNull_ReturnsBadRequest()
+        public async Task TranslateAsync_WhenInputDataIsNull_ReturnsBadRequest()
         {
             TranslationInput? translationInput = null;
-            var httpRequestData = MockHttpRequestData.Create(translationInput, []);
 
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<TranslationOutput> actionResult = await sut.TranslateAsync(translationInput!);
 
-            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
 
-            result.Body.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(result.Body);
-            string responseBody = await streamReader.ReadToEndAsync();
-            responseBody.Should().StartWith("{\"Error\":\"Input data is null");
+            result.Value.Should().Be("Input data is null");
         }
 
         [TestMethod]
-        public async Task Run_WhenCannotDeserializeInput_ReturnsBadRequest()
-        {
-            string input = "{ \"prop1\" : \"abc\" }";
-            var httpRequestData = MockHttpRequestData.Create(input, []);
-
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
-
-            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-
-            result.Body.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(result.Body);
-            string responseBody = await streamReader.ReadToEndAsync();
-            responseBody.Should().StartWith("{\"Error\":\"Cannot deserialize input data. Exception:");
-        }
-
-        [TestMethod]
-        public async Task Run_WhenTranslationInput2ModelIsNotValid_ReturnsBadRequest()
+        public async Task TranslateAsync_WhenModelIsNotValid_ReturnsBadRequest()
         {
             var translationInput = new TranslationInput(
                 Version: "2",
@@ -83,8 +63,6 @@ namespace TranslationFunc.Tests
                     )
                 ]);
 
-            var httpRequestData = MockHttpRequestData.Create(translationInput, []);
-
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
             validationResult.Errors.Add(new ValidationFailure("SourceLanguage", "SourceLanguage cannot be null or empty"));
@@ -92,19 +70,18 @@ namespace TranslationFunc.Tests
             var translationInputValidatorMock = _fixture.Freeze<Mock<IValidator<TranslationInput>>>();
             translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslationInput>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<TranslationOutput> actionResult = await sut.TranslateAsync(translationInput);
 
-            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
 
-            result.Body.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(result.Body);
-            string responseBody = await streamReader.ReadToEndAsync();
-            responseBody.Should().Be("{\"Error\":\"Error: SourceLanguage cannot be null or empty.\"}");
+            result.Value.Should().Be("Error: SourceLanguage cannot be null or empty.");
         }
 
         [TestMethod]
-        public async Task Run_WhenTranslate2AsyncThrowsException_LogsError()
+        public async Task TranslateAsync_WhenOpenAITranslationServiceThrowsException_LogsError()
         {
             var translationInput = new TranslationInput(
                 Version: "2",
@@ -128,20 +105,18 @@ namespace TranslationFunc.Tests
                     )
                 ]);
 
-            var httpRequestData = MockHttpRequestData.Create(translationInput, []);
-            var translationOutput = _fixture.Create<TranslationOutput>();
+            var translationInputValidatorMock = _fixture.Freeze<Mock<IValidator<TranslationInput>>>();
+            translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslationInput>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
             openAITranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ThrowsAsync(new Exception("exception from unit test"));
 
-            var loggerMock = _fixture.Create<Mock<ILogger<HttpTranslate>>>();
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
-            var loggerFactoryMock = _fixture.Freeze<Mock<ILoggerFactory>>();
-            loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(loggerMock.Object);
+            var sut = _fixture.Create<TranslationController>();
 
-            var sut = _fixture.Create<HttpTranslate>();
-
-            await sut.Invoking(x => x.Run(httpRequestData))
+            await sut.Invoking(x => x.TranslateAsync(translationInput))
                 .Should().ThrowAsync<Exception>()
                 .WithMessage("exception from unit test");
 
@@ -156,7 +131,7 @@ namespace TranslationFunc.Tests
         }
 
         [TestMethod]
-        public async Task Run_Should_CallsOpenAITranslationServiceAndReturnTranslationOutput2()
+        public async Task TranslateAsync_Should_CallsOpenAITranslationServiceAndReturnTranslationOutput()
         {
             // Arrange
             var translationInput = new TranslationInput(
@@ -181,25 +156,21 @@ namespace TranslationFunc.Tests
                     )
                 ]);
 
-            var httpRequestData = MockHttpRequestData.Create(translationInput, new NameValueCollection());
-            var translationOutput2 = _fixture.Create<TranslationOutput>();
+            var translationOutput = _fixture.Create<TranslationOutput>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
-            openAITranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ReturnsAsync(translationOutput2);
+            openAITranslationServiceMock.Setup(x => x.TranslateAsync(It.IsAny<TranslationInput>())).ReturnsAsync(translationOutput);
+
+            var translationInputValidatorMock = _fixture.Freeze<Mock<IValidator<TranslationInput>>>();
+            translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslationInput>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
 
             // Act
-            var sut = _fixture.Create<HttpTranslate>();
-            HttpResponseData result = await sut.Run(httpRequestData);
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<TranslationOutput> actionResult = await sut.TranslateAsync(translationInput);
 
             // Assert
-            result.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            result.Body.Seek(0, SeekOrigin.Begin);
-            using var streamReader = new StreamReader(result.Body);
-            string responseBody = await streamReader.ReadToEndAsync();
-
-            var deserializedResponse = JsonSerializer.Deserialize<TranslationOutput>(responseBody);
-            deserializedResponse.Should().BeEquivalentTo(translationOutput2);
+            actionResult.Value.Should().BeEquivalentTo(translationOutput);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslationInput>()));
         }
@@ -215,7 +186,7 @@ namespace TranslationFunc.Tests
             validationResult.Errors.Clear();
             validationResult.Errors.Add(new ValidationFailure("property1", "property1 cannot be null"));
 
-            var sut = _fixture.Create<HttpTranslate>();
+            var sut = _fixture.Create<TranslationController>();
             string result = sut.FormatValidationErrorMessage(validationResult);
 
             result.Should().Be("Error: property1 cannot be null.");
@@ -229,7 +200,7 @@ namespace TranslationFunc.Tests
             validationResult.Errors.Add(new ValidationFailure("property1", "property1 cannot be null"));
             validationResult.Errors.Add(new ValidationFailure("property2", "property2 cannot be null"));
 
-            var sut = _fixture.Create<HttpTranslate>();
+            var sut = _fixture.Create<TranslationController>();
             string result = sut.FormatValidationErrorMessage(validationResult);
 
             result.Should().Be("Error: property1 cannot be null, property2 cannot be null.");

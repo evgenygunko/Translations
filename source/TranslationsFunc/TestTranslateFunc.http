@@ -1,3 +1,6 @@
+### Returns a string with app version
+GET {{HostAddress}}
+
 ### (Version 2) Translate "såsom" from Danish to English + Russian
 
 POST {{HostAddress}}/api/Translate?code={{code}}
@@ -48,16 +51,17 @@ Content-Type: application/json
   // Assert status code
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is 200");
-    client.assert(response.body.Definitions[0]["id"] === 1);
-    client.assert(response.body.Definitions[0]["HeadwordTranslation"].length > 0);
+    client.assert(response.body.definitions[0]["id"] === 1);
+    client.assert(response.body.definitions[0]["headwordTranslation"].length > 0);
+    client.assert(response.body.definitions[0]["headwordTranslationEnglish"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[0]["id"] === 1);
 
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["meaningTranslation"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1]["id"] === 2);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[1]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0].meanings[1]["id"] === 2);
+    client.assert(response.body.definitions[0].contexts[0].meanings[1]["meaningTranslation"].length > 0);
   });
 %}
 
@@ -130,21 +134,21 @@ Content-Type: application/json
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is 200");
 
-    client.assert(response.body.Definitions[0]["id"] === 1);
-    client.assert(response.body.Definitions[0]["HeadwordTranslation"].length > 0);
-    client.assert(response.body.Definitions[0]["HeadwordTranslationEnglish"].length > 0);
+    client.assert(response.body.definitions[0]["id"] === 1);
+    client.assert(response.body.definitions[0]["headwordTranslation"].length > 0);
+    client.assert(response.body.definitions[0]["headwordTranslationEnglish"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["meaningTranslation"].length > 0);
 
-    client.assert(response.body.Definitions[1]["id"] === 2);
-    client.assert(response.body.Definitions[1]["HeadwordTranslation"].length > 0);
-    client.assert(response.body.Definitions[1]["HeadwordTranslationEnglish"].length > 0);
+    client.assert(response.body.definitions[1]["id"] === 2);
+    client.assert(response.body.definitions[1]["headwordTranslation"].length > 0);
+    client.assert(response.body.definitions[1]["headwordTranslationEnglish"].length > 0);
 
-    client.assert(response.body.Definitions[1].Contexts[0]["id"] === 1);
-    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[1].Contexts[0].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[1].contexts[0]["id"] === 1);
+    client.assert(response.body.definitions[1].contexts[0].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[1].contexts[0].meanings[0]["meaningTranslation"].length > 0);
   });
 %}
 
@@ -233,25 +237,25 @@ Content-Type: application/json
   client.test('When sending a word for translation, we expect to get json back', () => {
     client.assert(response.status === 200, "Response status is 200");
 
-    client.assert(response.body.Definitions[0]["id"] === 1);
-    client.assert(response.body.Definitions[0]["HeadwordTranslation"].length > 0);
-    client.assert(response.body.Definitions[0]["HeadwordTranslationEnglish"].length > 0);
+    client.assert(response.body.definitions[0]["id"] === 1);
+    client.assert(response.body.definitions[0]["headwordTranslation"].length > 0);
+    client.assert(response.body.definitions[0]["headwordTranslationEnglish"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[0].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["meaningTranslation"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[1]["id"] === 2);
-    client.assert(response.body.Definitions[0].Contexts[1].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[1].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[1]["id"] === 2);
+    client.assert(response.body.definitions[0].contexts[1].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[1].meanings[0]["meaningTranslation"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[2]["id"] === 3);
-    client.assert(response.body.Definitions[0].Contexts[2].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[2].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[2]["id"] === 3);
+    client.assert(response.body.definitions[0].contexts[2].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[2].meanings[0]["meaningTranslation"].length > 0);
 
-    client.assert(response.body.Definitions[0].Contexts[3]["id"] === 4);
-    client.assert(response.body.Definitions[0].Contexts[3].Meanings[0]["id"] === 1);
-    client.assert(response.body.Definitions[0].Contexts[3].Meanings[0]["MeaningTranslation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[3]["id"] === 4);
+    client.assert(response.body.definitions[0].contexts[3].meanings[0]["id"] === 1);
+    client.assert(response.body.definitions[0].contexts[3].meanings[0]["meaningTranslation"].length > 0);
   });
 %}
 
@@ -279,6 +283,6 @@ Content-Type: application/json
   // Assert status code
   client.test('When several required fields are null, we expect to get an error', () => {
     client.assert(response.status === 400, "Response status is BadRequest");
-    client.assert(response.body.Error === "Error: 'Source Language' must not be empty, 'Destination Language' must not be empty, 'id' must be greater than '0', Each definition must have a Headword, 'Contexts' must not be empty.")
+    client.assert(response.body.title === "One or more validation errors occurred.")
   });
 %}

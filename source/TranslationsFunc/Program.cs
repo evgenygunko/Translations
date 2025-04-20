@@ -1,49 +1,46 @@
 ﻿using System.Reflection;
 using FluentValidation;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
 using TranslationsFunc.Models.Input;
 using TranslationsFunc.Services;
 
-var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
-    .ConfigureServices(services =>
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+// Add custom services
+builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
+builder.Services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
+
+builder.Services.AddSingleton<ChatClient>(_ =>
+{
+    var key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+        ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
+
+    if (string.IsNullOrEmpty(key))
     {
-        services.AddApplicationInsightsTelemetryWorkerService();
-        services.ConfigureFunctionsApplicationInsights();
+        throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
+    }
 
-        services.Configure<LoggerFilterOptions>(options =>
-        {
-            // The Application Insights SDK adds a default logging filter that instructs ILogger to capture only Warning and more severe logs. Application Insights requires an explicit override.
-            // Log levels can also be configured using appsettings.json. For more information, see https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service#ilogger-logs
-            LoggerFilterRule? toRemove = options.Rules.FirstOrDefault(rule =>
-                rule.ProviderName == "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider");
+    return new ChatClient(model: "gpt-4o-mini", apiKey: key);
+});
 
-            if (toRemove is not null)
-            {
-                options.Rules.Remove(toRemove);
-            }
-        });
+var app = builder.Build();
 
-        services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
+app.UseHttpsRedirection();
 
-        services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
+app.UseAuthorization();
 
-        services.AddSingleton<ChatClient>(_ =>
-        {
-            string key = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
-            return new ChatClient(model: "gpt-4o-mini", apiKey: key);
-        });
-    })
-    .Build();
+app.MapControllers();
 
 // Log the version number
-var logger = host.Services.GetRequiredService<ILogger<Program>>();
 var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown version";
-logger.LogInformation("Application started. Version: {Version}", version);
 Console.WriteLine($"Application started. Version: {version}");
 
-host.Run();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Application started. Version: {Version}", version);
+
+app.MapGet("/", () => $"Translation app v. {version}");
+
+app.Run();

@@ -268,3 +268,4 @@ __pycache__/
 
 **/http-client.env.json
 **/.DS_Store
+source/TranslationsFunc/Dockerfile.env

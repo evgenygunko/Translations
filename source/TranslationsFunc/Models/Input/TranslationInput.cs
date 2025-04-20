@@ -8,13 +8,13 @@
 
     public record DefinitionInput(
         int id,
-        string PartOfSpeech,
+        string? PartOfSpeech,
         HeadwordInput Headword,
         IEnumerable<ContextInput> Contexts);
 
     public record ContextInput(
         int id,
-        string ContextString,
+        string? ContextString,
         IEnumerable<MeaningInput> Meanings);
 
     public record HeadwordInput(
