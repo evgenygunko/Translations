@@ -8,8 +8,8 @@ stages:
                 # Name of the registry you created with `doctl registry create`
                 DOCR_REGISTRY: 'e1904'
 
-                # Name of the Azure DevOps *Docker Registry* service connection for DigitalOcean
-                DOCR_SERVICE_CONN: 'DockerHub' # 'DigitalOcean-Docker'
+                # Name of the Azure DevOps *Docker Registry* service connection
+                DOCR_SERVICE_CONN: 'DigitalOcean-Docker' # 'DockerHub'
 
             steps:
                 - task: PowerShell@2
