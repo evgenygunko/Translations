@@ -2,8 +2,14 @@
   "profiles": {
     "TranslationsFunc": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7014",
-      "launchBrowser": false
+      "commandLineArgs": "--port 7014"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 32135,
+      "useSSL": false
     }
   }
 }

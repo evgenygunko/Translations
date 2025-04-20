@@ -30,7 +30,7 @@ namespace My.Function
         }
 
         [Function("Translate")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             string? inputJson = await req.ReadAsStringAsync();
             if (string.IsNullOrEmpty(inputJson))
