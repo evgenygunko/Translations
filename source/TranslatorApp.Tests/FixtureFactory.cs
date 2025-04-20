@@ -2,7 +2,7 @@
 using AutoFixture;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace TranslationFunc.Tests
+namespace TranslatorApp.Tests
 {
     public static class FixtureFactory
     {

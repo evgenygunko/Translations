@@ -2,7 +2,7 @@
 
 using FluentValidation;
 
-namespace TranslationsFunc.Models.Input
+namespace TranslatorApp.Models.Input
 {
     public class ContextValidator : AbstractValidator<ContextInput>
     {

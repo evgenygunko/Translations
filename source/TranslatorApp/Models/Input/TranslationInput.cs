@@ -1,4 +1,4 @@
-﻿namespace TranslationsFunc.Models.Input
+﻿namespace TranslatorApp.Models.Input
 {
     public record TranslationInput(
         string Version,

@@ -266,6 +266,7 @@ paket-files/
 __pycache__/
 *.pyc
 
-**/http-client.env.json
 **/.DS_Store
-source/TranslationsFunc/Dockerfile.env
+
+**/http-client.env.json
+**/Dockerfile.env

@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TranslationsFunc\TranslationsFunc.csproj" />
+    <ProjectReference Include="..\TranslatorApp\TranslatorApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

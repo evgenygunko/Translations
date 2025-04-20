@@ -3,7 +3,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace TranslationsFunc.Models.Input
+namespace TranslatorApp.Models.Input
 {
     public class TranslationInputValidator : AbstractValidator<TranslationInput>
     {

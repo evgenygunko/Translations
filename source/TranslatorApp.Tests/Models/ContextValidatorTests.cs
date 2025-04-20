@@ -3,9 +3,9 @@
 using AutoFixture;
 using FluentAssertions;
 using FluentValidation.Results;
-using TranslationsFunc.Models.Input;
+using TranslatorApp.Models.Input;
 
-namespace TranslationFunc.Tests.Models
+namespace TranslatorApp.Tests.Models
 {
     [TestClass]
     public class ContextValidatorTests

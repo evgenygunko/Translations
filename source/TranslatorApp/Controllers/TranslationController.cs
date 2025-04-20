@@ -1,14 +1,14 @@
 ﻿// Ignore Spelling: Validator req
 
 using System.Text.Json;
-using TranslationsFunc.Services;
+using TranslatorApp.Services;
 using FluentValidation;
 using FluentValidation.Results;
-using TranslationsFunc.Models.Input;
-using TranslationsFunc.Models.Output;
+using TranslatorApp.Models.Input;
+using TranslatorApp.Models.Output;
 using Microsoft.AspNetCore.Mvc;
 
-namespace TranslationsFunc.Controllers
+namespace TranslatorApp.Controllers
 {
     [ApiController]
     [Route("api/Translate")]

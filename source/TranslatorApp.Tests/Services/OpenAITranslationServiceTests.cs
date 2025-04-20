@@ -4,11 +4,11 @@ using System.Reflection;
 using FluentAssertions;
 using Moq;
 using OpenAI.Chat;
-using TranslationsFunc.Models.Input;
-using TranslationsFunc.Models.Output;
-using TranslationsFunc.Services;
+using TranslatorApp.Models.Input;
+using TranslatorApp.Models.Output;
+using TranslatorApp.Services;
 
-namespace TranslationsFunc.Tests.Services
+namespace TranslatorApp.Tests.Services
 {
     [TestClass]
     public class OpenAITranslationServiceTests
@@ -32,7 +32,7 @@ namespace TranslationsFunc.Tests.Services
                             new ContextInput(
                                 id: 1,
                                 ContextString: "context 1",
-                                Meanings: [ new Models.Input.MeaningInput(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
+                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
                             )
                         ]
                     ),
@@ -44,7 +44,7 @@ namespace TranslationsFunc.Tests.Services
                             new ContextInput(
                                 id: 1,
                                 ContextString: "context 1",
-                                Meanings: [ new Models.Input.MeaningInput(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
+                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
                             )
                         ]
                     )

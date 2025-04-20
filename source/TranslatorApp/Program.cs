@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using FluentValidation;
 using OpenAI.Chat;
-using TranslationsFunc.Models.Input;
-using TranslationsFunc.Services;
+using TranslatorApp.Models.Input;
+using TranslatorApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

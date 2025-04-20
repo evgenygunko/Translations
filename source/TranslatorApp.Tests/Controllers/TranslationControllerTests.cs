@@ -8,13 +8,12 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TranslationFunc.Tests;
-using TranslationsFunc.Controllers;
-using TranslationsFunc.Models.Input;
-using TranslationsFunc.Models.Output;
-using TranslationsFunc.Services;
+using TranslatorApp.Controllers;
+using TranslatorApp.Models.Input;
+using TranslatorApp.Models.Output;
+using TranslatorApp.Services;
 
-namespace TranslationsFunc.Tests.Controllers
+namespace TranslatorApp.Tests.Controllers
 {
     [TestClass]
     public class TranslationControllerTests
