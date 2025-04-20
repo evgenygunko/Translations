@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Reflection;
+using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,5 +39,11 @@ var host = new HostBuilder()
         });
     })
     .Build();
+
+// Log the version number
+var logger = host.Services.GetRequiredService<ILogger<Program>>();
+var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown version";
+logger.LogInformation("Application started. Version: {Version}", version);
+Console.WriteLine($"Application started. Version: {version}");
 
 host.Run();

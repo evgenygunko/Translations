@@ -1,0 +1,70 @@
+stages:
+    - stage: Deploy_To_Container_Registry
+      condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+      #trigger: manual # comment out condition and uncomment this like to allow triggering the stage manually
+
+      jobs:
+          - job: Deploy_To_Container_Registry
+
+            variables:
+                # Name of the registry you created with `doctl registry create`
+                DOCR_REGISTRY: 'e1904'
+
+                DOCR_REPOSITORY: 'translationsfunc'
+
+                # Name of the Azure DevOps *Docker Registry* service connection
+                DOCR_SERVICE_CONN: 'DigitalOcean-Docker'
+
+            steps:
+                - task: PowerShell@2
+                  displayName: 'PowerShell Script - update version number in project files'
+                  inputs:
+                      targetType: filePath
+                      arguments: "-version '$(Build.BuildNumber)'"
+                      filePath: './.build/UpdateVersion.ps1'
+
+                - task: Docker@2
+                  displayName: 'Build & push image to the container registry'
+                  inputs:
+                      command: buildAndPush # change to `build` if you only want to build
+                      containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
+                      repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
+                      tags: latest
+                      dockerfile: './source/TranslationsFunc/Dockerfile'
+                      buildContext: '$(Build.SourcesDirectory)'
+
+                #—————————— download and install doctl ——————————
+                - bash: |
+                      set -euo pipefail
+
+                      # 1) Point this at whatever .tar.gz you need:
+                      URL="https://github.com/digitalocean/doctl/releases/download/v1.124.0/doctl-1.124.0-linux-amd64.tar.gz"
+                      FNAME="${URL##*/}"    # doctl-1.124.0-linux-amd64.tar.gz
+
+                      echo "⤵️  Downloading $URL"
+                      curl --fail --silent --show-error --location "$URL" -o "$FNAME"
+
+                      echo "📦  Extracting archive…"
+                      tar -xzf "$FNAME"
+
+                      echo "🚚  Moving doctl binary to /usr/local/bin…"
+                      # find the extracted 'doctl' executable in this dir
+                      BIN=$(find . -maxdepth 1 -type f -executable -name 'doctl*' | head -n1)
+                      sudo mv "$BIN" /usr/local/bin
+
+                      echo "✅  Installed doctl:" && doctl version
+                  displayName: Install doctl
+
+                #—————————— run GC ——————————
+                - bash: |
+                      set -euo pipefail
+
+                      # Authenticate doctl
+                      doctl auth init -t "$DIGITALOCEAN_TOKEN"
+
+                      echo "🚀  Running garbage collection…"
+                      doctl registry garbage-collection start "$DOCR_REGISTRY" --include-untagged-manifests --force
+
+                  displayName: Prune everything but latest
+                  env:
+                      DIGITALOCEAN_TOKEN: $(DIGITALOCEAN_TOKEN)

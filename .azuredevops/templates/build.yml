@@ -4,13 +4,6 @@ stages:
       jobs:
           - job: Build
 
-            variables:
-                # Name of the registry you created with `doctl registry create`
-                DOCR_REGISTRY: 'e1904'
-
-                # Name of the Azure DevOps *Docker Registry* service connection
-                DOCR_SERVICE_CONN: 'DigitalOcean-Docker' # 'DockerHub'
-
             steps:
                 - task: PowerShell@2
                   displayName: 'PowerShell Script - set buld number variable'
@@ -43,21 +36,3 @@ stages:
                       projects: '**/*Tests.csproj'
                       arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
                       publishTestResults: true
-
-                - task: Docker@2
-                  displayName: 'Login to the Container Registry'
-                  inputs:
-                      command: login
-                      containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-
-                - task: Docker@2
-                  displayName: 'Build & push image to the container registry'
-                  inputs:
-                      command: buildAndPush # change to `build` if you only want to build
-                      containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
-                      repository: $(DOCR_REGISTRY)/translationsfunc
-                      tags: latest
-                      dockerfile: './source/TranslationsFunc/Dockerfile'
-                      buildContext: '$(Build.SourcesDirectory)'
-                  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')

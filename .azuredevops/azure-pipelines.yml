@@ -12,8 +12,11 @@ variables:
     - group: AccessTokens
 
 stages:
-    # Build and run tests. If the source branch is master, also deploy to the container registry.
+    # Build and lint
     - template: /.azuredevops/templates/build.yml
+
+    # Deploy application to the container registry
+    - template: /.azuredevops/templates/release.yml
 
     - template: /.azuredevops/templates/stages-sync-with-github.yaml
       parameters:
