@@ -7,11 +7,6 @@ stages:
           - job: Deploy_To_Container_Registry
 
             variables:
-                # Name of the registry you created with `doctl registry create`
-                DOCR_REGISTRY: 'e1904'
-
-                DOCR_REPOSITORY: 'translationsfunc'
-
                 # Name of the Azure DevOps *Docker Registry* service connection
                 DOCR_SERVICE_CONN: 'DigitalOcean-Docker'
 
@@ -30,8 +25,8 @@ stages:
                       containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
                       repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
                       tags: latest
-                      dockerfile: './source/TranslationsFunc/Dockerfile'
-                      buildContext: '$(Build.SourcesDirectory)'
+                      dockerfile: './source/TranslatorApp/Dockerfile'
+                      buildContext: '$(Build.SourcesDirectory)/source/TranslatorApp'
 
                 #—————————— download and install doctl ——————————
                 - bash: |
