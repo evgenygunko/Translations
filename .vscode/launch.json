@@ -1,11 +1,15 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Attach to .NET Functions",
-      "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:azureFunctions.pickProcess}"
-    }
-  ]
-}
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "coreclr",
+        "request": "launch",
+        "name": "Launch TranslatorApp",
+        "program": "${workspaceFolder}/source/TranslatorApp/bin/Debug/net9.0/TranslatorApp.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/source/TranslatorApp",
+        "stopAtEntry": false,
+        "preLaunchTask": "build (functions)"
+      }
+    ]
+  }
