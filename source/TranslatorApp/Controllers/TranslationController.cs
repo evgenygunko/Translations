@@ -1,34 +1,38 @@
 ﻿// Ignore Spelling: Validator req
 
 using System.Text.Json;
-using TranslatorApp.Services;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
+using TranslatorApp.Models;
 using TranslatorApp.Models.Input;
 using TranslatorApp.Models.Output;
-using Microsoft.AspNetCore.Mvc;
+using TranslatorApp.Services;
 
 namespace TranslatorApp.Controllers
 {
     [ApiController]
-    [Route("api/Translate")]
     public class TranslationController : ControllerBase
     {
         private readonly ILogger<TranslationController> _logger;
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IValidator<TranslationInput> _translationInput2Validator;
+        private readonly IValidator<Models.Input.V1.TranslationInput> _translationInputV1Validator;
 
         public TranslationController(
             ILogger<TranslationController> logger,
             IOpenAITranslationService openAITranslationService,
-            IValidator<TranslationInput> translationInput2Validator)
+            IValidator<TranslationInput> translationInput2Validator,
+            IValidator<Models.Input.V1.TranslationInput> translationInputV1Validator)
         {
             _logger = logger;
             _openAITranslationService = openAITranslationService;
             _translationInput2Validator = translationInput2Validator;
+            _translationInputV1Validator = translationInputV1Validator;
         }
 
         [HttpPost]
+        [Route("api/Translate")]
         public async Task<ActionResult<TranslationOutput>> TranslateAsync([FromBody] TranslationInput translationInput)
         {
             if (translationInput == null)
@@ -75,6 +79,70 @@ namespace TranslatorApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while calling translator API.");
+                throw;
+            }
+        }
+
+        [HttpPost]
+        [Route("api/LookUpWord")]
+        public async Task<ActionResult<WordModel>> LookUpWordAsync([FromBody] Models.Input.V1.TranslationInput translationInput)
+        {
+            if (translationInput == null)
+            {
+                return BadRequest("Input data is null");
+            }
+
+            if (translationInput.Version != "1")
+            {
+                return BadRequest("Only protocol version 1 is supported.");
+            }
+
+            var validation = await _translationInputV1Validator.ValidateAsync(translationInput);
+            if (!validation.IsValid)
+            {
+                string errorMessage = FormatValidationErrorMessage(validation);
+                return BadRequest(errorMessage);
+            }
+
+            try
+            {
+                _logger.LogInformation(new EventId(EventIds.LookupRequestReceived),
+                    "Will lookup '{Text}' from '{SourceLanguage}' to '{DestinationLanguage}'.",
+                    translationInput.Text,
+                    translationInput.SourceLanguage,
+                    translationInput.DestinationLanguage);
+
+                // todo: to implement
+                WordModel wordModel = new WordModel(
+                    Word: "<word>",
+                    SoundUrl: null,
+                    SoundFileName: null,
+                    Definitions: [
+                        new Definition(
+                            Headword: new Headword(Original: "<original>", English: null, Russian: null),
+                            PartOfSpeech: "<PartOfSpeech>",
+                            Endings: "<Endings>",
+                            Contexts: [new Context(ContextEN: "<ContextEN>", Position: "1", Meanings: new List<Meaning>())]
+                        ),
+                    ],
+                    Variations: new List<Variant>()
+                );
+
+                _logger.LogInformation(new EventId(EventIds.ReturningWordModel),
+                    "Returning word model: {TranslationOutput}",
+                    JsonSerializer.Serialize(
+                        wordModel,
+                        new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
+
+                return wordModel;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while trying to look up the word.");
                 throw;
             }
         }

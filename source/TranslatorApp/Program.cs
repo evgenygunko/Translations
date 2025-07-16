@@ -12,6 +12,7 @@ builder.Services.AddControllers();
 // Add custom services
 builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
 builder.Services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
+builder.Services.AddScoped<IValidator<TranslatorApp.Models.Input.V1.TranslationInput>, TranslatorApp.Models.Input.V1.TranslationInputValidator>();
 
 builder.Services.AddSingleton<ChatClient>(_ =>
 {

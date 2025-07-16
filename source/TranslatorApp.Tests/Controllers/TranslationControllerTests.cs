@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TranslatorApp.Controllers;
+using TranslatorApp.Models;
 using TranslatorApp.Models.Input;
 using TranslatorApp.Models.Output;
 using TranslatorApp.Services;
@@ -35,6 +36,27 @@ namespace TranslatorApp.Tests.Controllers
             result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
 
             result.Value.Should().Be("Input data is null");
+        }
+
+        [DataTestMethod]
+        [DataRow("1")]
+        [DataRow("3")]
+        public async Task TranslateAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
+        {
+            TranslationInput? translationInput = new TranslationInput(
+                Version: protocolVersion,
+                SourceLanguage: "",
+                DestinationLanguage: "ru",
+                Definitions: []);
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<TranslationOutput> actionResult = await sut.TranslateAsync(translationInput!);
+
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+
+            result.Value.Should().Be("Only protocol version 2 is supported.");
         }
 
         [TestMethod]
@@ -172,6 +194,100 @@ namespace TranslatorApp.Tests.Controllers
             actionResult.Value.Should().BeEquivalentTo(translationOutput);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslationInput>()));
+        }
+
+        #endregion
+
+        #region Tests for LookUpWordAsync
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenInputDataIsNull_ReturnsBadRequest()
+        {
+            TranslatorApp.Models.Input.V1.TranslationInput? translationInput = null;
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput!);
+
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+
+            result.Value.Should().Be("Input data is null");
+        }
+
+        [DataTestMethod]
+        [DataRow("2")]
+        [DataRow("3")]
+        public async Task LookUpWordAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
+        {
+            var translationInput = new TranslatorApp.Models.Input.V1.TranslationInput(
+                Text: "word to translate",
+                SourceLanguage: "",
+                DestinationLanguage: "ru",
+                Version: protocolVersion);
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput);
+
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+
+            result.Value.Should().Be("Only protocol version 1 is supported.");
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenModelIsNotValid_ReturnsBadRequest()
+        {
+            var translationInput = new TranslatorApp.Models.Input.V1.TranslationInput(
+                Text: "word to translate",
+                SourceLanguage: "",
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var validationResult = _fixture.Create<ValidationResult>();
+            validationResult.Errors.Clear();
+            validationResult.Errors.Add(new ValidationFailure("SourceLanguage", "SourceLanguage cannot be null or empty"));
+
+            var translationInputValidatorMock = _fixture.Freeze<Mock<IValidator<TranslatorApp.Models.Input.V1.TranslationInput>>>();
+            translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslatorApp.Models.Input.V1.TranslationInput>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput);
+
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+
+            result.Value.Should().Be("Error: SourceLanguage cannot be null or empty.");
+        }
+
+        [TestMethod]
+        public void LookUpWordAsync_WhenOpenAITranslationServiceThrowsException_LogsError()
+        {
+            Assert.Inconclusive("This test is not implemented yet.");
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_Should_ReturnWordModel()
+        {
+            // Arrange
+            var translationInput = new TranslatorApp.Models.Input.V1.TranslationInput(
+                Text: "word to translate",
+                SourceLanguage: "da",
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var translationInputValidatorMock = _fixture.Freeze<Mock<IValidator<TranslatorApp.Models.Input.V1.TranslationInput>>>();
+            translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslatorApp.Models.Input.V1.TranslationInput>(), It.IsAny<CancellationToken>())).ReturnsAsync(
+                new ValidationResult());
+
+            // Act
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput);
+
+            // Assert
+            actionResult.Value.Should().BeOfType<WordModel>();
         }
 
         #endregion
