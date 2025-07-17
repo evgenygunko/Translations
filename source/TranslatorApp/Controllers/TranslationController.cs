@@ -1,6 +1,8 @@
 ﻿// Ignore Spelling: Validator req
 
 using System.Text.Json;
+using CopyWords.Parsers;
+using CopyWords.Parsers.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -18,17 +20,20 @@ namespace TranslatorApp.Controllers
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IValidator<TranslationInput> _translationInput2Validator;
         private readonly IValidator<Models.Input.V1.TranslationInput> _translationInputV1Validator;
+        private readonly ILookUpWord _lookUpWord;
 
         public TranslationController(
             ILogger<TranslationController> logger,
             IOpenAITranslationService openAITranslationService,
             IValidator<TranslationInput> translationInput2Validator,
-            IValidator<Models.Input.V1.TranslationInput> translationInputV1Validator)
+            IValidator<Models.Input.V1.TranslationInput> translationInputV1Validator,
+            ILookUpWord lookUpWord)
         {
             _logger = logger;
             _openAITranslationService = openAITranslationService;
             _translationInput2Validator = translationInput2Validator;
             _translationInputV1Validator = translationInputV1Validator;
+            _lookUpWord = lookUpWord;
         }
 
         [HttpPost]
@@ -85,7 +90,7 @@ namespace TranslatorApp.Controllers
 
         [HttpPost]
         [Route("api/LookUpWord")]
-        public async Task<ActionResult<WordModel>> LookUpWordAsync([FromBody] Models.Input.V1.TranslationInput translationInput)
+        public async Task<ActionResult<WordModel?>> LookUpWordAsync([FromBody] Models.Input.V1.TranslationInput translationInput)
         {
             if (translationInput == null)
             {
@@ -112,21 +117,7 @@ namespace TranslatorApp.Controllers
                     translationInput.SourceLanguage,
                     translationInput.DestinationLanguage);
 
-                // todo: to implement
-                WordModel wordModel = new WordModel(
-                    Word: "<word>",
-                    SoundUrl: null,
-                    SoundFileName: null,
-                    Definitions: [
-                        new Definition(
-                            Headword: new Headword(Original: "<original>", English: null, Russian: null),
-                            PartOfSpeech: "<PartOfSpeech>",
-                            Endings: "<Endings>",
-                            Contexts: [new Context(ContextEN: "<ContextEN>", Position: "1", Meanings: new List<Meaning>())]
-                        ),
-                    ],
-                    Variations: new List<Variant>()
-                );
+                WordModel? wordModel = await _lookUpWord.LookUpWordAsync(translationInput.Text, translationInput.SourceLanguage);
 
                 _logger.LogInformation(new EventId(EventIds.ReturningWordModel),
                     "Returning word model: {TranslationOutput}",

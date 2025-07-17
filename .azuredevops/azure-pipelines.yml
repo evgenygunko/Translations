@@ -11,6 +11,7 @@ pool:
 variables:
     - group: AccessTokens
     - group: DockerRegistry
+    - template: templates/pipeline-variables.yml
 
 stages:
     # Build and lint

@@ -1,0 +1,9 @@
+variables:
+    - name: 'BUILD_CONFIGURATION'
+      value: 'Release'
+
+    - name: 'major'
+      value: '0'
+
+    - name: 'minor'
+      value: '1'

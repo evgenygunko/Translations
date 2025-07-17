@@ -1,4 +1,4 @@
-﻿namespace TranslatorApp.Models
+﻿namespace CopyWords.Parsers.Models
 {
     public record WordModel(
         string Word,

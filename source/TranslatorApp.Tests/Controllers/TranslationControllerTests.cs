@@ -2,6 +2,8 @@
 
 using System.Net;
 using AutoFixture;
+using CopyWords.Parsers;
+using CopyWords.Parsers.Models;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -9,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TranslatorApp.Controllers;
-using TranslatorApp.Models;
 using TranslatorApp.Models.Input;
 using TranslatorApp.Models.Output;
 using TranslatorApp.Services;
@@ -206,7 +207,7 @@ namespace TranslatorApp.Tests.Controllers
             TranslatorApp.Models.Input.V1.TranslationInput? translationInput = null;
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput!);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(translationInput!);
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -227,7 +228,7 @@ namespace TranslatorApp.Tests.Controllers
                 Version: protocolVersion);
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(translationInput);
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -253,7 +254,7 @@ namespace TranslatorApp.Tests.Controllers
             translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslatorApp.Models.Input.V1.TranslationInput>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(translationInput);
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -282,12 +283,15 @@ namespace TranslatorApp.Tests.Controllers
             translationInputValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<TranslatorApp.Models.Input.V1.TranslationInput>(), It.IsAny<CancellationToken>())).ReturnsAsync(
                 new ValidationResult());
 
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel> actionResult = await sut.LookUpWordAsync(translationInput);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(translationInput);
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(translationInput.Text, translationInput.SourceLanguage));
         }
 
         #endregion

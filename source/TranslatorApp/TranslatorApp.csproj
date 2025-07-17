@@ -25,4 +25,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Parsers\Parsers.csproj" />
+  </ItemGroup>
 </Project>

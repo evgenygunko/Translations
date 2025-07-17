@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using CopyWords.Parsers;
+using CopyWords.Parsers.Services;
 using FluentValidation;
 using OpenAI.Chat;
 using TranslatorApp.Models.Input;
@@ -13,6 +15,11 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
 builder.Services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
 builder.Services.AddScoped<IValidator<TranslatorApp.Models.Input.V1.TranslationInput>, TranslatorApp.Models.Input.V1.TranslationInputValidator>();
+builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
+builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
+builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
+
+builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
 
 builder.Services.AddSingleton<ChatClient>(_ =>
 {
