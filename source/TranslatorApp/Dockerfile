@@ -12,10 +12,12 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["TranslatorApp.csproj", "."]
-RUN dotnet restore "./TranslatorApp.csproj"
+COPY ["Directory.Build.Props", "."]
+COPY ["source/TranslatorApp/TranslatorApp.csproj", "source/TranslatorApp/"]
+COPY ["source/Parsers/Parsers.csproj", "source/Parsers/"]
+RUN dotnet restore "./source/TranslatorApp/TranslatorApp.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/source/TranslatorApp"
 RUN dotnet build "./TranslatorApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

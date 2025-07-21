@@ -7,7 +7,7 @@
     <AssemblyVersion>0.3.0</AssemblyVersion>
     <FileVersion>0.3.0</FileVersion>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>.</DockerfileContext>
+    <DockerfileContext>..\..</DockerfileContext>
     <UserSecretsId>85f0ba64-3788-45b7-904f-447434b243e3</UserSecretsId>
     <DockerfileRunEnvironmentFiles>Dockerfile.env</DockerfileRunEnvironmentFiles>
   </PropertyGroup>
