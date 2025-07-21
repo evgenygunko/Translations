@@ -1,0 +1,4 @@
+### Returns a string with app version
+GET {{HostAddress}}
+
+###

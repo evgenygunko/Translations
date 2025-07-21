@@ -1,8 +1,9 @@
 ﻿namespace TranslatorApp.Models
 {
-    public static class EventIds
+    public enum TranslatorAppEventId
     {
-        public const int LookupRequestReceived = 35;
-        public const int ReturningWordModel = 36;
+        LookupRequestReceived = 35,
+        WordNotFound = 36,
+        ReturningWordModel = 37,
     }
 }

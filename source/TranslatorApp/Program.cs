@@ -8,10 +8,13 @@ using TranslatorApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 // Add services to the container.
 builder.Services.AddControllers();
 
 // Add custom services
+builder.Services.AddScoped<ITranslationsService, TranslationsService>();
 builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
 builder.Services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
 builder.Services.AddScoped<IValidator<TranslatorApp.Models.Input.V1.TranslationInput>, TranslatorApp.Models.Input.V1.TranslationInputValidator>();
