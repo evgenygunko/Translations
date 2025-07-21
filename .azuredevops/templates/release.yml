@@ -26,7 +26,7 @@ stages:
                       repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
                       tags: latest
                       dockerfile: './source/TranslatorApp/Dockerfile'
-                      buildContext: '$(Build.SourcesDirectory)/source/TranslatorApp'
+                      buildContext: '$(Build.SourcesDirectory)'
 
                 #—————————— download and install doctl ——————————
                 - bash: |
