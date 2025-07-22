@@ -27,11 +27,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
             result.IsValid.Should().BeTrue();
         }
 
-        [TestMethod]
-        public void Validate_WhenTextIsNull_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Validate_WhenTextIsNullOrEmpty_ReturnsFalse(string text)
         {
             var translationInput = new TranslationInput(
-                Text: "",
+                Text: text,
                 SourceLanguage: "da",
                 DestinationLanguage: "ru",
                 Version: "2");
@@ -42,6 +44,44 @@ namespace TranslatorApp.Tests.Models.Input.V1
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
             result.Errors.First().ErrorMessage.Should().Be("'Text' must not be empty.");
+        }
+
+        [TestMethod]
+        public void Validate_ForUrl_ReturnsFalse()
+        {
+            string text = _fixture.Create<Uri>().ToString();
+
+            var translationInput = new TranslationInput(
+                Text: text,
+                SourceLanguage: "da",
+                DestinationLanguage: "ru",
+                Version: "2");
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(1);
+            result.Errors.First().ErrorMessage.Should().Be("'Text' can only contain alphanumeric characters and spaces.");
+        }
+
+        [TestMethod]
+        public void Validate_ForQuote_ReturnsFalse()
+        {
+            const string text = "ordbo'g";
+
+            var translationInput = new TranslationInput(
+                Text: text,
+                SourceLanguage: "da",
+                DestinationLanguage: "ru",
+                Version: "2");
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(1);
+            result.Errors.First().ErrorMessage.Should().Be("'Text' can only contain alphanumeric characters and spaces.");
         }
 
         [TestMethod]

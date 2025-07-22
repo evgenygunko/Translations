@@ -10,8 +10,6 @@ namespace CopyWords.Parsers
 {
     public interface ILookUpWord
     {
-        (bool isValid, string? errorMessage) CheckThatWordIsValid(string lookUp);
-
         Task<WordModel?> LookUpWordAsync(string wordToLookUp, string language);
 
         Task<WordModel?> GetWordByUrlAsync(string url, string language);
@@ -37,36 +35,8 @@ namespace CopyWords.Parsers
 
         #region Public Methods
 
-        public (bool isValid, string? errorMessage) CheckThatWordIsValid(string lookUp)
-        {
-            bool isValid = false;
-            string? errorMessage = null;
-
-            if (string.IsNullOrEmpty(lookUp))
-            {
-                errorMessage = "LookUp text cannot be null or empty.";
-            }
-            else
-            {
-                isValid = _lookupRegex.IsMatch(lookUp);
-
-                if (!isValid)
-                {
-                    errorMessage = "Search can only contain alphanumeric characters and spaces.";
-                }
-            }
-
-            return (isValid, errorMessage);
-        }
-
         public async Task<WordModel?> LookUpWordAsync(string wordToLookUp, string language)
         {
-            (bool isValid, string? errorMessage) = CheckThatWordIsValid(wordToLookUp);
-            if (!isValid)
-            {
-                throw new ArgumentException(errorMessage, nameof(wordToLookUp));
-            }
-
             string url;
             if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
             {

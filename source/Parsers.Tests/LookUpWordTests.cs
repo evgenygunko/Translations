@@ -22,63 +22,6 @@ namespace CopyWords.Parsers.Tests
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        #region Tests for CheckThatWordIsValid
-
-        [DataTestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        public void CheckThatWordIsValid_WhenLookUpIsNullOrEmpty_ReturnsFalse(string lookUp)
-        {
-            var sut = _fixture.Create<LookUpWord>();
-
-            (bool isValid, string? errorMessage) = sut.CheckThatWordIsValid(lookUp);
-
-            isValid.Should().BeFalse("error: " + errorMessage);
-            errorMessage.Should().Be("LookUp text cannot be null or empty.");
-        }
-
-        [TestMethod]
-        public void CheckThatWordIsValid_ForUrl_ReturnsFalse()
-        {
-            var sut = _fixture.Create<LookUpWord>();
-
-            (bool isValid, string? errorMessage) = sut.CheckThatWordIsValid("http://ordnet.dk/ddo/ordbog");
-
-            isValid.Should().BeFalse("error: " + errorMessage);
-        }
-
-        [TestMethod]
-        public void CheckThatWordIsValid_ForQuote_ReturnsFalse()
-        {
-            var sut = _fixture.Create<LookUpWord>();
-
-            (bool isValid, string? errorMessage) = sut.CheckThatWordIsValid("ordbo'g");
-
-            isValid.Should().BeFalse("error: " + errorMessage);
-        }
-
-        [TestMethod]
-        public void CheckThatWordIsValid_ForWord_ReturnsTrue()
-        {
-            var sut = _fixture.Create<LookUpWord>();
-
-            (bool isValid, string? errorMessage) = sut.CheckThatWordIsValid("refusionsopgørelse");
-
-            isValid.Should().BeTrue("error: " + errorMessage);
-        }
-
-        [TestMethod]
-        public void CheckThatWordIsValid_ForTwoWords_ReturnsTrue()
-        {
-            var sut = _fixture.Create<LookUpWord>();
-
-            (bool isValid, string? errorMessage) = sut.CheckThatWordIsValid("rindende vand");
-
-            isValid.Should().BeTrue("error: " + errorMessage);
-        }
-
-        #endregion
-
         #region Tests for LookUpWordAsync
 
         [DataTestMethod]
