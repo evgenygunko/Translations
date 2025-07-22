@@ -115,10 +115,9 @@ namespace TranslatorApp.Controllers
             try
             {
                 _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
-                    "Will lookup '{Text}' from '{SourceLanguage}' to '{DestinationLanguage}'.",
+                    "Will lookup '{Text}' in the '{SourceLanguage}' dictionary.",
                     translationInput.Text,
-                    translationInput.SourceLanguage,
-                    translationInput.DestinationLanguage);
+                    translationInput.SourceLanguage);
 
                 // First call the parser to get the word model from the online dictionary
                 WordModel? wordModel = await _lookUpWord.LookUpWordAsync(translationInput.Text, translationInput.SourceLanguage);

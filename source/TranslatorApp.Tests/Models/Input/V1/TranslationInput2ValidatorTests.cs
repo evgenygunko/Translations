@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Validator
 
 using AutoFixture;
+using CopyWords.Parsers.Models;
 using FluentAssertions;
 using FluentValidation.Results;
 using TranslatorApp.Models.Input.V1;
@@ -17,7 +18,7 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             var translationInput = new TranslationInput(
                 Text: "word to look up",
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
@@ -34,9 +35,9 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             var translationInput = new TranslationInput(
                 Text: text,
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "2");
+                Version: "1");
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -47,15 +48,32 @@ namespace TranslatorApp.Tests.Models.Input.V1
         }
 
         [TestMethod]
-        public void Validate_ForUrl_ReturnsFalse()
+        public void Validate_ForDDOUrl_ReturnsTrue()
+        {
+            const string text = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
+
+            var translationInput = new TranslationInput(
+                Text: text,
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Validate_ForOtherUrl_ReturnsFalse()
         {
             string text = _fixture.Create<Uri>().ToString();
 
             var translationInput = new TranslationInput(
                 Text: text,
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "2");
+                Version: "1");
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -72,9 +90,9 @@ namespace TranslatorApp.Tests.Models.Input.V1
 
             var translationInput = new TranslationInput(
                 Text: text,
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "2");
+                Version: "1");
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -91,14 +109,51 @@ namespace TranslatorApp.Tests.Models.Input.V1
                 Text: "word to look up",
                 SourceLanguage: "",
                 DestinationLanguage: "ru",
-                Version: "2");
+                Version: "1");
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Source Language' must not be empty.");
+            result.Errors.First().ErrorMessage.Should().Be("'SourceLanguage' must be one of the following: Danish, Spanish");
+        }
+
+        [DataTestMethod]
+        [DataRow(SourceLanguage.Danish)]
+        [DataRow(SourceLanguage.Spanish)]
+        public void Validate_WhenSourceLanguageIsValidEnumValue_ReturnsTrue(SourceLanguage sourceLanguage)
+        {
+            var translationInput = new TranslationInput(
+                Text: "word to look up",
+                SourceLanguage: sourceLanguage.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeTrue();
+        }
+
+        [DataTestMethod]
+        [DataRow("English")]
+        [DataRow("da")]
+        [DataRow("es")]
+        [DataRow("123")]
+        public void Validate_WhenSourceLanguageIsNotValidEnumValue_ReturnsFalse(string sourceLanguage)
+        {
+            var translationInput = new TranslationInput(
+                Text: "word to look up",
+                SourceLanguage: sourceLanguage,
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var sut = _fixture.Create<TranslationInputValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.ErrorMessage == "'SourceLanguage' must be one of the following: Danish, Spanish");
         }
 
         [TestMethod]
@@ -106,9 +161,9 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             var translationInput = new TranslationInput(
                 Text: "word to look up",
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: null!,
-                Version: "2");
+                Version: "1");
 
             var sut = _fixture.Create<TranslationInputValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -125,7 +180,7 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             var translationInput = new TranslationInput(
                 Text: "word to look up",
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "2");
 

@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Downloader Dict ddo
 
 using System.Text;
-using System.Text.RegularExpressions;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Models.DDO;
 using CopyWords.Parsers.Services;
@@ -10,9 +9,7 @@ namespace CopyWords.Parsers
 {
     public interface ILookUpWord
     {
-        Task<WordModel?> LookUpWordAsync(string wordToLookUp, string language);
-
-        Task<WordModel?> GetWordByUrlAsync(string url, string language);
+        Task<WordModel?> LookUpWordAsync(string searchTerm, string language);
     }
 
     public class LookUpWord : ILookUpWord
@@ -20,8 +17,6 @@ namespace CopyWords.Parsers
         private readonly IDDOPageParser _ddoPageParser;
         private readonly ISpanishDictPageParser _spanishDictPageParser;
         private readonly IFileDownloader _fileDownloader;
-
-        private readonly Regex _lookupRegex = new Regex(@"^[\w ]+$");
 
         public LookUpWord(
             IDDOPageParser ddoPageParser,
@@ -35,23 +30,35 @@ namespace CopyWords.Parsers
 
         #region Public Methods
 
-        public async Task<WordModel?> LookUpWordAsync(string wordToLookUp, string language)
+        public async Task<WordModel?> LookUpWordAsync(string searchTerm, string language)
         {
             string url;
             if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
             {
-                url = DDOPageParser.DDOBaseUrl + $"?query={wordToLookUp}&search=S%C3%B8g";
+                // Danish dictionary has "word variants", which have direct URLs. If a user clicks on such a link, we need to use it directly.
+                if (searchTerm.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    url = searchTerm;
+                }
+                else
+                {
+                    url = DDOPageParser.DDOBaseUrl + $"?query={searchTerm}&search=S%C3%B8g";
+                }
             }
             else
             {
-                url = SpanishDictPageParser.SpanishDictBaseUrl + wordToLookUp;
+                url = SpanishDictPageParser.SpanishDictBaseUrl + searchTerm;
             }
 
             var wordModel = await GetWordByUrlAsync(url, language);
             return wordModel;
         }
 
-        public async Task<WordModel?> GetWordByUrlAsync(string url, string language)
+        #endregion
+
+        #region Internal Methods
+
+        internal async Task<WordModel?> GetWordByUrlAsync(string url, string language)
         {
             // Download and parse a page from the online dictionary
             string? html = await _fileDownloader.DownloadPageAsync(url, Encoding.UTF8);
@@ -79,10 +86,6 @@ namespace CopyWords.Parsers
 
             return wordModel;
         }
-
-        #endregion
-
-        #region Internal Methods
 
         internal WordModel ParseDanishWord(string html)
         {

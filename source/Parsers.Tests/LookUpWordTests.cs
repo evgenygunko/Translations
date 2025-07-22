@@ -28,7 +28,7 @@ namespace CopyWords.Parsers.Tests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("æø")]
-        public void LookUpWordAsync_WhenWordIsNotValid_ThrowsException(string wordToLookup)
+        public void LookUpWordAsync_WhenWordIsNotValid_ThrowsException(string searchTerm)
         {
             var sut = _fixture.Create<LookUpWord>();
 
@@ -39,7 +39,7 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task LookUpWordAsync_WhenSourceLanguageIsDanish_CallsDDOPageParser()
         {
-            string wordToLookup = "haj";
+            string searchTerm = "haj";
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
 
             Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
@@ -48,16 +48,54 @@ namespace CopyWords.Parsers.Tests
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8)).ReturnsAsync("haj.html");
 
             var sut = _fixture.Create<LookUpWord>();
-            WordModel? result = await sut.LookUpWordAsync(wordToLookup, sourceLanguage.ToString());
+            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString());
 
             result.Should().NotBeNull();
             ddoPageParserMock.Verify(x => x.ParseHeadword());
         }
 
         [TestMethod]
+        public async Task LookUpWordAsync_WhenSearchTermIsDDOUrlAndSourceLanguageIsDanish_CallsGivenUrl()
+        {
+            string searchTerm = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
+            SourceLanguage sourceLanguage = SourceLanguage.Danish;
+
+            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8)).ReturnsAsync("bestemme.html");
+
+            var sut = _fixture.Create<LookUpWord>();
+            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString());
+
+            result.Should().NotBeNull();
+            ddoPageParserMock.Verify(x => x.ParseHeadword());
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync(searchTerm, Encoding.UTF8));
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenSearchTermIsNotADDOUrlAndSourceLanguageIsDanish_CallsDDOUrl()
+        {
+            string searchTerm = "https://docs.fluentvalidation.net/";
+            SourceLanguage sourceLanguage = SourceLanguage.Danish;
+
+            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8)).ReturnsAsync("notfound.html");
+
+            var sut = _fixture.Create<LookUpWord>();
+            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString());
+
+            result.Should().NotBeNull();
+            ddoPageParserMock.Verify(x => x.ParseHeadword());
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=https://docs.fluentvalidation.net/&search=S%C3%B8g", Encoding.UTF8));
+        }
+
+        [TestMethod]
         public async Task LookUpWordAsync_WhenSourceLanguageIsSpanish_CallsSpanishDictPageParser()
         {
-            string wordToLookup = "ser";
+            string searchTerm = "ser";
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
 
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
@@ -66,10 +104,10 @@ namespace CopyWords.Parsers.Tests
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8)).ReturnsAsync("ser.html");
 
             var sut = _fixture.Create<LookUpWord>();
-            _ = sut.Invoking(y => y.LookUpWordAsync(wordToLookup, sourceLanguage.ToString()))
+            _ = sut.Invoking(y => y.LookUpWordAsync(searchTerm, sourceLanguage.ToString()))
                 .Should().ThrowAsync<ArgumentException>();
 
-            WordModel? result = await sut.LookUpWordAsync(wordToLookup, sourceLanguage.ToString());
+            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString());
 
             result.Should().NotBeNull();
             spanishDictPageParserMock.Verify(x => x.ParseHeadword(It.IsAny<Models.SpanishDict.WordJsonModel>()));

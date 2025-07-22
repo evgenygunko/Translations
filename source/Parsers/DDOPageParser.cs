@@ -25,7 +25,7 @@ namespace CopyWords.Parsers
 
     public class DDOPageParser : PageParserBase, IDDOPageParser
     {
-        internal const string DDOBaseUrl = "https://ordnet.dk/ddo/ordbog";
+        public const string DDOBaseUrl = "https://ordnet.dk/ddo/ordbog";
 
         #region Public Methods
 

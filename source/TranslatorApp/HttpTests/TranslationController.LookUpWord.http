@@ -23,6 +23,32 @@ Content-Type: application/json
   });
 %}
 
+### Translate "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt" from Danish to Russian
+
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "1"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0].meanings[1]["translation"].length > 0);
+  });
+%}
+
+
 ### Translate "afeitar" from Spanish to Russian
 
 POST {{HostAddress}}/api/LookUpWord?code={{code}}
