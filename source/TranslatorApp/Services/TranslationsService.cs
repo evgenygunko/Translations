@@ -38,12 +38,12 @@ namespace TranslatorApp.Services
 
             foreach (var definition in wordModel.Definitions)
             {
-                Meaning firstMeaning = definition.Contexts.First().Meanings.First();
+                Meaning? firstMeaning = definition.Contexts.First().Meanings.FirstOrDefault();
 
                 var headwordToTranslate = new Models.Translation.HeadwordInput(
                     Text: definition.Headword.Original,
-                    Meaning: firstMeaning.Original ?? "",
-                    Examples: firstMeaning.Examples.Select(e => e.Original));
+                    Meaning: firstMeaning?.Original ?? "",
+                    Examples: firstMeaning?.Examples?.Select(e => e.Original) ?? Enumerable.Empty<string>());
 
                 var contextsToTranslate = new List<Models.Translation.ContextInput>();
                 foreach (var context in definition.Contexts)

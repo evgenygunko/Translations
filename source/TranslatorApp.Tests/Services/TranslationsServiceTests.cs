@@ -88,6 +88,41 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
+        public void CreateTranslationInputFromWordModel_ForSlå_Adds2DefinitionsToTranslationInput()
+        {
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string destinationLanguage = "Russian";
+            WordModel wordModel = CreateWordModelForSlå();
+
+            var sut = _fixture.Create<TranslationsService>();
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+
+            result.Should().NotBeNull();
+            result.Version.Should().Be("2");
+            result.SourceLanguage.Should().Be(sourceLanguage.ToString());
+            result.DestinationLanguage.Should().Be(destinationLanguage);
+
+            result.Definitions.Should().HaveCount(1);
+
+            TranslatorApp.Models.Translation.DefinitionInput inputDefinition;
+            TranslatorApp.Models.Translation.ContextInput inputContext;
+            TranslatorApp.Models.Translation.MeaningInput inputMeaning;
+
+            /***********************************************************************/
+            // Afeitar
+            /***********************************************************************/
+            inputDefinition = result.Definitions.First();
+            inputDefinition.id.Should().Be(1);
+            inputDefinition.PartOfSpeech.Should().Be("transitive verb");
+            inputDefinition.Headword.Text.Should().Be("slå om-nederdel");
+            inputDefinition.Headword.Meaning.Should().Be("");
+            inputDefinition.Headword.Examples.Should().HaveCount(0);
+
+            inputContext = inputDefinition.Contexts.First();
+            inputContext.Meanings.Should().HaveCount(0);
+        }
+
+        [TestMethod]
         public void CreateTranslationInputFromWordModel_ForAfeitar_Adds2DefinitionsToTranslationInput()
         {
             string sourceLanguage = SourceLanguage.Spanish.ToString();
@@ -664,6 +699,31 @@ namespace TranslatorApp.Tests.Services
         #endregion
 
         #region Private Methods
+
+        private WordModel CreateWordModelForSlå()
+        {
+            WordModel wordModel = new WordModel(
+                Word: "afeitar",
+                SoundUrl: _fixture.Create<Uri>().ToString(),
+                SoundFileName: _fixture.Create<string>(),
+                Definitions: new[]
+                {
+                    new Definition(
+                        Headword: new Headword(Original: "slå om-nederdel", English: null, Russian: null),
+                        PartOfSpeech: "transitive verb",
+                        Endings: "",
+                        Contexts: new[]
+                        {
+                            new Context(
+                                ContextEN: "",
+                                Position: "1",
+                                Meanings: Enumerable.Empty<Meaning>())
+                        })
+                },
+                Variations: Enumerable.Empty<Variant>());
+
+            return wordModel;
+        }
 
         private WordModel CreateWordModelForAefitar()
         {

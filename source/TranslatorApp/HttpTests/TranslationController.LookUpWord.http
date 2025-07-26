@@ -23,7 +23,7 @@ Content-Type: application/json
   });
 %}
 
-### Translate "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt" from Danish to Russian
+### Translate a variant for "bestemt" from Danish to Russian
 
 POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
@@ -95,6 +95,29 @@ Content-Type: application/json
     client.assert(response.body.variations[0]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
     client.assert(response.body.variations[1]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
     client.assert(response.body.variations[2]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
+  });
+%}
+
+### Translate a variant for "slå" from Danish to Russian
+
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "1"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["original"] === "slå om-nederdel");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
   });
 %}
 
