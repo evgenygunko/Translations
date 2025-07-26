@@ -1,4 +1,4 @@
-﻿namespace TranslatorApp.Models.Output
+﻿namespace TranslatorApp.Models.Translation
 {
     // The output model returned by the Azure function.
     public record TranslationOutput(

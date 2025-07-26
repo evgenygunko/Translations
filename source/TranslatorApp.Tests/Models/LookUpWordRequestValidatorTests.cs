@@ -4,25 +4,25 @@ using AutoFixture;
 using CopyWords.Parsers.Models;
 using FluentAssertions;
 using FluentValidation.Results;
-using TranslatorApp.Models.Input.V1;
+using TranslatorApp.Models;
 
-namespace TranslatorApp.Tests.Models.Input.V1
+namespace TranslatorApp.Tests.Models
 {
     [TestClass]
-    public class TranslationInputValidatorTests
+    public class LookUpWordRequestValidatorTests
     {
         private readonly IFixture _fixture = FixtureFactory.Create();
 
         [TestMethod]
         public void Validate_WhenAllRequiredFieldsHaveValues_ReturnsTrue()
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeTrue();
@@ -33,13 +33,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         [DataRow("")]
         public void Validate_WhenTextIsNullOrEmpty_ReturnsFalse(string text)
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -52,13 +52,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             const string text = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
 
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeTrue();
@@ -69,13 +69,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             string text = _fixture.Create<Uri>().ToString();
 
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -88,13 +88,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         {
             const string text = "ordbo'g";
 
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -105,13 +105,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         [TestMethod]
         public void Validate_WhenSourceLanguageIsEmpty_ReturnsFalse()
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: "",
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -124,13 +124,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         [DataRow(SourceLanguage.Spanish)]
         public void Validate_WhenSourceLanguageIsValidEnumValue_ReturnsTrue(SourceLanguage sourceLanguage)
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeTrue();
@@ -143,13 +143,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         [DataRow("123")]
         public void Validate_WhenSourceLanguageIsNotValidEnumValue_ReturnsFalse(string sourceLanguage)
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage,
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -159,13 +159,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         [TestMethod]
         public void Validate_WhenDestinationLanguageIsNull_ReturnsFalse()
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: null!,
                 Version: "1");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
@@ -178,13 +178,13 @@ namespace TranslatorApp.Tests.Models.Input.V1
         [DataRow("3")]
         public void Validate_WhenVersionIsNotSupported_ReturnsFalse(string version)
         {
-            var translationInput = new TranslationInput(
+            var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "2");
 
-            var sut = _fixture.Create<TranslationInputValidator>();
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();

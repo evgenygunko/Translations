@@ -1,6 +1,6 @@
-﻿namespace TranslatorApp.Models.Input.V1
+﻿namespace TranslatorApp.Models
 {
-    public record TranslationInput(
+    public record LookUpWordRequest(
         string Text,
         string SourceLanguage,
         string DestinationLanguage,

@@ -6,11 +6,11 @@ using CopyWords.Parsers.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace TranslatorApp.Models.Input.V1
+namespace TranslatorApp.Models
 {
-    public class TranslationInputValidator : AbstractValidator<TranslationInput>
+    public class LookUpWordRequestValidator : AbstractValidator<LookUpWordRequest>
     {
-        public TranslationInputValidator()
+        public LookUpWordRequestValidator()
         {
             RuleFor(x => x.SourceLanguage).IsEnumName(typeof(SourceLanguage), caseSensitive: false)
                 .WithMessage($"'SourceLanguage' must be one of the following: {string.Join(", ", Enum.GetNames(typeof(SourceLanguage)))}");
@@ -25,7 +25,7 @@ namespace TranslatorApp.Models.Input.V1
             RuleFor(model => model.Version).Equal("1");
         }
 
-        protected override bool PreValidate(ValidationContext<TranslationInput> context, ValidationResult result)
+        protected override bool PreValidate(ValidationContext<LookUpWordRequest> context, ValidationResult result)
         {
             if (context.InstanceToValidate == null)
             {

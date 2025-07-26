@@ -4,8 +4,7 @@ using System.Reflection;
 using FluentAssertions;
 using Moq;
 using OpenAI.Chat;
-using TranslatorApp.Models.Input;
-using TranslatorApp.Models.Output;
+using TranslatorApp.Models.Translation;
 using TranslatorApp.Services;
 
 namespace TranslatorApp.Tests.Services

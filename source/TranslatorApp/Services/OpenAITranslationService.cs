@@ -4,8 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Json.Serialization;
-using TranslatorApp.Models.Input;
-using TranslatorApp.Models.Output;
+using TranslatorApp.Models.Translation;
 
 namespace TranslatorApp.Services
 {

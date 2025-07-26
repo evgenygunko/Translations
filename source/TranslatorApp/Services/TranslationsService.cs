@@ -19,9 +19,9 @@ namespace TranslatorApp.Services
 
         public async Task<WordModel> TranslateAsync(string sourceLanguage, WordModel wordModel)
         {
-            Models.Input.TranslationInput translationInput = CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
 
-            Models.Output.TranslationOutput? translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
+            Models.Translation.TranslationOutput? translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
 
             if (translationOutput == null)
             {
@@ -32,46 +32,46 @@ namespace TranslatorApp.Services
             return wordModelWithTranslations;
         }
 
-        internal Models.Input.TranslationInput CreateTranslationInputFromWordModel(string sourceLanguage, WordModel wordModel)
+        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(string sourceLanguage, WordModel wordModel)
         {
-            var inputDefinitions = new List<Models.Input.DefinitionInput>();
+            var inputDefinitions = new List<Models.Translation.DefinitionInput>();
 
             foreach (var definition in wordModel.Definitions)
             {
                 Meaning firstMeaning = definition.Contexts.First().Meanings.First();
 
-                var headwordToTranslate = new Models.Input.HeadwordInput(
+                var headwordToTranslate = new Models.Translation.HeadwordInput(
                     Text: definition.Headword.Original,
                     Meaning: firstMeaning.Original ?? "",
                     Examples: firstMeaning.Examples.Select(e => e.Original));
 
-                var contextsToTranslate = new List<Models.Input.ContextInput>();
+                var contextsToTranslate = new List<Models.Translation.ContextInput>();
                 foreach (var context in definition.Contexts)
                 {
-                    var inputMeanings = new List<Models.Input.MeaningInput>();
+                    var inputMeanings = new List<Models.Translation.MeaningInput>();
 
                     foreach (var meaning in context.Meanings)
                     {
-                        inputMeanings.Add(new Models.Input.MeaningInput(
+                        inputMeanings.Add(new Models.Translation.MeaningInput(
                             id: inputMeanings.Count + 1,
                             Text: meaning.Original,
                             Examples: meaning.Examples.Select(e => e.Original)));
                     }
 
-                    contextsToTranslate.Add(new Models.Input.ContextInput(
+                    contextsToTranslate.Add(new Models.Translation.ContextInput(
                         id: contextsToTranslate.Count + 1,
                         ContextString: context.ContextEN,
                         Meanings: inputMeanings));
                 }
 
-                inputDefinitions.Add(new Models.Input.DefinitionInput(
+                inputDefinitions.Add(new Models.Translation.DefinitionInput(
                     id: inputDefinitions.Count + 1,
                     PartOfSpeech: definition.PartOfSpeech,
                     Headword: headwordToTranslate,
                     Contexts: contextsToTranslate));
             }
 
-            var translationInput = new Models.Input.TranslationInput(
+            var translationInput = new Models.Translation.TranslationInput(
                 Version: "2",
                 SourceLanguage: sourceLanguage.ToString(),
                 DestinationLanguage: "Russian",
@@ -80,19 +80,19 @@ namespace TranslatorApp.Services
             return translationInput;
         }
 
-        internal WordModel CreateWordModelFromTranslationOutput(WordModel wordModel, Models.Output.TranslationOutput translationOutput)
+        internal WordModel CreateWordModelFromTranslationOutput(WordModel wordModel, Models.Translation.TranslationOutput translationOutput)
         {
             var definitionsWithTranslations = new List<Definition>();
 
             foreach (var originalDefinition in wordModel.Definitions)
             {
-                Models.Output.DefinitionOutput translationDefinition = translationOutput.Definitions.First(d => d.id == definitionsWithTranslations.Count + 1);
+                Models.Translation.DefinitionOutput translationDefinition = translationOutput.Definitions.First(d => d.id == definitionsWithTranslations.Count + 1);
 
                 var contextsWithTranslations = new List<Context>();
 
                 foreach (var originalContext in originalDefinition.Contexts)
                 {
-                    Models.Output.ContextOutput translationContext = translationDefinition.Contexts.First(d => d.id == contextsWithTranslations.Count + 1);
+                    Models.Translation.ContextOutput translationContext = translationDefinition.Contexts.First(d => d.id == contextsWithTranslations.Count + 1);
 
                     var meaningsWithTranslations = new List<Meaning>();
 
@@ -131,7 +131,7 @@ namespace TranslatorApp.Services
             return wordModelWithTranslations;
         }
 
-        private Headword CreateHeadWordWithTranslations(Headword headwordOriginal, Models.Output.DefinitionOutput outputDefinition)
+        private Headword CreateHeadWordWithTranslations(Headword headwordOriginal, Models.Translation.DefinitionOutput outputDefinition)
         {
             return new Headword(
                 Original: headwordOriginal.Original,

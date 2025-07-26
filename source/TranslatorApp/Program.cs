@@ -3,7 +3,7 @@ using CopyWords.Parsers;
 using CopyWords.Parsers.Services;
 using FluentValidation;
 using OpenAI.Chat;
-using TranslatorApp.Models.Input;
+using TranslatorApp.Models;
 using TranslatorApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,8 +16,7 @@ builder.Services.AddControllers();
 // Add custom services
 builder.Services.AddScoped<ITranslationsService, TranslationsService>();
 builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
-builder.Services.AddScoped<IValidator<TranslationInput>, TranslationInputValidator>();
-builder.Services.AddScoped<IValidator<TranslatorApp.Models.Input.V1.TranslationInput>, TranslatorApp.Models.Input.V1.TranslationInputValidator>();
+builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
 builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
 builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
 builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
