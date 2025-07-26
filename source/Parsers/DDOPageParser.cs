@@ -335,8 +335,11 @@ namespace CopyWords.Parsers
                         word = word.Replace("&nbsp;", " ->");
 
                         string variationUrl = DecodeText(ahref.Attributes["href"].Value);
+#pragma warning disable SYSLIB0013 // Type or member is obsolete
+                        string encodedVariationUrl = Uri.EscapeUriString(variationUrl);
+#pragma warning restore SYSLIB0013 // Type or member is obsolete
 
-                        variants.Add(new Variant(word, variationUrl));
+                        variants.Add(new Variant(word, encodedVariationUrl));
                     }
                 }
             }

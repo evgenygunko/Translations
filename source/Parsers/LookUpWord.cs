@@ -42,7 +42,7 @@ namespace CopyWords.Parsers
                 }
                 else
                 {
-                    url = DDOPageParser.DDOBaseUrl + $"?query={searchTerm}&search=S%C3%B8g";
+                    url = DDOPageParser.DDOBaseUrl + $"?query={searchTerm}";
                 }
             }
             else

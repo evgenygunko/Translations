@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Underholdning Tiltale Højtryk Substantiv På Grillspyd Høj Kigge Stødtand Såsom Stiktosset Påtage Konjunktion Haj Frabede Fladtang Dannebrog
+﻿// Ignore Spelling: Underholdning Tiltale Højtryk Substantiv På Grillspyd Høj Kigge Stødtand Såsom Stiktosset Påtage Konjunktion Haj Frabede Fladtang Dannebrog Slå
 
 using System.Reflection;
 using CopyWords.Parsers.Models;
@@ -630,10 +630,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("høj(1) sb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=høj,1&query=høj");
+            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=h%C3%B8j,1&query=h%C3%B8j");
 
             variants[1].Word.Should().Be("høj(2) adj.");
-            variants[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=høj,2&query=høj");
+            variants[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=h%C3%B8j,2&query=h%C3%B8j");
         }
 
         [TestMethod]
@@ -684,7 +684,29 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("påtage vb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=påtage&query=påtage");
+            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=p%C3%A5tage&query=p%C3%A5tage");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForSlåPage_Returns3Variants()
+        {
+            string content = GetSimpleHTMLPage("Slå.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            List<Variant> variants = parser.ParseVariants();
+
+            variants.Should().HaveCount(3);
+
+            variants[0].Word.Should().Be("slå(1) sb.");
+            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
+
+            variants[1].Word.Should().Be("slå(2) vb.");
+            variants[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
+
+            variants[2].Word.Should().Be("slå om-nederdel eller slå-om-nederdel sb.");
+            variants[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
         }
 
         #endregion

@@ -89,7 +89,7 @@ namespace CopyWords.Parsers.Tests
 
             result.Should().NotBeNull();
             ddoPageParserMock.Verify(x => x.ParseHeadword());
-            fileDownloaderMock.Verify(x => x.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=https://docs.fluentvalidation.net/&search=S%C3%B8g", Encoding.UTF8));
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=https://docs.fluentvalidation.net/", Encoding.UTF8));
         }
 
         [TestMethod]
@@ -157,7 +157,7 @@ namespace CopyWords.Parsers.Tests
 
             result!.Variations.Should().HaveCount(1);
 
-            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.EndsWith($"?query={headWord}&search=S%C3%B8g")), Encoding.UTF8));
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.EndsWith($"?query={headWord}")), Encoding.UTF8));
         }
 
         #endregion
@@ -410,27 +410,6 @@ namespace CopyWords.Parsers.Tests
             return new List<Models.SpanishDict.SpanishDictDefinition>() { definition1, definition2 };
         }
 
-        private static List<Models.SpanishDict.SpanishDictDefinition> CreateDefinitionsForCasa()
-        {
-            var definition1 = new Models.SpanishDict.SpanishDictDefinition(WordES: "casa", PartOfSpeech: "feminine noun",
-                new List<Models.SpanishDict.SpanishDictContext>
-                {
-                    new Models.SpanishDict.SpanishDictContext(ContextEN: "(dwelling)", Position: 1,
-                        new List<Models.SpanishDict.Meaning>
-                        {
-                            new Models.SpanishDict.Meaning(Original: "house", AlphabeticalPosition: "a", ImageUrl: null,
-                                new List<Example>() { new Example(Original: "Vivimos en una casa con un gran jardín.", Translation: "We live in a house with a big garden.") }),
-                        }),
-                    new Models.SpanishDict.SpanishDictContext(ContextEN: "(household)", Position: 1,
-                        new List<Models.SpanishDict.Meaning>
-                        {
-                            new Models.SpanishDict.Meaning(Original: "home", AlphabeticalPosition: "a", ImageUrl: null,
-                                new List<Example>() { new Example(Original: "Mi casa es donde mi familia y mis amigos están.", Translation: "My home is where my family and friends are.") }),
-                        }),
-                });
-
-            return new List<Models.SpanishDict.SpanishDictDefinition>() { definition1 };
-        }
         #endregion
     }
 }
