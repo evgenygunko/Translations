@@ -92,7 +92,18 @@ namespace TranslatorApp.Services
 
                 foreach (var originalContext in originalDefinition.Contexts)
                 {
-                    Models.Translation.ContextOutput translationContext = translationDefinition.Contexts.First(d => d.id == contextsWithTranslations.Count + 1);
+                    Models.Translation.ContextOutput translationContext;
+                    if (translationDefinition.Contexts.Count() == 0)
+                    {
+                        // Sometimes OpenAI returns null context (when the input doesn't have any "meanings" for a Danish word). It is random, it might return a context or not.
+                        translationContext = new Models.Translation.ContextOutput(
+                            id: contextsWithTranslations.Count + 1,
+                            Meanings: []);
+                    }
+                    else
+                    {
+                        translationContext = translationDefinition.Contexts.First(d => d.id == contextsWithTranslations.Count + 1);
+                    }
 
                     var meaningsWithTranslations = new List<Meaning>();
 

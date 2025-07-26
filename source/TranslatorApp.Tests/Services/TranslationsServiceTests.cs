@@ -261,6 +261,34 @@ namespace TranslatorApp.Tests.Services
         #region Tests for CreateWordModelFromTranslationOutput
 
         [TestMethod]
+        public void CreateWordModelFromTranslationOutput_WhenContextIsNotReturned_UsesContextFromOriginalModel()
+        {
+            var originalWordModel = CreateWordModelForSlå();
+
+            var translationOutput = new TranslatorApp.Models.Translation.TranslationOutput(
+                Definitions: [
+                    new TranslatorApp.Models.Translation.DefinitionOutput(
+                        id: 1,
+                        HeadwordTranslation: _fixture.Create<string>(),
+                        HeadwordTranslationEnglish: _fixture.Create<string>(),
+                        Contexts: []
+                    )
+                ]
+            );
+
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
+
+            result.Word.Should().Be(originalWordModel.Word);
+
+            Context originalContext = originalWordModel.Definitions.First().Contexts.First();
+            Context translatedContext = result.Definitions.First().Contexts.First();
+            translatedContext.ContextEN.Should().Be(originalContext.ContextEN);
+            translatedContext.Position.Should().Be(originalContext.Position);
+            translatedContext.Meanings.Should().HaveCount(originalContext.Meanings.Count());
+        }
+
+        [TestMethod]
         public void CreateWordModelFromTranslationOutput_Should_KeepWord()
         {
             var originalWordModel = new WordModel(
