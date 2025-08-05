@@ -1,4 +1,6 @@
-﻿using System.ClientModel;
+﻿// Ignore Spelling: App
+
+using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Reflection;
 using FluentAssertions;
@@ -111,12 +113,16 @@ namespace TranslatorApp.Tests.Services
         private static ClientResult<ChatCompletion> CreateChatCompletionFromJson(string jsonFileName)
         {
             string currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-            string testDataFolderPath = Path.Combine(currentDir, "TestData"); string jsonResponse = File.ReadAllText(Path.Combine(testDataFolderPath, jsonFileName));
+            string testDataFolderPath = Path.Combine(currentDir, "TestData");
+            string jsonResponse = File.ReadAllText(Path.Combine(testDataFolderPath, jsonFileName));
 
             ChatMessageContent content = [
                 ChatMessageContentPart.CreateTextPart(jsonResponse)
             ];
+
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             ChatCompletion chatCompletion = OpenAIChatModelFactory.ChatCompletion(content: content);
+#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
             ClientResult<ChatCompletion> clientResult = ClientResult.FromValue(chatCompletion, new Mock<PipelineResponse>().Object);
             return clientResult;

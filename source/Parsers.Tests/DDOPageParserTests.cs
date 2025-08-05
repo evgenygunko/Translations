@@ -1,10 +1,9 @@
-﻿// Ignore Spelling: Underholdning Tiltale Højtryk Substantiv På Grillspyd Høj Kigge Stødtand Såsom Stiktosset Påtage Konjunktion Haj Frabede Fladtang Dannebrog Slå
+﻿// Ignore Spelling: Underholdning Tiltale Højtryk Substantiv På Grillspyd Høj Kigge Stødtand Såsom Stiktosset Påtage Konjunktion Haj Frabede Fladtang Dannebrog Slå Bestemt Øge
 
 using System.Reflection;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Models.DDO;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CopyWords.Parsers.Tests
 {
@@ -22,7 +21,7 @@ namespace CopyWords.Parsers.Tests
 
         #region Tests for LoadHtml
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         public void LoadHtml_WhenStringIsNullOrEmpty_ThrowsException(string content)

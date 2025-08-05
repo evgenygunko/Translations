@@ -5,7 +5,6 @@ using AutoFixture;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Services;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace CopyWords.Parsers.Tests
@@ -24,7 +23,7 @@ namespace CopyWords.Parsers.Tests
 
         #region Tests for LookUpWordAsync
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         [DataRow("æø")]

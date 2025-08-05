@@ -1,4 +1,6 @@
-﻿using CopyWords.Parsers.Models;
+﻿// Ignore Spelling: App
+
+using CopyWords.Parsers.Models;
 
 namespace TranslatorApp.Services
 {

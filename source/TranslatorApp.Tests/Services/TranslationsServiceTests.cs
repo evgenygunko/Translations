@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Afeitar Coche
+﻿// Ignore Spelling: Afeitar Coche App Slå
 
 using AutoFixture;
 using CopyWords.Parsers.Models;
@@ -106,7 +106,6 @@ namespace TranslatorApp.Tests.Services
 
             TranslatorApp.Models.Translation.DefinitionInput inputDefinition;
             TranslatorApp.Models.Translation.ContextInput inputContext;
-            TranslatorApp.Models.Translation.MeaningInput inputMeaning;
 
             /***********************************************************************/
             // Afeitar

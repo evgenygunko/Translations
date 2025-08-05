@@ -1,4 +1,6 @@
-﻿using AutoFixture.AutoMoq;
+﻿// Ignore Spelling: App
+
+using AutoFixture.AutoMoq;
 using AutoFixture;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 

@@ -1,4 +1,6 @@
-﻿namespace CopyWords.Parsers.Models.DDO
+﻿// Ignore Spelling: DDO
+
+namespace CopyWords.Parsers.Models.DDO
 {
     public record DDODefinition(
         string Meaning,

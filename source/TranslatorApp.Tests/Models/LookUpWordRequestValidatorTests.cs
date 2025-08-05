@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Validator
+﻿// Ignore Spelling: Validator App
 
 using AutoFixture;
 using CopyWords.Parsers.Models;
@@ -28,7 +28,7 @@ namespace TranslatorApp.Tests.Models
             result.IsValid.Should().BeTrue();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         public void Validate_WhenTextIsNullOrEmpty_ReturnsFalse(string text)
@@ -119,7 +119,7 @@ namespace TranslatorApp.Tests.Models
             result.Errors.First().ErrorMessage.Should().Be("'SourceLanguage' must be one of the following: Danish, Spanish");
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SourceLanguage.Danish)]
         [DataRow(SourceLanguage.Spanish)]
         public void Validate_WhenSourceLanguageIsValidEnumValue_ReturnsTrue(SourceLanguage sourceLanguage)
@@ -136,7 +136,7 @@ namespace TranslatorApp.Tests.Models
             result.IsValid.Should().BeTrue();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("English")]
         [DataRow("da")]
         [DataRow("es")]
@@ -173,7 +173,7 @@ namespace TranslatorApp.Tests.Models
             result.Errors.First().ErrorMessage.Should().Be("'Destination Language' must not be empty.");
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("1")]
         [DataRow("3")]
         public void Validate_WhenVersionIsNotSupported_ReturnsFalse(string version)

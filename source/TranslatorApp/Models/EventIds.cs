@@ -1,4 +1,6 @@
-﻿namespace TranslatorApp.Models
+﻿// Ignore Spelling: App
+
+namespace TranslatorApp.Models
 {
     public enum TranslatorAppEventId
     {

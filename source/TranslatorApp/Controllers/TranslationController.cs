@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Validator req
+﻿// Ignore Spelling: Validator req App
 
 using System.Text.Json;
 using CopyWords.Parsers;

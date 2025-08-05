@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Deserialize
+﻿// Ignore Spelling: Deserialize App
 
 using System.Net;
 using AutoFixture;
@@ -38,7 +38,7 @@ namespace TranslatorApp.Tests.Controllers
             result.Value.Should().Be("Input data is null");
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("2")]
         [DataRow("3")]
         public async Task LookUpWordAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)

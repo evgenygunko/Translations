@@ -12,4 +12,8 @@ dotnet_diagnostic.CA2201.severity = none
 
 # Use explicit type instead of var
 [*.{cs,vb}]
+dotnet_diagnostic.IDE0007.severity = none
 dotnet_diagnostic.IDE0008.severity = none
+
+# RCS1246: Use element access
+dotnet_diagnostic.RCS1246.severity = none

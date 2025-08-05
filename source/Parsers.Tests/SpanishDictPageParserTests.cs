@@ -3,7 +3,6 @@
 using System.Reflection;
 using CopyWords.Parsers.Models.SpanishDict;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
 namespace CopyWords.Parsers.Tests
@@ -24,7 +23,7 @@ namespace CopyWords.Parsers.Tests
 
         #region ParseHeadword tests
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("Afeitar")]
         [DataRow("Águila")]
         [DataRow("Aprovechar")]
@@ -44,7 +43,7 @@ namespace CopyWords.Parsers.Tests
 
         #region ParseSoundURL tests
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("Afeitar", "https://d10gt6izjc94x0.cloudfront.net/desktop/lang_es_pron_4189_speaker_7_syllable_all_version_50.mp4")]
         [DataRow("Águila", "https://d10gt6izjc94x0.cloudfront.net/desktop/lang_es_pron_13701_speaker_7_syllable_all_version_50.mp4")]
         [DataRow("Aprovechar", "https://d10gt6izjc94x0.cloudfront.net/desktop/lang_es_pron_13603_speaker_7_syllable_all_version_50.mp4")]

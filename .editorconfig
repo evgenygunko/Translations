@@ -199,11 +199,26 @@ csharp_style_prefer_extended_property_pattern = true:suggestion
 # Enable when https://github.com/dotnet/roslyn/issues/41640 is fixed
 #dotnet_diagnostic.IDE0005.severity = warning
 
+# Use collection initializers or expressions (IDE0028)
+dotnet_diagnostic.IDE0028.severity = none
+
 dotnet_diagnostic.IDE0011.severity = warning
 dotnet_diagnostic.IDE2000.severity = warning
 dotnet_diagnostic.IDE0036.severity = warning
 dotnet_diagnostic.IDE0040.severity = warning
 dotnet_diagnostic.IDE0060.severity = warning
+
+# IDE0090: Simplify new expression
+dotnet_diagnostic.IDE0090.severity = none
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
+
+# Use collection expression for empty (IDE0301)
+dotnet_diagnostic.IDE0301.severity = none
+
+# Use collection expression for fluent (IDE0305)
+dotnet_diagnostic.IDE0305.severity = none
 
 # Visual Basic files
 [*.vb]
