@@ -48,6 +48,32 @@ Content-Type: application/json
   });
 %}
 
+### Translate a variant for "ramme" from Danish to Russian
+
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://ordnet.dk/ddo/ordbog?select=ramme,3&query=rammer",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "1"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["partOfSpeech"] === "verbum");
+
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+  });
+%}
+
 ### Translate "skyldes" from Danish to Russian
 
 POST {{HostAddress}}/api/LookUpWord?code={{code}}

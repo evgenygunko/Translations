@@ -32,24 +32,21 @@ namespace TranslatorApp.Services
             prompt.AppendLine($@"
 Translate the following JSON data from {input.SourceLanguage} to {input.DestinationLanguage}.
 
-Focus on translating the following properties:
-1.Headword.Text
-2.Meaning.Text
-
-For Headword.Text:
-    - Use the related PartOfSpeech and Meaning to inform the translation.
+For each Definition in Definitions array translate the property Headword.Text:
+    - Maintain the same part of speech in the translation as defined in Headword.PartOfSpeech.
+    - Use the related Headword.Meaning to guide the translation.
     - Review Headword.Examples to better understand the context.
-    - Maintain the same part of speech in the translation.
 
-For Meaning.Text:
+For each Definition in Definitions array, iterate over Contexts and Meanings and translate the property Meaning.Text:
     - Use the related PartOfSpeech and Context.ContextString to guide the translation.
-    - Review Meaning.Examples to understand how the word is used in context.
+    - Review Examples to better understand the context.
     - Maintain the same part of speech in the translation.
 
 Output requirements:
     - For each Headword.Text, provide 1 to 3 translation options in the field HeadwordTranslation, separated by commas.
-    - For each Headword.Text, provide 1 to 3 translation options To English in the field HeadwordTranslationEnglish, separated by commas.
-    - For each Meaning.Text, if the corresponding Context.ContextString is provided, include 1 to 3 translation options in the field MeaningTranslation, also separated by commas.");
+    - For each Headword.Text, provide 1 to 3 translation options to English in the field HeadwordTranslationEnglish, separated by commas.
+    - Maintain the same part of speech as defined in Definition.PartOfSpeech in HeadwordTranslation and HeadwordTranslationEnglish.
+    - If the part of speech is a verb, add an infinitive marker 'to' when returning a translation in the HeadwordTranslationEnglish.");
 
             // Serialize input object to JSON and append to the prompt
             string inputJson = JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true });

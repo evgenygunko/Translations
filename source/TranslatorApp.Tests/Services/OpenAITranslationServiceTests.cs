@@ -27,31 +27,29 @@ namespace TranslatorApp.Tests.Services
                 Definitions: [
                     new DefinitionInput(
                         id: 1,
-                        PartOfSpeech: "noun",
-                        Headword: new HeadwordInput(Text: "word to translate", Meaning: "meaning", Examples: ["example 1"]),
+                        Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech: "noun", Meaning: "meaning", Examples: ["example 1"]),
                         Contexts:[
                             new ContextInput(
                                 id: 1,
                                 ContextString: "context 1",
-                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
+                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
                             )
                         ]
                     ),
                     new DefinitionInput(
                         id: 2,
-                        PartOfSpeech: "noun",
-                        Headword: new HeadwordInput(Text: "word to translate", Meaning: "meaning", Examples: ["example 1"]),
+                        Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech : "noun", Meaning: "meaning", Examples: ["example 1"]),
                         Contexts: [
                             new ContextInput(
                                 id: 1,
                                 ContextString: "context 1",
-                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", Examples :["meaning 1, example 1"]) ]
+                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
                             )
                         ]
                     )
                 ]);
 
-            var openAIResponse = CreateChatCompletionFromJson("OpenAITranslationsAfeitar.json");
+            var openAIResponse = CreateChatCompletionFromJson("TranslationOutput_ES.json");
 
             var chatClientMock = new Mock<ChatClient>();
             chatClientMock
@@ -76,8 +74,8 @@ namespace TranslatorApp.Tests.Services
             definition.id.Should().Be(1);
 
             // Check translations for headword
-            definition.HeadwordTranslation.Should().Be("брить");
-            definition.HeadwordTranslationEnglish.Should().Be("to shave");
+            definition.HeadwordTranslation.Should().Be("брить, сбривать, подстригать");
+            definition.HeadwordTranslationEnglish.Should().Be("to shave, to trim, to barber");
 
             // Check translations for meanings
             definition.Contexts.Should().HaveCount(1);
@@ -85,7 +83,7 @@ namespace TranslatorApp.Tests.Services
 
             meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
-            meaning.MeaningTranslation.Should().Be("брить (удалять волосы), сбрить, срезать");
+            meaning.MeaningTranslation.Should().Be("брить, сбривать, подстригать");
 
             /***********************************************************************/
             // Afeitarse
@@ -94,8 +92,8 @@ namespace TranslatorApp.Tests.Services
             definition.id.Should().Be(2);
 
             // Check translations for headword
-            definition.HeadwordTranslation.Should().Be("бриться");
-            definition.HeadwordTranslationEnglish.Should().Be("to shave (oneself)");
+            definition.HeadwordTranslation.Should().Be("бриться, побриться, подстричься");
+            definition.HeadwordTranslationEnglish.Should().Be("to shave oneself, to be shaved, to trim oneself");
 
             // Check translations for meanings
             definition.Contexts.Should().HaveCount(1);
@@ -103,7 +101,7 @@ namespace TranslatorApp.Tests.Services
 
             meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
-            meaning.MeaningTranslation.Should().Be("брить (брить себя), самообритие, сбривать");
+            meaning.MeaningTranslation.Should().Be("бриться, побриться, подстричься");
         }
 
         #endregion

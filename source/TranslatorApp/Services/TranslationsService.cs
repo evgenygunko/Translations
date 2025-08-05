@@ -44,6 +44,7 @@ namespace TranslatorApp.Services
 
                 var headwordToTranslate = new Models.Translation.HeadwordInput(
                     Text: definition.Headword.Original,
+                    PartOfSpeech: definition.PartOfSpeech,
                     Meaning: firstMeaning?.Original ?? "",
                     Examples: firstMeaning?.Examples?.Select(e => e.Original) ?? Enumerable.Empty<string>());
 
@@ -57,6 +58,7 @@ namespace TranslatorApp.Services
                         inputMeanings.Add(new Models.Translation.MeaningInput(
                             id: inputMeanings.Count + 1,
                             Text: meaning.Original,
+                            PartOfSpeech: definition.PartOfSpeech,
                             Examples: meaning.Examples.Select(e => e.Original)));
                     }
 
@@ -68,7 +70,6 @@ namespace TranslatorApp.Services
 
                 inputDefinitions.Add(new Models.Translation.DefinitionInput(
                     id: inputDefinitions.Count + 1,
-                    PartOfSpeech: definition.PartOfSpeech,
                     Headword: headwordToTranslate,
                     Contexts: contextsToTranslate));
             }

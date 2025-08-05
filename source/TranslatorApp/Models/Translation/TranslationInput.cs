@@ -1,4 +1,6 @@
-﻿namespace TranslatorApp.Models.Translation
+﻿// Ignore Spelling: App
+
+namespace TranslatorApp.Models.Translation
 {
     public record TranslationInput(
         string Version,
@@ -8,22 +10,23 @@
 
     public record DefinitionInput(
         int id,
-        string? PartOfSpeech,
         HeadwordInput Headword,
         IEnumerable<ContextInput> Contexts);
+
+    public record HeadwordInput(
+        string Text,
+        string? PartOfSpeech,
+        string Meaning,
+        IEnumerable<string> Examples);
 
     public record ContextInput(
         int id,
         string? ContextString,
         IEnumerable<MeaningInput> Meanings);
 
-    public record HeadwordInput(
-        string Text,
-        string Meaning,
-        IEnumerable<string> Examples);
-
     public record MeaningInput(
         int id,
         string Text,
+        string? PartOfSpeech,
         IEnumerable<string> Examples);
 }

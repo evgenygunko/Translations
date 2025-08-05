@@ -41,16 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestData\OpenAITranslationsAfeitar.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\OpenAIMeaningsTranslations.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\OpenAIHeadwordTranslations.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\TranslationOutput.json">
+    <None Update="TestData\TranslationOutput_ES.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

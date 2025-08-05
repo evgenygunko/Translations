@@ -1,0 +1,20 @@
+{
+	"Definitions": [
+		{
+			"id": 1,
+			"HeadwordTranslation": "должен, быть в долгу, быть обязанным",
+			"HeadwordTranslationEnglish": "to owe, to be in debt, to be obligated",
+			"Contexts": [
+				{
+					"id": 1,
+					"Meanings": [
+						{
+							"id": 1,
+							"MeaningTranslation": "иметь обязанность заплатить кому-то задолженность; быть в долгу перед кем-то"
+						}
+					]
+				}
+			]
+		}
+	]
+}

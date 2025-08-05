@@ -57,9 +57,8 @@ namespace TranslatorApp.Tests.Services
 
                 TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definitions.First(x => x.id == definitionIndex);
 
-                inputDefinition.PartOfSpeech.Should().Be(definition.PartOfSpeech);
-
                 inputDefinition.Headword.Text.Should().Be(definition.Headword.Original);
+                inputDefinition.Headword.PartOfSpeech.Should().Be(definition.PartOfSpeech);
                 inputDefinition.Headword.Meaning.Should().Be(firstMeaning.Original);
                 inputDefinition.Headword.Examples.Should().HaveCount(firstMeaning.Examples.Count());
 
@@ -112,8 +111,8 @@ namespace TranslatorApp.Tests.Services
             /***********************************************************************/
             inputDefinition = result.Definitions.First();
             inputDefinition.id.Should().Be(1);
-            inputDefinition.PartOfSpeech.Should().Be("transitive verb");
             inputDefinition.Headword.Text.Should().Be("slå om-nederdel");
+            inputDefinition.Headword.PartOfSpeech.Should().Be("transitive verb");
             inputDefinition.Headword.Meaning.Should().Be("");
             inputDefinition.Headword.Examples.Should().HaveCount(0);
 
@@ -147,8 +146,8 @@ namespace TranslatorApp.Tests.Services
             /***********************************************************************/
             inputDefinition = result.Definitions.First();
             inputDefinition.id.Should().Be(1);
-            inputDefinition.PartOfSpeech.Should().Be("transitive verb");
             inputDefinition.Headword.Text.Should().Be("afeitar");
+            inputDefinition.Headword.PartOfSpeech.Should().Be("transitive verb");
             inputDefinition.Headword.Meaning.Should().Be("to shave");
             inputDefinition.Headword.Examples.Should().HaveCount(1);
 
@@ -165,8 +164,8 @@ namespace TranslatorApp.Tests.Services
             /***********************************************************************/
             inputDefinition = result.Definitions.Last();
             inputDefinition.id.Should().Be(2);
-            inputDefinition.PartOfSpeech.Should().Be("reflexive verb");
             inputDefinition.Headword.Text.Should().Be("afeitarse");
+            inputDefinition.Headword.PartOfSpeech.Should().Be("reflexive verb");
             inputDefinition.Headword.Meaning.Should().Be("to shave");
             inputDefinition.Headword.Examples.Should().HaveCount(1);
 
@@ -198,8 +197,8 @@ namespace TranslatorApp.Tests.Services
 
             TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definitions.First();
             inputDefinition.id.Should().Be(1);
-            inputDefinition.PartOfSpeech.Should().Be("masculine noun");
             inputDefinition.Headword.Text.Should().Be("el coche");
+            inputDefinition.Headword.PartOfSpeech.Should().Be("masculine noun");
             inputDefinition.Headword.Meaning.Should().Be("car");
             inputDefinition.Headword.Examples.Should().HaveCount(1);
 
