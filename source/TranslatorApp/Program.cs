@@ -33,7 +33,7 @@ builder.Services.AddSingleton<ChatClient>(_ =>
         throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
     }
 
-    return new ChatClient(model: "gpt-4o-mini", apiKey: key);
+    return new ChatClient(model: "gpt-5-mini", apiKey: key);
 });
 
 var app = builder.Build();
