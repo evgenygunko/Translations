@@ -4,6 +4,7 @@ using System.ClientModel;
 using System.ClientModel.Primitives;
 using System.Reflection;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OpenAI.Chat;
 using TranslatorApp.Models.Translation;
@@ -56,7 +57,7 @@ namespace TranslatorApp.Tests.Services
                 .Setup(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(openAIResponse);
 
-            var sut = new OpenAITranslationService(chatClientMock.Object);
+            var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ILogger<OpenAITranslationService>>().Object);
 
             TranslationOutput result = await sut.TranslateAsync(translationInput);
 

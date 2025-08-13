@@ -7,5 +7,6 @@ namespace TranslatorApp.Models
         LookupRequestReceived = 35,
         WordNotFound = 36,
         ReturningWordModel = 37,
+        TranslationReceived = 38,
     }
 }

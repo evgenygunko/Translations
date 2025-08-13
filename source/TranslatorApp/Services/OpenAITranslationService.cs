@@ -1,11 +1,13 @@
 ﻿// Ignore Spelling: App
 
-using OpenAI.Chat;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Json.Serialization;
+using OpenAI.Chat;
+using TranslatorApp.Models;
 using TranslatorApp.Models.Translation;
 
 namespace TranslatorApp.Services
@@ -18,10 +20,14 @@ namespace TranslatorApp.Services
     public class OpenAITranslationService : IOpenAITranslationService
     {
         private readonly ChatClient _chatClient;
+        private readonly ILogger<OpenAITranslationService> _logger;
 
-        public OpenAITranslationService(ChatClient chatClient)
+        public OpenAITranslationService(
+            ChatClient chatClient,
+            ILogger<OpenAITranslationService> logger)
         {
             _chatClient = chatClient;
+            _logger = logger;
         }
 
         #region Public Methods
@@ -53,7 +59,14 @@ Output requirements:
             prompt.AppendLine("Input JSON:");
             prompt.AppendLine(inputJson);
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             TranslationOutput? openAITranslations = await CallOpenAIAsync<TranslationOutput>(prompt.ToString());
+
+            stopwatch.Stop();
+            _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationReceived),
+                    "The call to OpenAPI took {TotalSeconds} seconds.",
+                    stopwatch.Elapsed.TotalSeconds);
 
             return openAITranslations ?? new TranslationOutput([]);
         }
