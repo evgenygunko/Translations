@@ -65,7 +65,7 @@ Output requirements:
 
             stopwatch.Stop();
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationReceived),
-                    "The call to OpenAPI took {TotalSeconds} seconds.",
+                    "The call to OpenAPI Chat Completions API took {TotalSeconds} seconds.",
                     stopwatch.Elapsed.TotalSeconds);
 
             return openAITranslations ?? new TranslationOutput([]);

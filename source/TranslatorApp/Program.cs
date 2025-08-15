@@ -3,6 +3,7 @@ using CopyWords.Parsers;
 using CopyWords.Parsers.Services;
 using FluentValidation;
 using OpenAI.Chat;
+using OpenAI.Responses;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
 
@@ -16,6 +17,7 @@ builder.Services.AddControllers();
 // Add custom services
 builder.Services.AddScoped<ITranslationsService, TranslationsService>();
 builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
+builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
 builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
 builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
 builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
@@ -23,19 +25,25 @@ builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
 
 builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
 
-builder.Services.AddSingleton<ChatClient>(_ =>
-{
-    var key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+var key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
         ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
 
-    if (string.IsNullOrEmpty(key))
-    {
-        throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
-    }
+if (string.IsNullOrEmpty(key))
+{
+    throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
+}
 
-    // return new ChatClient(model: "gpt-5-mini", apiKey: key);
-    return new ChatClient(model: "gpt-4o-mini", apiKey: key);
-});
+// "gpt-5-mini"
+// "gpt-4o-mini"
+// This is the fastest model as of now, faster than "gpt-4o-mini". And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
+builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4.1-mini", apiKey: key));
+
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+// For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
+builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4.1-mini", apiKey: key));
+
+#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 var app = builder.Build();
 

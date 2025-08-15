@@ -12,18 +12,36 @@ namespace TranslatorApp.Services
     public class TranslationsService : ITranslationsService
     {
         private readonly IOpenAITranslationService _openAITranslationService;
+        private readonly IOpenAITranslationService2 _openAITranslationService2;
 
         public TranslationsService(
-            IOpenAITranslationService openAITranslationService)
+            IOpenAITranslationService openAITranslationService,
+            IOpenAITranslationService2 openAITranslationService2)
         {
             _openAITranslationService = openAITranslationService;
+            _openAITranslationService2 = openAITranslationService2;
         }
 
         public async Task<WordModel> TranslateAsync(string sourceLanguage, WordModel wordModel)
         {
             Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
 
-            Models.Translation.TranslationOutput? translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
+            // Check environment variable to determine which translation service to use
+            var key = Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API")
+                ?? Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API", EnvironmentVariableTarget.User);
+
+            bool shouldUseResponseAPI = !string.IsNullOrEmpty(key) &&
+                (key.Equals("true", StringComparison.OrdinalIgnoreCase) || key.Equals("1", StringComparison.OrdinalIgnoreCase));
+
+            Models.Translation.TranslationOutput? translationOutput;
+            if (shouldUseResponseAPI)
+            {
+                translationOutput = await _openAITranslationService2.TranslateAsync(translationInput);
+            }
+            else
+            {
+                translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
+            }
 
             if (translationOutput == null)
             {

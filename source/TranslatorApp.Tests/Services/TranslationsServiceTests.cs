@@ -16,13 +16,30 @@ namespace TranslatorApp.Tests.Services
         #region Tests for TranslateAsync
 
         [TestMethod]
-        public void TranslateAsync_Should_CallOpenAITranslationService()
+        public void TranslateAsync_WhenUseOpenAIResponseAPIIsFalse_CallsOpenAITranslationService()
         {
+            Environment.SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "false");
             string sourceLanguage = _fixture.Create<string>();
 
             WordModel wordModel = _fixture.Create<WordModel>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
+
+            var sut = _fixture.Create<TranslationsService>();
+            _ = sut.TranslateAsync(sourceLanguage, wordModel);
+
+            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>()));
+        }
+
+        [TestMethod]
+        public void TranslateAsync_WhenUseOpenAIResponseAPIIsTrue_CallsOpenAITranslationService2()
+        {
+            Environment.SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "true");
+            string sourceLanguage = _fixture.Create<string>();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+
+            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
 
             var sut = _fixture.Create<TranslationsService>();
             _ = sut.TranslateAsync(sourceLanguage, wordModel);
