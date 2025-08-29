@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: App
 
 using CopyWords.Parsers.Models;
+using TranslatorApp.Models;
 
 namespace TranslatorApp.Services
 {
@@ -13,13 +14,16 @@ namespace TranslatorApp.Services
     {
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IOpenAITranslationService2 _openAITranslationService2;
+        private readonly ILogger<TranslationsService> _logger;
 
         public TranslationsService(
             IOpenAITranslationService openAITranslationService,
-            IOpenAITranslationService2 openAITranslationService2)
+            IOpenAITranslationService2 openAITranslationService2,
+            ILogger<TranslationsService> logger)
         {
             _openAITranslationService = openAITranslationService;
             _openAITranslationService2 = openAITranslationService2;
+            _logger = logger;
         }
 
         public async Task<WordModel> TranslateAsync(string sourceLanguage, WordModel wordModel)
@@ -113,17 +117,20 @@ namespace TranslatorApp.Services
 
                 foreach (var originalContext in originalDefinition.Contexts)
                 {
-                    Models.Translation.ContextOutput translationContext;
-                    if (translationDefinition.Contexts.Count() == 0)
+                    int contextId = contextsWithTranslations.Count + 1;
+                    Models.Translation.ContextOutput? translationContext = translationDefinition.Contexts.FirstOrDefault(d => d.id == contextId);
+                    if (translationContext == null)
                     {
-                        // Sometimes OpenAI returns null context (when the input doesn't have any "meanings" for a Danish word). It is random, it might return a context or not.
-                        translationContext = new Models.Translation.ContextOutput(
-                            id: contextsWithTranslations.Count + 1,
-                            Meanings: []);
-                    }
-                    else
-                    {
-                        translationContext = translationDefinition.Contexts.First(d => d.id == contextsWithTranslations.Count + 1);
+                        // Sometimes OpenAI returns null context (when the input doesn't have any "meanings" for a Danish word).
+                        // It is random, it might return a context or not.
+                        translationContext = new Models.Translation.ContextOutput(id: contextId, Meanings: []);
+
+                        string contextIds = string.Join(", ", translationDefinition.Contexts.Select(c => c.id));
+                        _logger.LogWarning(new EventId((int)TranslatorAppEventId.OpenAPIDidNotReturnContext),
+                            "OpenAPI did not return a context. Trying to find a context with id '{ContextId}', but the returned object has '{AvailableContexts}' contexts with ids '{ReturnedContextIds}'.",
+                            contextId,
+                            translationDefinition.Contexts.Count(),
+                            contextIds);
                     }
 
                     var meaningsWithTranslations = new List<Meaning>();

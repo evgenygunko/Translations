@@ -44,14 +44,13 @@ if (string.IsNullOrEmpty(key))
 }
 
 // "gpt-5-mini"
-// "gpt-4o-mini"
-// This is the fastest model as of now, faster than "gpt-4o-mini". And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
-builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4.1-mini", apiKey: key));
+// "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
+builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4o-mini", apiKey: key));
 
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 // For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
-builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4.1-mini", apiKey: key));
+builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4o-mini", apiKey: key));
 
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 

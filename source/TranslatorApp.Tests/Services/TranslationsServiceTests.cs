@@ -3,7 +3,9 @@
 using AutoFixture;
 using CopyWords.Parsers.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
+using TranslatorApp.Models;
 using TranslatorApp.Services;
 
 namespace TranslatorApp.Tests.Services
@@ -291,6 +293,8 @@ namespace TranslatorApp.Tests.Services
                 ]
             );
 
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationsService>>>();
+
             var sut = _fixture.Create<TranslationsService>();
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
@@ -301,6 +305,15 @@ namespace TranslatorApp.Tests.Services
             translatedContext.ContextEN.Should().Be(originalContext.ContextEN);
             translatedContext.Position.Should().Be(originalContext.Position);
             translatedContext.Meanings.Should().HaveCount(originalContext.Meanings.Count());
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.Is<EventId>(e => e.Id == (int)TranslatorAppEventId.OpenAPIDidNotReturnContext),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("OpenAPI did not return a context. Trying to find a context with id '1', but the returned object has '0' contexts with ids ''.")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
         }
 
         [TestMethod]
