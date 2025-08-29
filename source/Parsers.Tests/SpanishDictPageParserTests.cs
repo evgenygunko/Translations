@@ -30,6 +30,7 @@ namespace CopyWords.Parsers.Tests
         [DataRow("costar un ojo de la cara")]
         [DataRow("mitologo")]
         [DataRow("saltamontes")]
+        [DataRow("wasapear")]
         public void ParseHeadword_Should_ReturnWordFromModel(string word)
         {
             var parser = new SpanishDictPageParser();

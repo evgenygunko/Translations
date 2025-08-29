@@ -205,6 +205,31 @@ Content-Type: application/json
 %}
 
 
+### Translate "wasapear" from Spanish to Russian
+
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "wasapear",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "1"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+  });
+%}
+
 
 ### BadRequest - Several required fields are null
 

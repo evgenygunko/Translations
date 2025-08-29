@@ -481,7 +481,7 @@ namespace CopyWords.Parsers.Models.SpanishDict
         public string matchedConjugation { get; set; }
         public int isReflexive { get; set; }
         public bool isReflexiveVariation { get; set; }
-        public int verbType { get; set; }
+        public int? verbType { get; set; }
         public int supportsConjugationDrills { get; set; }
         public string reason { get; set; }
         public string infinitiveTranslation { get; set; }
