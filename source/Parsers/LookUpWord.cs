@@ -118,6 +118,7 @@ namespace CopyWords.Parsers
 
             var wordModel = new WordModel(
                 Word: headWordDA,
+                SourceLanguage: SourceLanguage.Danish,
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
                 Definitions: [definition],
@@ -170,6 +171,7 @@ namespace CopyWords.Parsers
 
             var wordModel = new WordModel(
                 Word: headwordES,
+                SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
                 Definitions: definitions,

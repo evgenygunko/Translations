@@ -61,6 +61,14 @@ namespace TranslatorApp.Controllers
 
                 // First call the parser to get the word model from the online dictionary
                 WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage);
+                if (wordModel == null)
+                {
+                    // Try another parser - assuming that the user forgot to change the dictionary in the UI
+                    SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(lookUpWordRequest.SourceLanguage);
+                    SourceLanguage anotherLanguage = sourceLanguage == SourceLanguage.Danish ? SourceLanguage.Spanish : SourceLanguage.Danish;
+
+                    wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage.ToString());
+                }
 
                 if (wordModel == null)
                 {

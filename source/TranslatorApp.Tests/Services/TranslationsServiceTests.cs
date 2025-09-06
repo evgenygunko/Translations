@@ -298,6 +298,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<TranslationsService>();
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
+            result.SourceLanguage.Should().Be(originalWordModel.SourceLanguage);
             result.Word.Should().Be(originalWordModel.Word);
 
             Context originalContext = originalWordModel.Definitions.First().Contexts.First();
@@ -321,6 +322,7 @@ namespace TranslatorApp.Tests.Services
         {
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
+                SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: [
@@ -347,6 +349,7 @@ namespace TranslatorApp.Tests.Services
         {
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
+                SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: [
@@ -373,6 +376,7 @@ namespace TranslatorApp.Tests.Services
         {
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
+                SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: [
@@ -399,6 +403,7 @@ namespace TranslatorApp.Tests.Services
         {
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
+                SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: [
@@ -426,6 +431,7 @@ namespace TranslatorApp.Tests.Services
             // Arrange
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
+                SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: [
@@ -760,6 +766,7 @@ namespace TranslatorApp.Tests.Services
         {
             WordModel wordModel = new WordModel(
                 Word: "afeitar",
+                SourceLanguage: SourceLanguage.Danish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: new[]
@@ -785,6 +792,7 @@ namespace TranslatorApp.Tests.Services
         {
             WordModel wordModel = new WordModel(
                 Word: "afeitar",
+                SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: new[]
@@ -841,6 +849,7 @@ namespace TranslatorApp.Tests.Services
         {
             WordModel wordModel = new WordModel(
                 Word: "el coche",
+                SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definitions: new[]

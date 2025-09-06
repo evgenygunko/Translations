@@ -245,6 +245,8 @@ namespace CopyWords.Parsers.Tests
 
             result.Should().NotBeNull();
 
+            result.SourceLanguage.Should().Be(SourceLanguage.Danish);
+
             IEnumerable<Definition> definitions = result!.Definitions;
             definitions.Should().HaveCount(1);
 
@@ -309,6 +311,7 @@ namespace CopyWords.Parsers.Tests
             result.Should().NotBeNull();
 
             result!.Word.Should().Be(headwordES);
+            result.SourceLanguage.Should().Be(SourceLanguage.Spanish);
 
             IEnumerable<Definition> definitions = result!.Definitions;
             definitions.Should().HaveCount(2);

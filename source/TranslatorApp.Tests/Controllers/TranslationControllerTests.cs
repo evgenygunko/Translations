@@ -91,7 +91,7 @@ namespace TranslatorApp.Tests.Controllers
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
@@ -126,7 +126,7 @@ namespace TranslatorApp.Tests.Controllers
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 
@@ -135,7 +135,7 @@ namespace TranslatorApp.Tests.Controllers
                 new ValidationResult());
 
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage)).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, It.IsAny<string>())).ReturnsAsync((WordModel?)null);
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -150,12 +150,46 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task LookUpWordAsync_WhenCannotFindWordInOnlineDictionary_TriesAnotherParser()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Spanish };
+
+            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
+            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
+                new ValidationResult());
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString())).ReturnsAsync(wordModel);
+
+            // Act
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+
+            // Assert
+            actionResult.Value.Should().BeOfType<WordModel>();
+            WordModel returnWordModel = actionResult.Value!;
+            returnWordModel.SourceLanguage.Should().Be(SourceLanguage.Spanish);
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString()));
+        }
+
+        [TestMethod]
         public async Task LookUpWordAsync_Should_ReturnWordModel()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
-                SourceLanguage: "da",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
                 Version: "1");
 

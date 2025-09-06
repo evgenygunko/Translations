@@ -163,6 +163,7 @@ namespace TranslatorApp.Services
 
             WordModel wordModelWithTranslations = new WordModel(
                 Word: wordModel.Word,
+                SourceLanguage: wordModel.SourceLanguage,
                 SoundUrl: wordModel.SoundUrl,
                 SoundFileName: wordModel.SoundFileName,
                 Definitions: definitionsWithTranslations,
