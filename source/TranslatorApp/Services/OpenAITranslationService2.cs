@@ -3,6 +3,7 @@
 using System.ClientModel;
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using OpenAI.Responses;
 using TranslatorApp.Models;
 using TranslatorApp.Models.Translation;
@@ -20,13 +21,16 @@ namespace TranslatorApp.Services
     {
         private readonly OpenAIResponseClient _openAIResponseClient;
         private readonly ILogger<OpenAITranslationService2> _logger;
+        private readonly OpenAIConfiguration _openAIConfiguration;
 
         public OpenAITranslationService2(
             OpenAIResponseClient openAIResponseClient,
-            ILogger<OpenAITranslationService2> logger)
+            ILogger<OpenAITranslationService2> logger,
+            IOptions<OpenAIConfiguration> openAIConfiguration)
         {
             _openAIResponseClient = openAIResponseClient;
             _logger = logger;
+            _openAIConfiguration = openAIConfiguration.Value;
         }
 
         #region Public Methods
@@ -63,7 +67,7 @@ namespace TranslatorApp.Services
             string message = $@"
                 {{
                    ""prompt"": {{
-                        ""id"": ""pmpt_689e5c0edfcc81949e524116596cbe4b042dd0bc233513dd"",
+                        ""id"": ""{_openAIConfiguration.PromptId}"",
                         ""variables"": {{
                             ""source_language"": ""{translationInput.SourceLanguage}"",
                             ""destination_langauge"": ""{translationInput.DestinationLanguage}"",

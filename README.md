@@ -1,83 +1,255 @@
 # Translation App (for use by CopyWords App)
 
-This project contains an Azure Function App that translates input strings using the [Azure Translator API](https://azure.microsoft.com/en-us/products/ai-services/ai-translator).
+This project contains an ASP.NET Core Web API application that provides translation and word lookup services using the [OpenAI API](https://platform.openai.com/docs/overview). The application serves as a translation service for the CopyWords application.
 
-The function app is triggered by HTTP and acts primarily as a proxy to the Azure Translator API. However, it can be replaced with any other translation service such as ChatGPT or Google Translate if needed.
+The API provides HTTP endpoints for translating text and looking up word definitions, utilizing OpenAI's language models for accurate translations and definitions. The service can be easily extended to support additional translation providers if needed.
 
-## Create Translator Resource
+## Prerequisites
 
-Follow the [official guide](https://learn.microsoft.com/en-us/azure/cognitive-services/translator/translator-overview) to create a Translator resource in Azure. You only need to create the resource and note down the key. There's no need to build a separate project to access it, as our Azure Function App will handle that.
+### OpenAI API Key
 
-## Create Azure Function App
+You will need an OpenAI API key to use this service:
 
-Follow any guide on how to create a new Azure Function App. For example, you can use this [official Microsoft guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-function-app-portal?pivots=programming-language-csharp).
+1. Go to [OpenAI Platform](https://platform.openai.com)
+2. Sign up or log in to your account
+3. Navigate to API Keys section
+4. Create a new API key and save it securely
 
-- For the **Authorization level**, select **Function** (you can change it to "Anonymous" later if needed). This means you will need to pass a secret (called a "code") in the URL to authenticate.
+### .NET Requirements
 
-## Configure Local Environment
+- .NET 9.0 SDK or later
+- Visual Studio 2022 or Visual Studio Code
 
-For testing under a debugger, you need to create two files:
+## Working with OpenAI API
 
-### 1. `http-client.env.json`
+This application provides two different approaches for integrating with OpenAI's services, each with its own advantages and use cases. You can switch between them using an environment variable.
 
-This file will contain the URL for your function app.
+### Option 1: Chat Completions API (Traditional) - Default
 
-Example:
+The `OpenAITranslationService` class uses OpenAI's standard Chat Completions API with structured output via JSON schema. This is the default option used when no additional configuration is set.
+
+### Option 2: Response API (Experimental)
+
+The `OpenAITranslationService2` class uses OpenAI's newer, experimental Response API. This approach:
+
+- Uses the `/v1/responses` endpoint (currently in beta)
+- Requires prompts to be pre-created and managed in the OpenAI dashboard
+- References prompts by their unique ID rather than sending prompt text
+- Provides centralized prompt management through OpenAI's interface
+- Is ideal for applications with stable, reusable prompts
+
+**Setting up Response API:**
+
+1. Navigate to the [OpenAI Platform Dashboard](https://platform.openai.com/chat)
+2. Create a new prompt with the required variables (`source_language`, `destination_langauge`, `input_json`)
+3. Copy the prompt ID from the dashboard
+4. Update the prompt ID in `OpenAITranslationService2.GetPromptMessage()` method
+
+**Note:** The Response API is currently experimental and subject to change.
+
+### Switching Between Options
+
+The application automatically selects which service to use based on the `USE_OPENAI_RESPONSE_API` environment variable:
+
+- **Option 1 (Default)**: No environment variable set or set to `false`/`0`
+- **Option 2**: Set `USE_OPENAI_RESPONSE_API` to `true` or `1`
+
+#### To use Option 1 (Chat Completions API):
+
+```powershell
+# Remove the environment variable or set it to false
+[Environment]::SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", $null, "User")
+# OR
+[Environment]::SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "false", "User")
+```
+
+#### To use Option 2 (Response API):
+
+```powershell
+[Environment]::SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "true", "User")
+```
+
+The application checks for this environment variable at both the process level and user level, so you can set it using either `"Process"` or `"User"` scope.
+
+## Configure Local Development Environment
+
+For local development and testing, you need to set up the OpenAI API key and configure the HTTP test environment.
+
+### 1. Set OpenAI API Key
+
+The application requires an OpenAI API key to be set as an environment variable. You can set it in one of the following ways:
+
+#### Option A: User Environment Variable (Recommended for development)
+
+```powershell
+[Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "your-api-key-here", "User")
+```
+
+#### Option B: System Environment Variable
+
+```powershell
+[Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "your-api-key-here", "Machine")
+```
+
+#### Option C: Using Visual Studio User Secrets
+
+Right-click on the `TranslatorApp` project in Visual Studio and select "Manage User Secrets", then add:
+
+```json
+{
+  "OPENAI_API_KEY": "your-api-key-here"
+}
+```
+
+### 2. Configure HTTP Testing Environment
+
+The project includes HTTP test files for testing the API. The `http-client.env.json` file contains environment configurations:
 
 ```json
 {
   "dev": {
-    "HostAddress": "http://localhost:7014",
-    "code": ""
+    "HostAddress": "http://localhost:5132"
   },
-  "remote": {
-    "HostAddress": "https://<your-function-app-name>.azurewebsites.net",
-    "code": "<code-for-your-function>"
+  "dev-docker": {
+    "HostAddress": "http://localhost:8080"
+  },
+  "remote-host": {
+    "HostAddress": "https://..."
   }
 }
 ```
 
-### 2. `local.settings.json`
+### 3. Running the Application
 
-This file will contain all secrets required by the function.
+1. Open the solution in Visual Studio 2022
+2. Ensure the OpenAI API key is configured (see step 1)
+3. Press F5 or click "Start Debugging" to run the application
+4. The API will be available at `http://localhost:5132` (or the port shown in the console)
 
-Example:
+### 4. Testing the API
 
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "APPINSIGHTS_INSTRUMENTATIONKEY": "<your-app-insights-key>",
-    "TRANSLATIONS_APP_KEY": "<your-translator-app-key>",
-    "TRANSLATIONS_APP_REGION": "<your-translator-app-region>"
-  }
-}
-```
+Open the HTTP test files in the `HttpTests` folder:
 
-Once these files are set up, start the project in the debugger, open the `TestTranslateFunc.http` file, select the **Dev** environment, and send a test request. If everything is configured correctly, you will receive a response with the translation.
+- `TranslationController.LookUpWord.http` - Test word lookup functionality
+- `Version.http` - Test version endpoint
+
+Select the **dev** environment and send test requests. If everything is configured correctly, you will receive responses with translations and word definitions.
 
 ![Test in Visual Studio](https://raw.githubusercontent.com/evgenygunko/Translations/master/img/Test_From_VS.png)
 
-## Configure Production Environment
+## Docker Support
 
-1. Right-click on the solution and select **Publish**.
-2. Follow the wizard to publish your Function App to Azure.
+The application includes Docker support for containerized deployment.
 
-After publishing:
+### Building the Docker Image
 
-- Go to the Azure Portal.
-- Select your Function App, then go to **Settings** -> **Configuration**.
-- Add the following environment variables with your secrets:
-  - `TRANSLATIONS_APP_KEY`
-  - `TRANSLATIONS_APP_REGION`
+```bash
+docker build -t translator-app .
+```
 
-Now you can invoke your function from Visual Studio or directly from the Azure Portal. In Visual Studio, open the `TestTranslateFunc.http` file, select the **remote** environment, and send a test request. If everything is set up correctly, you will receive a translation response.
+### Running with Docker
+
+```bash
+docker run -d -p 8080:8080 --env OPENAI_API_KEY=your-api-key-here translator-app
+```
+
+The application will be available at `http://localhost:8080`.
+
+## Production Deployment
+
+The project is currently configured for deployment to DigitalOcean App Platform.
+
+## API Endpoints
+
+The application provides the following endpoints:
+
+### POST /api/LookUpWord
+
+Looks up word definitions and translations.
+
+**Request Body:**
+
+```json
+{
+  "Text": "såsom",
+  "SourceLanguage": "Danish",
+  "DestinationLanguage": "Russian",
+  "Version": "1"
+}
+```
+
+**Response:**
+
+```json
+{
+  "word": "såsom",
+  "soundUrl": "https://static.ordnet.dk/mp3/11052/11052560_1.mp3",
+  "soundFileName": "såsom.mp3",
+  "definitions": [
+    {
+      "headword": {
+        "original": "såsom",
+        "english": "as, for example, such as",
+        "russian": "как, например, в качестве"
+      },
+      "partOfSpeech": "konjunktion",
+      "endings": "",
+      "contexts": [
+        {
+          "contextEN": "",
+          "position": "",
+          "meanings": [
+            {
+              "original": "bruges til angivelse af et eller flere eksempler på noget",
+              "translation": "используется для указания одного или нескольких примеров чего-либо",
+              "alphabeticalPosition": "1",
+              "tag": null,
+              "imageUrl": null,
+              "examples": [
+                {
+                  "original": "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen.",
+                  "translation": null
+                }
+              ]
+            },
+            {
+              "original": "bruges som indledning til en ledsætning der angiver en begrundelse",
+              "translation": "используется как вводное слово в придаточном предложении, выражающем причину",
+              "alphabeticalPosition": "2",
+              "tag": null,
+              "imageUrl": null,
+              "examples": [
+                {
+                  "original": "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal.",
+                  "translation": null
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variations": [
+    {
+      "word": "såsom konj.",
+      "url": "https://ordnet.dk/ddo/ordbog?select=s%C3%A5som&query=s%C3%A5som"
+    }
+  ]
+}
+```
 
 ## Using CI/CD
 
-The repository includes an Azure DevOps pipeline that can be used to build and publish the Azure Function to Azure. You will need to create a new pipeline and configure a few variables, such as:
+The repository includes build configurations that can be used with various CI/CD platforms. You will need to configure:
 
-- Personal Access Tokens (PAT) for accessing the repository.
-- Azure Service Connection for publishing the function app.
+- Source control integration
+- Build pipeline configuration
+- Deployment target settings
+- Environment variables (especially `OPENAI_API_KEY`)
+
+For Azure DevOps, GitHub Actions, or other CI/CD platforms, make sure to:
+
+1. Configure the build pipeline to restore, build, and test the solution
+2. Set up deployment to your chosen hosting platform
+3. Configure the `OPENAI_API_KEY` secret in your CI/CD environment

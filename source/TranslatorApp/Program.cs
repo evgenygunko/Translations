@@ -21,6 +21,10 @@ builder.Logging.AddSimpleConsole(options =>
     options.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Enabled;
 });
 
+// Configure OpenAI settings
+builder.Services.Configure<OpenAIConfiguration>(
+    builder.Configuration.GetSection(OpenAIConfiguration.SectionName));
+
 // Add services to the container.
 builder.Services.AddControllers();
 

@@ -4,8 +4,10 @@ using System.Reflection;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using OpenAI.Responses;
+using TranslatorApp.Models;
 using TranslatorApp.Models.Translation;
 using TranslatorApp.Services;
 
@@ -58,7 +60,16 @@ namespace TranslatorApp.Tests.Services
                 .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
                 .ReturnsAsync(openAIResponse);
 
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             TranslationOutput result = await sut.TranslateAsync(translationInput);
 
@@ -135,7 +146,17 @@ namespace TranslatorApp.Tests.Services
                 ]);
 
             var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -154,7 +175,7 @@ namespace TranslatorApp.Tests.Services
             promptElement.TryGetProperty("id", out var idElement).Should().BeTrue();
             promptElement.TryGetProperty("variables", out var variablesElement).Should().BeTrue();
 
-            idElement.GetString().Should().Be("pmpt_689e5c0edfcc81949e524116596cbe4b042dd0bc233513dd");
+            idElement.GetString().Should().Be("prompt_123");
 
             variablesElement.TryGetProperty("source_language", out var sourceLangElement).Should().BeTrue();
             variablesElement.TryGetProperty("destination_langauge", out var destLangElement).Should().BeTrue(); // Note: typo in original code
@@ -190,7 +211,17 @@ namespace TranslatorApp.Tests.Services
                 ]);
 
             var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -251,7 +282,17 @@ namespace TranslatorApp.Tests.Services
                 ]);
 
             var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -280,7 +321,17 @@ namespace TranslatorApp.Tests.Services
                 Definitions: []);
 
             var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -298,7 +349,7 @@ namespace TranslatorApp.Tests.Services
                 .GetProperty("input_json")
                 .GetString();
 
-            var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString);
+            var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString!);
             deserializedInput.Should().NotBeNull();
             deserializedInput.Definitions.Should().BeEmpty();
         }
@@ -328,7 +379,17 @@ namespace TranslatorApp.Tests.Services
                 ]);
 
             var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -346,7 +407,7 @@ namespace TranslatorApp.Tests.Services
                 .GetProperty("input_json")
                 .GetString();
 
-            var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString);
+            var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString!);
             deserializedInput.Should().NotBeNull();
             deserializedInput.Definitions.First().Headword.PartOfSpeech.Should().BeNull();
             deserializedInput.Definitions.First().Contexts.First().ContextString.Should().BeNull();
@@ -363,7 +424,17 @@ namespace TranslatorApp.Tests.Services
                 Definitions: []);
 
             var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
-            var sut = new OpenAITranslationService2(openAIResponseClientMock.Object, new Mock<ILogger<OpenAITranslationService2>>().Object);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -375,7 +446,7 @@ namespace TranslatorApp.Tests.Services
                 .GetProperty("id")
                 .GetString();
 
-            promptId.Should().Be("pmpt_689e5c0edfcc81949e524116596cbe4b042dd0bc233513dd");
+            promptId.Should().Be("prompt_123");
         }
 
         #endregion

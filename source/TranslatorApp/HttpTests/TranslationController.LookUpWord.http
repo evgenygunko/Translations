@@ -1,6 +1,6 @@
 ### Translate "såsom" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -25,7 +25,7 @@ Content-Type: application/json
 
 ### Translate a variant for "bestemt" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -50,7 +50,7 @@ Content-Type: application/json
 
 ### Translate a variant for "ramme" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -76,7 +76,7 @@ Content-Type: application/json
 
 ### Translate "skyldes" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -100,7 +100,7 @@ Content-Type: application/json
 
 ### Translate "slå" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -126,7 +126,7 @@ Content-Type: application/json
 
 ### Translate a variant for "slå" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -149,7 +149,7 @@ Content-Type: application/json
 
 ### Translate "afeitar" from Spanish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -178,7 +178,7 @@ Content-Type: application/json
 
 ### Translate "coche" from Spanish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -207,7 +207,7 @@ Content-Type: application/json
 
 ### Translate "wasapear" from Spanish to Russian
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
@@ -233,7 +233,7 @@ Content-Type: application/json
 
 ### BadRequest - Several required fields are null
 
-POST {{HostAddress}}/api/LookUpWord?code={{code}}
+POST {{HostAddress}}/api/LookUpWord
 Content-Type: application/json
 
 {
