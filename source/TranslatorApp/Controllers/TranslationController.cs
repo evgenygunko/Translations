@@ -54,11 +54,6 @@ namespace TranslatorApp.Controllers
 
             try
             {
-                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
-                    "Will lookup '{Text}' in the '{SourceLanguage}' dictionary.",
-                    lookUpWordRequest.Text,
-                    lookUpWordRequest.SourceLanguage);
-
                 string sourceLanguage = lookUpWordRequest.SourceLanguage;
 
                 // First check if the text has language specific characters - then use that language as source language
@@ -68,8 +63,13 @@ namespace TranslatorApp.Controllers
                     _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
                         "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
                         lookUpWordRequest.Text,
-                        lang);
+                        sourceLanguage);
                 }
+
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
+                    "Will lookup '{Text}' in the '{SourceLanguage}' dictionary.",
+                    lookUpWordRequest.Text,
+                    sourceLanguage);
 
                 WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, sourceLanguage);
 
@@ -79,15 +79,19 @@ namespace TranslatorApp.Controllers
                     string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
                         ? SourceLanguage.Spanish.ToString() : SourceLanguage.Danish.ToString();
 
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
+                        "Word '{Text}' not found in the '{Dictionary}' dictionary. Will look it up in the '{AnotherDictionary}' dictionary.",
+                        lookUpWordRequest.Text,
+                        sourceLanguage,
+                        anotherLanguage);
                     wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage);
                 }
 
                 if (wordModel == null)
                 {
                     _logger.LogInformation(new EventId((int)TranslatorAppEventId.WordNotFound),
-                        "Word '{Text}' not found in the dictionary, source language '{SourceLanguage}'.",
-                        lookUpWordRequest.Text,
-                        lookUpWordRequest.SourceLanguage);
+                        "Word '{Text}' not found in any dictionary.",
+                        lookUpWordRequest.Text);
                     return NotFound($"Word '{lookUpWordRequest.Text}' not found.");
                 }
                 else
