@@ -7,7 +7,9 @@ namespace TranslatorApp.Services
 {
     public interface ITranslationsService
     {
-        Task<WordModel> TranslateAsync(string sourceLanguage, WordModel wordModel);
+        Task<WordModel> TranslateAsync(WordModel wordModel);
+
+        (bool hasLanguageSpecificCharacters, string language) CheckLanguageSpecificCharacters(string text);
     }
 
     public class TranslationsService : ITranslationsService
@@ -26,9 +28,11 @@ namespace TranslatorApp.Services
             _logger = logger;
         }
 
-        public async Task<WordModel> TranslateAsync(string sourceLanguage, WordModel wordModel)
+        #region Public Methods
+
+        public async Task<WordModel> TranslateAsync(WordModel wordModel)
         {
-            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel);
 
             // Check environment variable to determine which translation service to use
             var key = Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API")
@@ -56,7 +60,35 @@ namespace TranslatorApp.Services
             return wordModelWithTranslations;
         }
 
-        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(string sourceLanguage, WordModel wordModel)
+        public (bool hasLanguageSpecificCharacters, string language) CheckLanguageSpecificCharacters(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return (false, string.Empty);
+            }
+
+            // Check for Danish characters
+            var danishCharacters = new HashSet<char> { 'æ', 'ø', 'å', 'Æ', 'Ø', 'Å' };
+            if (text.Any(danishCharacters.Contains))
+            {
+                return (true, SourceLanguage.Danish.ToString());
+            }
+
+            // Check for Spanish characters
+            var spanishCharacters = new HashSet<char> { 'ñ', 'Ñ', 'í', 'Í', 'á', 'Á', 'é', 'É', 'ó', 'Ó', 'ú', 'Ú', 'ü', 'Ü' };
+            if (text.Any(spanishCharacters.Contains))
+            {
+                return (true, SourceLanguage.Spanish.ToString());
+            }
+
+            return (false, string.Empty);
+        }
+
+        #endregion
+
+        #region Internal Methods
+
+        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel)
         {
             var inputDefinitions = new List<Models.Translation.DefinitionInput>();
 
@@ -98,7 +130,7 @@ namespace TranslatorApp.Services
 
             var translationInput = new Models.Translation.TranslationInput(
                 Version: "2",
-                SourceLanguage: sourceLanguage.ToString(),
+                SourceLanguage: wordModel.SourceLanguage.ToString(),
                 DestinationLanguage: "Russian",
                 Definitions: inputDefinitions);
 
@@ -171,6 +203,10 @@ namespace TranslatorApp.Services
             return wordModelWithTranslations;
         }
 
+        #endregion
+
+        #region Private Methods
+
         private Headword CreateHeadWordWithTranslations(Headword headwordOriginal, Models.Translation.DefinitionOutput outputDefinition)
         {
             return new Headword(
@@ -178,5 +214,7 @@ namespace TranslatorApp.Services
                 English: outputDefinition.HeadwordTranslationEnglish,
                 Russian: outputDefinition.HeadwordTranslation);
         }
+
+        #endregion
     }
 }

@@ -59,15 +59,27 @@ namespace TranslatorApp.Controllers
                     lookUpWordRequest.Text,
                     lookUpWordRequest.SourceLanguage);
 
-                // First call the parser to get the word model from the online dictionary
-                WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage);
+                string sourceLanguage = lookUpWordRequest.SourceLanguage;
+
+                // First check if the text has language specific characters - then use that language as source language
+                if (_translationsService.CheckLanguageSpecificCharacters(lookUpWordRequest.Text) is (true, string lang))
+                {
+                    sourceLanguage = lang;
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
+                        "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
+                        lookUpWordRequest.Text,
+                        lang);
+                }
+
+                WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, sourceLanguage);
+
                 if (wordModel == null)
                 {
                     // Try another parser - assuming that the user forgot to change the dictionary in the UI
-                    SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(lookUpWordRequest.SourceLanguage);
-                    SourceLanguage anotherLanguage = sourceLanguage == SourceLanguage.Danish ? SourceLanguage.Spanish : SourceLanguage.Danish;
+                    string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                        ? SourceLanguage.Spanish.ToString() : SourceLanguage.Danish.ToString();
 
-                    wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage.ToString());
+                    wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage);
                 }
 
                 if (wordModel == null)
@@ -84,10 +96,10 @@ namespace TranslatorApp.Controllers
                     _logger.LogInformation(new EventId(32),
                         "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
                         wordModel.Word,
-                        lookUpWordRequest.SourceLanguage,
+                        wordModel.SourceLanguage,
                         lookUpWordRequest.DestinationLanguage);
 
-                    wordModel = await _translationsService.TranslateAsync(lookUpWordRequest.SourceLanguage, wordModel);
+                    wordModel = await _translationsService.TranslateAsync(wordModel);
 
                     _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
                         "Returning word model: {TranslationOutput}",

@@ -21,14 +21,13 @@ namespace TranslatorApp.Tests.Services
         public void TranslateAsync_WhenUseOpenAIResponseAPIIsFalse_CallsOpenAITranslationService()
         {
             Environment.SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "false");
-            string sourceLanguage = _fixture.Create<string>();
 
             WordModel wordModel = _fixture.Create<WordModel>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
 
             var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(sourceLanguage, wordModel);
+            _ = sut.TranslateAsync(wordModel);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>()));
         }
@@ -37,16 +36,141 @@ namespace TranslatorApp.Tests.Services
         public void TranslateAsync_WhenUseOpenAIResponseAPIIsTrue_CallsOpenAITranslationService2()
         {
             Environment.SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "true");
-            string sourceLanguage = _fixture.Create<string>();
 
             WordModel wordModel = _fixture.Create<WordModel>();
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
 
             var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(sourceLanguage, wordModel);
+            _ = sut.TranslateAsync(wordModel);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>()));
+        }
+
+        #endregion
+
+        #region Tests for CheckLanguageSpecificCharacters
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void CheckLanguageSpecificCharacters_WhenTextIsNullOrEmpty_ReturnsFalseAndEmptyString(string text)
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters(text);
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeFalse();
+            result.language.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow("Hæfte")]
+        [DataRow("hæfte")]
+        [DataRow("Løb")]
+        [DataRow("løb")]
+        [DataRow("Åben")]
+        [DataRow("åben")]
+        [DataRow("Rødgrød med fløde")]
+        public void CheckLanguageSpecificCharacters_WhenTextContainsDanishCharacters_ReturnsTrueAndDanish(string text)
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters(text);
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeTrue();
+            result.language.Should().Be(SourceLanguage.Danish.ToString());
+        }
+
+        [TestMethod]
+        [DataRow("niño")]
+        [DataRow("Niño")]
+        [DataRow("así")]
+        [DataRow("Así")]
+        [DataRow("mamá")]
+        [DataRow("Ámbar")]
+        [DataRow("café")]
+        [DataRow("Éxito")]
+        [DataRow("ratón")]
+        [DataRow("Óleo")]
+        [DataRow("menú")]
+        [DataRow("Único")]
+        [DataRow("pingüino")]
+        [DataRow("Ürümqi")]
+        [DataRow("Español con áéíóú")]
+        public void CheckLanguageSpecificCharacters_WhenTextContainsSpanishCharacters_ReturnsTrueAndSpanish(string text)
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters(text);
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeTrue();
+            result.language.Should().Be(SourceLanguage.Spanish.ToString());
+        }
+
+        [TestMethod]
+        public void CheckLanguageSpecificCharacters_WhenTextHasNoLanguageSpecificCharacters_ReturnsFalseAndEmptyString()
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters("Hello world");
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeFalse();
+            result.language.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void CheckLanguageSpecificCharacters_WhenTextContainsBothDanishAndSpanishCharacters_ReturnsDanish()
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters("æñó");
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeTrue();
+            result.language.Should().Be(SourceLanguage.Danish.ToString());
+        }
+
+        [TestMethod]
+        public void CheckLanguageSpecificCharacters_WhenTextStartsWithDanishCharacter_ReturnsTrueAndDanish()
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters("æble");
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeTrue();
+            result.language.Should().Be(SourceLanguage.Danish.ToString());
+        }
+
+        [TestMethod]
+        public void CheckLanguageSpecificCharacters_WhenTextEndsWithSpanishCharacter_ReturnsTrueAndSpanish()
+        {
+            // Arrange
+            var sut = _fixture.Create<TranslationsService>();
+
+            // Act
+            var result = sut.CheckLanguageSpecificCharacters("companión");
+
+            // Assert
+            result.hasLanguageSpecificCharacters.Should().BeTrue();
+            result.language.Should().Be(SourceLanguage.Spanish.ToString());
         }
 
         #endregion
@@ -56,12 +180,12 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateTranslationInputFromWordModel_Should_ReturnTranslationInput()
         {
-            string sourceLanguage = SourceLanguage.Danish.ToString();
+            SourceLanguage sourceLanguage = SourceLanguage.Danish;
             string destinationLanguage = "Russian";
-            WordModel wordModel = _fixture.Create<WordModel>();
+            WordModel wordModel = _fixture.Create<WordModel>() with { SourceLanguage = sourceLanguage };
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -108,12 +232,12 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateTranslationInputFromWordModel_ForSlå_Adds2DefinitionsToTranslationInput()
         {
-            string sourceLanguage = SourceLanguage.Danish.ToString();
+            SourceLanguage sourceLanguage = SourceLanguage.Danish;
             string destinationLanguage = "Russian";
             WordModel wordModel = CreateWordModelForSlå();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -142,12 +266,12 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateTranslationInputFromWordModel_ForAfeitar_Adds2DefinitionsToTranslationInput()
         {
-            string sourceLanguage = SourceLanguage.Spanish.ToString();
+            SourceLanguage sourceLanguage = SourceLanguage.Spanish;
             string destinationLanguage = "Russian";
             WordModel wordModel = CreateWordModelForAefitar();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -200,12 +324,12 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateTranslationInputFromWordModel_ForCoche_Adds4ContextsToTranslationInput()
         {
-            string sourceLanguage = SourceLanguage.Spanish.ToString();
+            SourceLanguage sourceLanguage = SourceLanguage.Spanish;
             string destinationLanguage = "Russian";
             WordModel wordModel = CreateWordModelForCoche();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(sourceLanguage, wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");

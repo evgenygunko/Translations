@@ -178,7 +178,7 @@ namespace TranslatorApp.Tests.Services
             idElement.GetString().Should().Be("prompt_123");
 
             variablesElement.TryGetProperty("source_language", out var sourceLangElement).Should().BeTrue();
-            variablesElement.TryGetProperty("destination_langauge", out var destLangElement).Should().BeTrue(); // Note: typo in original code
+            variablesElement.TryGetProperty("destination_language", out var destLangElement).Should().BeTrue();
             variablesElement.TryGetProperty("input_json", out var inputJsonElement).Should().BeTrue();
 
             sourceLangElement.GetString().Should().Be("en");
@@ -307,7 +307,7 @@ namespace TranslatorApp.Tests.Services
             var variables = document.RootElement.GetProperty("prompt").GetProperty("variables");
 
             variables.GetProperty("source_language").GetString().Should().Be("zh-CN");
-            variables.GetProperty("destination_langauge").GetString().Should().Be("ja-JP");
+            variables.GetProperty("destination_language").GetString().Should().Be("ja-JP");
         }
 
         [TestMethod]

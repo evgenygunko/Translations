@@ -9,5 +9,6 @@ namespace TranslatorApp.Models
         ReturningWordModel = 37,
         TranslationReceived = 38,
         OpenAPIDidNotReturnContext = 39,
+        LanguageSpecificCharactersFound = 40
     }
 }

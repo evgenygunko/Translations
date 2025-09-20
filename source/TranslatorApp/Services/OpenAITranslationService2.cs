@@ -70,7 +70,7 @@ namespace TranslatorApp.Services
                         ""id"": ""{_openAIConfiguration.PromptId}"",
                         ""variables"": {{
                             ""source_language"": ""{translationInput.SourceLanguage}"",
-                            ""destination_langauge"": ""{translationInput.DestinationLanguage}"",
+                            ""destination_language"": ""{translationInput.DestinationLanguage}"",
                             ""input_json"": ""{escapedInputJson}""
                         }}
                     }}
