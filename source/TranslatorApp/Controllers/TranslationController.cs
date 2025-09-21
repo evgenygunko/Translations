@@ -73,6 +73,23 @@ namespace TranslatorApp.Controllers
 
                 WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, sourceLanguage);
 
+                // If the source language is Danish and the word starts with "at ", remove "at " and search again.
+                if (wordModel == null
+                    && string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                    && lookUpWordRequest.Text.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    string textWithoutAt = lookUpWordRequest.Text[3..];
+
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
+                        "The text '{Text}' starts with 'at ' and the destination language is '{SourceLanguage}', so it is most likely a verb. " +
+                        "DDO returns 'not found' when search with 'at ', will try again searching for '{TextWithoutAt}'.",
+                        lookUpWordRequest.Text,
+                        sourceLanguage,
+                        textWithoutAt);
+
+                    wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage);
+                }
+
                 if (wordModel == null)
                 {
                     // Try another parser - assuming that the user forgot to change the dictionary in the UI

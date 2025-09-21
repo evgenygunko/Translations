@@ -189,6 +189,43 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task LookUpWordAsync_WhenSourceLanguageIsDanishAndWordsStartsWithAt_RemovesAtAndLooksUpAgain()
+        {
+            // DDO returns "not found" when search starts with "at ", will should again searching with "at " removed.
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "at ligge",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
+
+            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
+            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
+                new ValidationResult());
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("at ligge", SourceLanguage.Danish.ToString())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("ligge", SourceLanguage.Danish.ToString())).ReturnsAsync(wordModel);
+
+            // Act
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+
+            // Assert
+            actionResult.Value.Should().BeOfType<WordModel>();
+            WordModel returnWordModel = actionResult.Value!;
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString()), Times.Exactly(2));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task LookUpWordAsync_WhenCannotFindWordInOnlineDictionary_TriesAnotherParser()
         {
             // Arrange
