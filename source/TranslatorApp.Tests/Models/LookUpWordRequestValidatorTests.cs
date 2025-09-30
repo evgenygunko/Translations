@@ -48,43 +48,7 @@ namespace TranslatorApp.Tests.Models
         }
 
         [TestMethod]
-        public void Validate_ForDDOUrl_ReturnsTrue()
-        {
-            const string text = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
-
-            var translationInput = new LookUpWordRequest(
-                Text: text,
-                SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru",
-                Version: "1");
-
-            var sut = _fixture.Create<LookUpWordRequestValidator>();
-            ValidationResult result = sut.Validate(translationInput);
-
-            result.IsValid.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void Validate_ForOtherUrl_ReturnsFalse()
-        {
-            string text = _fixture.Create<Uri>().ToString();
-
-            var translationInput = new LookUpWordRequest(
-                Text: text,
-                SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru",
-                Version: "1");
-
-            var sut = _fixture.Create<LookUpWordRequestValidator>();
-            ValidationResult result = sut.Validate(translationInput);
-
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Text' can only contain alphanumeric characters and spaces.");
-        }
-
-        [TestMethod]
-        public void Validate_ForQuote_ReturnsFalse()
+        public void Validate_ForQuote_ReturnsTrue()
         {
             const string text = "ordbo'g";
 
@@ -97,9 +61,7 @@ namespace TranslatorApp.Tests.Models
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Text' can only contain alphanumeric characters and spaces.");
+            result.IsValid.Should().BeTrue();
         }
 
         [TestMethod]

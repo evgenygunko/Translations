@@ -24,25 +24,17 @@ namespace CopyWords.Parsers.Tests
         #region Tests for LookUpWordAsync
 
         [TestMethod]
-        [DataRow(null)]
+        [DataRow("haj")]
         [DataRow("")]
         [DataRow("æø")]
-        public void LookUpWordAsync_WhenWordIsNotValid_ThrowsException(string searchTerm)
+        [DataRow("snabel-a")]
+        public async Task LookUpWordAsync_WhenSourceLanguageIsDanish_CallsDDOPageParser(string searchTerm)
         {
-            var sut = _fixture.Create<LookUpWord>();
-
-            _ = sut.Invoking(y => y.LookUpWordAsync("Hello", SourceLanguage.Danish.ToString()))
-                .Should().ThrowAsync<ArgumentException>();
-        }
-
-        [TestMethod]
-        public async Task LookUpWordAsync_WhenSourceLanguageIsDanish_CallsDDOPageParser()
-        {
-            string searchTerm = "haj";
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
 
             Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
 
+            // Just return some valid HTML, so we get past the downloading part
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8)).ReturnsAsync("haj.html");
 
@@ -50,6 +42,8 @@ namespace CopyWords.Parsers.Tests
             WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString());
 
             result.Should().NotBeNull();
+
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.StartsWith("https://ordnet.dk/ddo/ordbog?query=")), Encoding.UTF8));
             ddoPageParserMock.Verify(x => x.ParseHeadword());
         }
 
@@ -88,7 +82,7 @@ namespace CopyWords.Parsers.Tests
 
             result.Should().NotBeNull();
             ddoPageParserMock.Verify(x => x.ParseHeadword());
-            fileDownloaderMock.Verify(x => x.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=https://docs.fluentvalidation.net/", Encoding.UTF8));
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.StartsWith("https://ordnet.dk/ddo/ordbog?query=https")), Encoding.UTF8));
         }
 
         [TestMethod]

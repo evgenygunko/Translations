@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Downloader Dict ddo
 
 using System.Text;
+using System.Web;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Models.DDO;
 using CopyWords.Parsers.Services;
@@ -42,12 +43,14 @@ namespace CopyWords.Parsers
                 }
                 else
                 {
-                    url = DDOPageParser.DDOBaseUrl + $"?query={searchTerm}";
+                    string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
+                    url = DDOPageParser.DDOBaseUrl + $"?query={encodedSearchTerm}";
                 }
             }
             else
             {
-                url = SpanishDictPageParser.SpanishDictBaseUrl + searchTerm;
+                string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
+                url = SpanishDictPageParser.SpanishDictBaseUrl + encodedSearchTerm;
             }
 
             var wordModel = await GetWordByUrlAsync(url, language);
