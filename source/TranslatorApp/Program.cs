@@ -16,7 +16,13 @@ builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
 {
     options.IncludeScopes = false;
+
+#if DEBUG
     options.SingleLine = false;
+#else
+    options.SingleLine = true;
+#endif
+
     options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
     options.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Enabled;
 });
