@@ -13,19 +13,27 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 // Configure logging to include event IDs but exclude scopes
 builder.Logging.ClearProviders();
+
+#if DEBUG
 builder.Logging.AddSimpleConsole(options =>
 {
     options.IncludeScopes = false;
-
-#if DEBUG
     options.SingleLine = false;
-#else
-    options.SingleLine = true;
-#endif
-
     options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
     options.ColorBehavior = Microsoft.Extensions.Logging.Console.LoggerColorBehavior.Enabled;
 });
+#else
+builder.Logging.AddJsonConsole(options =>
+{
+    options.IncludeScopes = false;
+    options.TimestampFormat = "yyyy-MM-dd HH:mm:ss";
+    options.UseUtcTimestamp = false;
+    options.JsonWriterOptions = new System.Text.Json.JsonWriterOptions
+    {
+        Indented = false
+    };
+});
+#endif
 
 // Configure OpenAI settings
 builder.Services.Configure<OpenAIConfiguration>(
