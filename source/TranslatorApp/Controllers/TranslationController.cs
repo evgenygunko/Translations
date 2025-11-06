@@ -1,11 +1,11 @@
 ﻿// Ignore Spelling: Validator req App
 
-using System.Text.Json;
 using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
 
@@ -18,17 +18,20 @@ namespace TranslatorApp.Controllers
         private readonly ITranslationsService _translationsService;
         private readonly IValidator<LookUpWordRequest> _lookUpWordRequestValidator;
         private readonly ILookUpWord _lookUpWord;
+        private readonly IWebHostEnvironment _environment;
 
         public TranslationController(
             ILogger<TranslationController> logger,
             ITranslationsService translationsService,
             IValidator<LookUpWordRequest> lookUpWordRequestValidator,
-            ILookUpWord lookUpWord)
+            ILookUpWord lookUpWord,
+            IWebHostEnvironment environment)
         {
             _logger = logger;
             _translationsService = translationsService;
             _lookUpWordRequestValidator = lookUpWordRequestValidator;
             _lookUpWord = lookUpWord;
+            _environment = environment;
         }
 
         [HttpPost]
@@ -122,15 +125,22 @@ namespace TranslatorApp.Controllers
 
                     wordModel = await _translationsService.TranslateAsync(wordModel);
 
-                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
-                        "Returning word model: {TranslationOutput}",
-                        JsonSerializer.Serialize(
-                            wordModel,
-                            new JsonSerializerOptions
+                    if (_environment.IsDevelopment())
+                    {
+                        _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
+                            "Returning word model: {TranslationOutput}",
+                            JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
                             {
                                 WriteIndented = true,
                                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                             }));
+                    }
+                    else
+                    {
+                        _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
+                            "Returning word model: {@TranslationOutput}",
+                            wordModel);
+                    }
                 }
 
                 return wordModel;
