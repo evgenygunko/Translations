@@ -11,9 +11,24 @@ using TranslatorApp.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateLogger();
+var betterStackToken = Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN")
+    ?? Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN", EnvironmentVariableTarget.User);
+
+var betterStackIngestingHost = Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST")
+    ?? Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST", EnvironmentVariableTarget.User);
+
+var loggerConfiguration = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration);
+
+if (!string.IsNullOrEmpty(betterStackToken) && !string.IsNullOrEmpty(betterStackIngestingHost))
+{
+    loggerConfiguration = loggerConfiguration.WriteTo.BetterStack(
+        sourceToken: betterStackToken,
+        betterStackEndpoint: $"https://{betterStackIngestingHost}"
+    );
+}
+
+Log.Logger = loggerConfiguration.CreateLogger();
 
 try
 {
@@ -37,22 +52,22 @@ try
 
     builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
 
-    var key = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+    var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
             ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
 
-    if (string.IsNullOrEmpty(key))
+    if (string.IsNullOrEmpty(openAIApiKey))
     {
         throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
     }
 
     // "gpt-5-mini"
     // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
-    builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4o-mini", apiKey: key));
+    builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4o-mini", apiKey: openAIApiKey));
 
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
     // For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
-    builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4o-mini", apiKey: key));
+    builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4o-mini", apiKey: openAIApiKey));
 
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
