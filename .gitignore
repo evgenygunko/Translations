@@ -270,3 +270,7 @@ __pycache__/
 
 **/http-client.env.json
 **/Dockerfile.env
+
+# Serilog logs
+logs/
+*.log
