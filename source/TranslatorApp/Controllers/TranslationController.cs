@@ -6,6 +6,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using TranslatorApp.Extensions;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
 
@@ -51,7 +52,7 @@ namespace TranslatorApp.Controllers
             var validation = await _lookUpWordRequestValidator.ValidateAsync(lookUpWordRequest);
             if (!validation.IsValid)
             {
-                string errorMessage = FormatValidationErrorMessage(validation);
+                string errorMessage = validation.FormatErrorMessage();
                 return BadRequest(errorMessage);
             }
 
@@ -150,18 +151,6 @@ namespace TranslatorApp.Controllers
                 _logger.LogError(ex, "An error occurred while trying to look up the word.");
                 throw;
             }
-        }
-
-        internal string FormatValidationErrorMessage(ValidationResult validation)
-        {
-            string errorMessage = "Error: ";
-            foreach (var failure in validation.Errors)
-            {
-                errorMessage += failure.ErrorMessage.TrimEnd('.') + ", ";
-            }
-            errorMessage = errorMessage.TrimEnd([',', ' ']) + '.';
-
-            return errorMessage;
         }
     }
 }

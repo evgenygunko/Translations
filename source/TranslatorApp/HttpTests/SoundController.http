@@ -1,0 +1,100 @@
+### Test NormalizeSound endpoint with valid request
+
+POST {{HostAddress}}/api/NormalizeSound
+Content-Type: application/json
+
+{
+  "soundUrl": "https://example.com/audio/sample.mp3",
+  "word": "example"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a valid sound URL, we expect to get 501 (not implemented yet)', () => {
+    client.assert(response.status === 501, "Response status is 501");
+  });
+%}
+
+### Test NormalizeSound endpoint with another valid URL
+
+POST {{HostAddress}}/api/NormalizeSound
+Content-Type: application/json
+
+{
+  "soundUrl": "https://www.example.com/sounds/audio-file.wav",
+  "word": "test"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a valid sound URL, we expect to get 501 (not implemented yet)', () => {
+    client.assert(response.status === 501, "Response status is 501");
+  });
+%}
+
+### Test NormalizeSound endpoint with empty soundUrl (should return BadRequest)
+
+POST {{HostAddress}}/api/NormalizeSound
+Content-Type: application/json
+
+{
+  "soundUrl": "",
+  "word": "test"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When soundUrl is empty, we expect to get BadRequest', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Test NormalizeSound endpoint with null soundUrl (should return BadRequest)
+
+POST {{HostAddress}}/api/NormalizeSound
+Content-Type: application/json
+
+{
+  "soundUrl": null,
+  "word": "test"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When soundUrl is null, we expect to get BadRequest', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Test NormalizeSound endpoint with missing soundUrl property (should return BadRequest)
+
+POST {{HostAddress}}/api/NormalizeSound
+Content-Type: application/json
+
+{
+}
+
+> {%
+
+  // Assert status code
+  client.test('When soundUrl property is missing, we expect to get BadRequest', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Test NormalizeSound endpoint with null body (should return BadRequest)
+
+POST {{HostAddress}}/api/NormalizeSound
+Content-Type: application/json
+
+> {%
+
+  // Assert status code
+  client.test('When request body is null, we expect to get BadRequest', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}

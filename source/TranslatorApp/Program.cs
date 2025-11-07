@@ -48,6 +48,7 @@ try
     builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
     builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
     builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
+    builder.Services.AddScoped<IValidator<NormalizeSoundRequest>, NormalizeSoundRequestValidator>();
     builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
     builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
     builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();

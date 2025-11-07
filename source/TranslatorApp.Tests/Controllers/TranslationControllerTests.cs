@@ -324,36 +324,5 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         #endregion
-
-        #region Tests for FormatValidationErrorMessage
-
-        [TestMethod]
-        public void FormatValidationErrorMessage_WhenOneError_AddsFullStopAtTheEnd()
-        {
-            var validationResult = _fixture.Create<ValidationResult>();
-            validationResult.Errors.Clear();
-            validationResult.Errors.Add(new ValidationFailure("property1", "property1 cannot be null"));
-
-            var sut = _fixture.Create<TranslationController>();
-            string result = sut.FormatValidationErrorMessage(validationResult);
-
-            result.Should().Be("Error: property1 cannot be null.");
-        }
-
-        [TestMethod]
-        public void FormatValidationErrorMessage_WhenTwoErrors_AddsFullStopAtTheEnd()
-        {
-            var validationResult = _fixture.Create<ValidationResult>();
-            validationResult.Errors.Clear();
-            validationResult.Errors.Add(new ValidationFailure("property1", "property1 cannot be null"));
-            validationResult.Errors.Add(new ValidationFailure("property2", "property2 cannot be null"));
-
-            var sut = _fixture.Create<TranslationController>();
-            string result = sut.FormatValidationErrorMessage(validationResult);
-
-            result.Should().Be("Error: property1 cannot be null, property2 cannot be null.");
-        }
-
-        #endregion
     }
 }
