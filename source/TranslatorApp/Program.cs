@@ -47,6 +47,7 @@ try
     builder.Services.AddScoped<ITranslationsService, TranslationsService>();
     builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
     builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
+    builder.Services.AddScoped<ISoundService, SoundService>();
     builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
     builder.Services.AddScoped<IValidator<NormalizeSoundRequest>, NormalizeSoundRequestValidator>();
     builder.Services.AddSingleton<ILookUpWord, LookUpWord>();

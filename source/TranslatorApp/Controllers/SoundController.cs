@@ -4,6 +4,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using TranslatorApp.Extensions;
 using TranslatorApp.Models;
+using TranslatorApp.Services;
 
 namespace TranslatorApp.Controllers
 {
@@ -12,13 +13,16 @@ namespace TranslatorApp.Controllers
     {
         private readonly ILogger<SoundController> _logger;
         private readonly IValidator<NormalizeSoundRequest> _normalizeSoundRequestValidator;
+        private readonly ISoundService _soundService;
 
         public SoundController(
             ILogger<SoundController> logger,
-            IValidator<NormalizeSoundRequest> normalizeSoundRequestValidator)
+            IValidator<NormalizeSoundRequest> normalizeSoundRequestValidator,
+            ISoundService soundService)
         {
             _logger = logger;
             _normalizeSoundRequestValidator = normalizeSoundRequestValidator;
+            _soundService = soundService;
         }
 
         [HttpPost]
@@ -41,11 +45,10 @@ namespace TranslatorApp.Controllers
             {
                 _logger.LogInformation("Received request to normalize sound from URL: {SoundUrl} for word: {Word}", request.SoundUrl, request.Word);
 
-                // TODO: Implementation will be added later
                 // This will download the sound file, normalize it, and return the normalized audio
-                await Task.Delay(10); // Placeholder for async operation
+                byte[] soundFile = await _soundService.SaveSoundAsync(request.SoundUrl, request.Word);
 
-                return StatusCode(501, "Implementation pending");
+                return File(soundFile, "audio/mpeg", $"{request.Word}.mp3");
             }
             catch (Exception ex)
             {

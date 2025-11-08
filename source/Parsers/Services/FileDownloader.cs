@@ -8,6 +8,8 @@ namespace CopyWords.Parsers.Services
     public interface IFileDownloader
     {
         Task<string?> DownloadPageAsync(string url, Encoding encoding);
+
+        Task<byte[]?> DownloadSoundFileAsync(string url);
     }
 
     public class FileDownloader : IFileDownloader
@@ -45,5 +47,7 @@ namespace CopyWords.Parsers.Services
 
             return content;
         }
+
+        public Task<byte[]?> DownloadSoundFileAsync(string url) => throw new NotImplementedException();
     }
 }
