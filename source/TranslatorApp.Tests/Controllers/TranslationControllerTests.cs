@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Deserialize App
+﻿// Ignore Spelling: Deserialize App Validator
 
 using System.Net;
 using AutoFixture;
@@ -19,7 +19,23 @@ namespace TranslatorApp.Tests.Controllers
     [TestClass]
     public class TranslationControllerTests
     {
-        private readonly IFixture _fixture = FixtureFactory.CreateWithControllerCustomizations();
+        private IFixture _fixture = default!;
+        private Mock<IGlobalSettings> _globalSettingsMock = default!;
+        private Mock<IValidator<LookUpWordRequest>> _requestValidatorMock = default!;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            _fixture = FixtureFactory.CreateWithControllerCustomizations();
+
+            _globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
+            _globalSettingsMock.Setup(x => x.RequestSecretCode).Returns("test-code");
+
+            _requestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
+            _requestValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+        }
 
         #region Tests for LookUpWordAsync
 
@@ -29,7 +45,7 @@ namespace TranslatorApp.Tests.Controllers
             LookUpWordRequest? lookUpWordRequest = null;
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest!);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest!, "test-code");
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -39,7 +55,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        [DataRow("2")]
+        [DataRow("0")]
         [DataRow("3")]
         public async Task LookUpWordAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
         {
@@ -50,13 +66,67 @@ namespace TranslatorApp.Tests.Controllers
                 Version: protocolVersion);
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
             result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
 
-            result.Value.Should().Be("Only protocol version 1 is supported.");
+            result.Value.Should().Be("Only protocol version 1 and 2 are supported.");
+        }
+
+        [TestMethod]
+        public async Task NormalizeSoundAsync_WhenProtocolVersion1_DoesNotCheckCode()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: "",
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            // Assert
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "invalid-code");
+
+            // Assert
+            actionResult.Value.Should().BeOfType<WordModel>();
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenProtocolVersion1AndCodeIsNull_ReturnsWordModel()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: "",
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            // Act
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, null);
+
+            // Assert
+            actionResult.Value.Should().BeOfType<WordModel>();
+        }
+
+        [TestMethod]
+        public async Task NormalizeSoundAsync_WhenProtocolVersion2AndCodeIsInvalid_ReturnsUnauthorized()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: "",
+                DestinationLanguage: "ru",
+                Version: "2");
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest!, "invalid-code");
+
+            // Assert
+            var result = actionResult.Result as UnauthorizedResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.Unauthorized);
         }
 
         [TestMethod]
@@ -72,11 +142,10 @@ namespace TranslatorApp.Tests.Controllers
             validationResult.Errors.Clear();
             validationResult.Errors.Add(new ValidationFailure("SourceLanguage", "SourceLanguage cannot be null or empty"));
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
+            _requestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -95,10 +164,6 @@ namespace TranslatorApp.Tests.Controllers
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
             var translateServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
@@ -106,7 +171,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest))
+            await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest, "test-code"))
                 .Should().ThrowAsync<Exception>()
                 .WithMessage("exception from unit test");
 
@@ -133,10 +198,6 @@ namespace TranslatorApp.Tests.Controllers
             WordModel wordModel = _fixture.Create<WordModel>();
             wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((true, SourceLanguage.Danish.ToString()));
 
@@ -145,7 +206,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
@@ -167,10 +228,6 @@ namespace TranslatorApp.Tests.Controllers
             WordModel wordModel = _fixture.Create<WordModel>();
             wordModel = wordModel with { SourceLanguage = SourceLanguage.Spanish };
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((true, SourceLanguage.Spanish.ToString()));
 
@@ -179,7 +236,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
@@ -202,10 +259,6 @@ namespace TranslatorApp.Tests.Controllers
             WordModel wordModel = _fixture.Create<WordModel>();
             wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
@@ -215,7 +268,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
@@ -238,10 +291,6 @@ namespace TranslatorApp.Tests.Controllers
             WordModel wordModel = _fixture.Create<WordModel>();
             wordModel = wordModel with { SourceLanguage = SourceLanguage.Spanish };
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
@@ -251,7 +300,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
@@ -272,10 +321,6 @@ namespace TranslatorApp.Tests.Controllers
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
@@ -285,7 +330,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             var result = actionResult.Result as NotFoundObjectResult;
@@ -305,10 +350,6 @@ namespace TranslatorApp.Tests.Controllers
                 DestinationLanguage: "ru",
                 Version: "1");
 
-            var lookUpWordRequestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
-            lookUpWordRequestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(
-                new ValidationResult());
-
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
@@ -316,7 +357,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest);
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();

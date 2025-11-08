@@ -3,7 +3,6 @@
 using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using TranslatorApp.Extensions;
@@ -17,39 +16,49 @@ namespace TranslatorApp.Controllers
     {
         private readonly ILogger<TranslationController> _logger;
         private readonly ITranslationsService _translationsService;
-        private readonly IValidator<LookUpWordRequest> _lookUpWordRequestValidator;
+        private readonly IValidator<LookUpWordRequest> _requestValidatorMock;
         private readonly ILookUpWord _lookUpWord;
         private readonly IWebHostEnvironment _environment;
+        private readonly IGlobalSettings _globalSettings;
 
         public TranslationController(
             ILogger<TranslationController> logger,
             ITranslationsService translationsService,
             IValidator<LookUpWordRequest> lookUpWordRequestValidator,
             ILookUpWord lookUpWord,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            IGlobalSettings globalSettings)
         {
             _logger = logger;
             _translationsService = translationsService;
-            _lookUpWordRequestValidator = lookUpWordRequestValidator;
+            _requestValidatorMock = lookUpWordRequestValidator;
             _lookUpWord = lookUpWord;
             _environment = environment;
+            _globalSettings = globalSettings;
         }
 
         [HttpPost]
         [Route("api/LookUpWord")]
-        public async Task<ActionResult<WordModel?>> LookUpWordAsync([FromBody] LookUpWordRequest lookUpWordRequest)
+        public async Task<ActionResult<WordModel?>> LookUpWordAsync(
+            [FromBody] LookUpWordRequest lookUpWordRequest,
+            [FromQuery] string? code = null)
         {
             if (lookUpWordRequest == null)
             {
                 return BadRequest("Input data is null");
             }
 
-            if (lookUpWordRequest.Version != "1")
+            if (!(lookUpWordRequest.Version == "1" || lookUpWordRequest.Version == "2"))
             {
-                return BadRequest("Only protocol version 1 is supported.");
+                return BadRequest("Only protocol version 1 and 2 are supported.");
             }
 
-            var validation = await _lookUpWordRequestValidator.ValidateAsync(lookUpWordRequest);
+            if (lookUpWordRequest.Version == "2" && code != _globalSettings.RequestSecretCode)
+            {
+                return Unauthorized();
+            }
+
+            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest);
             if (!validation.IsValid)
             {
                 string errorMessage = validation.FormatErrorMessage();

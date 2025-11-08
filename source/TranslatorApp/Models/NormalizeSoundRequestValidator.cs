@@ -9,9 +9,6 @@ namespace TranslatorApp.Models
     {
         public NormalizeSoundRequestValidator()
         {
-            RuleFor(model => model.SoundUrl).NotEmpty()
-                .WithMessage("'SoundUrl' must not be empty");
-
             RuleFor(model => model.SoundUrl)
                 .Must(BeAValidUrl)
                 .WithMessage("'SoundUrl' must be a valid URL");

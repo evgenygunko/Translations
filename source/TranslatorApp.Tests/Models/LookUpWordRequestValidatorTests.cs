@@ -134,24 +134,5 @@ namespace TranslatorApp.Tests.Models
             result.Errors.Should().HaveCount(1);
             result.Errors.First().ErrorMessage.Should().Be("'Destination Language' must not be empty.");
         }
-
-        [TestMethod]
-        [DataRow("1")]
-        [DataRow("3")]
-        public void Validate_WhenVersionIsNotSupported_ReturnsFalse(string version)
-        {
-            var translationInput = new LookUpWordRequest(
-                Text: "word to look up",
-                SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru",
-                Version: "2");
-
-            var sut = _fixture.Create<LookUpWordRequestValidator>();
-            ValidationResult result = sut.Validate(translationInput);
-
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors.First().ErrorMessage.Should().Be("'Version' must be equal to '1'.");
-        }
     }
 }

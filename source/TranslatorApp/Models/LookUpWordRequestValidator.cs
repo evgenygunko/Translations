@@ -15,7 +15,6 @@ namespace TranslatorApp.Models
 
             RuleFor(model => model.DestinationLanguage).NotEmpty();
             RuleFor(model => model.Text).NotEmpty();
-            RuleFor(model => model.Version).Equal("1");
         }
 
         protected override bool PreValidate(ValidationContext<LookUpWordRequest> context, ValidationResult result)

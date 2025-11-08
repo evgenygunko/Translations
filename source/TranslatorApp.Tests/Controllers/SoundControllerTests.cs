@@ -17,7 +17,23 @@ namespace TranslatorApp.Tests.Controllers
     [TestClass]
     public class SoundControllerTests
     {
-        private readonly IFixture _fixture = FixtureFactory.CreateWithControllerCustomizations();
+        private IFixture _fixture = default!;
+        private Mock<IGlobalSettings> _globalSettingsMock = default!;
+        private Mock<IValidator<NormalizeSoundRequest>> _requestValidatorMock = default!;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            _fixture = FixtureFactory.CreateWithControllerCustomizations();
+
+            _globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
+            _globalSettingsMock.Setup(x => x.RequestSecretCode).Returns("test-code");
+
+            _requestValidatorMock = _fixture.Freeze<Mock<IValidator<NormalizeSoundRequest>>>();
+            _requestValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<NormalizeSoundRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+        }
 
         #region Tests for NormalizeSoundAsync
 
@@ -30,7 +46,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest!);
+            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest!, "test-code");
 
             // Assert
             var result = actionResult as BadRequestObjectResult;
@@ -40,25 +56,86 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
+        [DataRow("2")]
+        [DataRow("3")]
+        public async Task NormalizeSoundAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
+        {
+            var normalizeSoundRequest = new NormalizeSoundRequest(
+                SoundUrl: "https://example.com/sound.mp3",
+                Word: "test",
+                Version: protocolVersion);
+
+            var sut = _fixture.Create<SoundController>();
+            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
+
+            var result = actionResult as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            result.Value.Should().Be("Only protocol version 1 is supported.");
+        }
+
+        [TestMethod]
+        public async Task NormalizeSoundAsync_WhenCodeIsInvalid_ReturnsUnauthorized()
+        {
+            // Arrange
+            var normalizeSoundRequest = new NormalizeSoundRequest(
+                SoundUrl: "https://example.com/sound.mp3",
+                Word: "test",
+                Version: "1");
+
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "invalid-code");
+
+            // Assert
+            var result = actionResult as UnauthorizedResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.Unauthorized);
+        }
+
+        [TestMethod]
+        public async Task NormalizeSoundAsync_WhenCodeIsNull_ReturnsUnauthorized()
+        {
+            // Arrange
+            var normalizeSoundRequest = new NormalizeSoundRequest(
+                SoundUrl: "https://example.com/sound.mp3",
+                Word: "test",
+                Version: "1");
+
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, null);
+
+            // Assert
+            var result = actionResult as UnauthorizedResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.Unauthorized);
+        }
+
+        [TestMethod]
         public async Task NormalizeSoundAsync_WhenValidationHasMultipleErrors_ReturnsBadRequest()
         {
             // Arrange
-            var normalizeSoundRequest = new NormalizeSoundRequest(SoundUrl: string.Empty, Word: string.Empty);
+            var normalizeSoundRequest = new NormalizeSoundRequest(
+                SoundUrl: string.Empty,
+                Word: string.Empty,
+                Version: "1");
 
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
             validationResult.Errors.Add(new ValidationFailure("SoundUrl", "'SoundUrl' must not be empty"));
             validationResult.Errors.Add(new ValidationFailure("Word", "'Word' must not be empty"));
 
-            var normalizeSoundRequestValidatorMock = _fixture.Freeze<Mock<IValidator<NormalizeSoundRequest>>>();
-            normalizeSoundRequestValidatorMock
+            _requestValidatorMock
                 .Setup(x => x.ValidateAsync(It.IsAny<NormalizeSoundRequest>(), It.IsAny<CancellationToken>()))
-           .ReturnsAsync(validationResult);
+                .ReturnsAsync(validationResult);
 
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest);
+            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
 
             // Assert
             var result = actionResult as BadRequestObjectResult;
@@ -71,12 +148,10 @@ namespace TranslatorApp.Tests.Controllers
         public async Task NormalizeSoundAsync_WhenValidRequest_ReturnsFileResult()
         {
             // Arrange
-            var normalizeSoundRequest = new NormalizeSoundRequest(SoundUrl: "https://example.com/sound.mp3", Word: "test");
-
-            var normalizeSoundRequestValidatorMock = _fixture.Freeze<Mock<IValidator<NormalizeSoundRequest>>>();
-            normalizeSoundRequestValidatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<NormalizeSoundRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
+            var normalizeSoundRequest = new NormalizeSoundRequest(
+                SoundUrl: "https://example.com/sound.mp3",
+                Word: "test",
+                Version: "1");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<SoundController>>>();
             var soundServiceMock = _fixture.Freeze<Mock<ISoundService>>();
@@ -89,7 +164,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest);
+            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
 
             // Assert
             var result = actionResult as FileContentResult;
@@ -98,17 +173,16 @@ namespace TranslatorApp.Tests.Controllers
             result.FileDownloadName.Should().Be($"{normalizeSoundRequest.Word}.mp3");
             result.FileContents.Should().BeEquivalentTo(expectedBytes);
 
-            // Assert
             soundServiceMock.Verify(x => x.SaveSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word), Times.Once);
 
-            loggerMock.Verify(x =>
-                x.Log(
+            loggerMock.Verify(
+                x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
                     It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Received request to normalize sound from URL")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
-              Times.Once);
+                Times.Once);
         }
 
         #endregion

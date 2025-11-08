@@ -36,6 +36,16 @@ try
 {
     builder.Services.AddSerilog();
 
+    var requestSecretCode = Environment.GetEnvironmentVariable("REQUEST_SECRET_CODE")
+        ?? Environment.GetEnvironmentVariable("REQUEST_SECRET_CODE", EnvironmentVariableTarget.User);
+    if (string.IsNullOrEmpty(requestSecretCode))
+    {
+        throw new InvalidOperationException("Request secret code key not found. Please make sure it is added to environment variables.");
+    }
+
+    var globalSettings = new GlobalSettings();
+    globalSettings.RequestSecretCode = requestSecretCode;
+
     // Configure OpenAI settings
     builder.Services.Configure<OpenAIConfiguration>(
         builder.Configuration.GetSection(OpenAIConfiguration.SectionName));
@@ -53,6 +63,7 @@ try
     builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
     builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
     builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
+    builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
 
     builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
 
