@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Downloader
 
 using CopyWords.Parsers.Services;
+using TranslatorApp.Exceptions;
 
 namespace TranslatorApp.Services
 {
@@ -27,12 +28,13 @@ namespace TranslatorApp.Services
             _logger.LogInformation("Downloading sound file from URL: {SoundUrl} for word: {Word}", soundUrl, word);
 
             var fileBytes = await _fileDownloader.DownloadSoundFileAsync(soundUrl);
-            if (fileBytes != null)
+            if (fileBytes == null)
             {
-                // todo: to implement normalization and saving to disk
+                throw new CannotDownloadSoundFileException();
             }
 
-            throw new NotImplementedException("SaveSoundAsync implementation is pending");
+            // todo: to implement normalization and saving to disk
+            return fileBytes;
         }
     }
 }

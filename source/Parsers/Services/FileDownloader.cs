@@ -48,6 +48,23 @@ namespace CopyWords.Parsers.Services
             return content;
         }
 
-        public Task<byte[]?> DownloadSoundFileAsync(string url) => throw new NotImplementedException();
+        public async Task<byte[]?> DownloadSoundFileAsync(string url)
+        {
+            byte[]? content = null;
+            HttpResponseMessage response;
+
+            using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
+            {
+                response = await _httpClient.GetAsync(url, cts.Token);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ServerErrorException($"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.");
+            }
+
+            content = await response.Content.ReadAsByteArrayAsync();
+            return content;
+        }
     }
 }

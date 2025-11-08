@@ -1,19 +1,28 @@
 ### Test NormalizeSound endpoint with valid request
+# @no-log
 
 POST {{HostAddress}}/api/NormalizeSound?code={{code}}
 Content-Type: application/json
 
 {
-  "soundUrl": "https://example.com/audio/sample.mp3",
-  "word": "example",
+  "soundUrl": "https://static.ordnet.dk/mp3/12004/12004770_1.mp3",
+  "word": "underholdning",
   "version": "1"
 }
 
 > {%
 
-  // Assert status code
+  // Assert status code and content type
   client.test('When sending a valid sound URL, we expect to get 200 (OK)', () => {
     client.assert(response.status === 200, "Response status is 200");
+  });
+
+  client.test('Response should be audio/mpeg', () => {
+    client.assert(response.contentType.mimeType === "audio/mpeg", "Content-Type is audio/mpeg");
+  });
+
+  client.test('Response should have content', () => {
+    client.assert(response.body.length > 0, "Response body has content");
   });
 %}
 

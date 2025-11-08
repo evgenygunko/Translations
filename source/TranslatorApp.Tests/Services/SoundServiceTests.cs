@@ -5,6 +5,7 @@ using CopyWords.Parsers.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using TranslatorApp.Exceptions;
 using TranslatorApp.Services;
 
 namespace TranslatorApp.Tests.Services
@@ -32,11 +33,10 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            Func<Task> act = async () => await sut.SaveSoundAsync(soundUrl, word);
+            byte[] soundFile = await sut.SaveSoundAsync(soundUrl, word);
 
             // Assert
-            await act.Should().ThrowAsync<NotImplementedException>()
-                .WithMessage("SaveSoundAsync implementation is pending");
+            soundFile.Should().BeEquivalentTo(soundBytes);
 
             loggerMock.Verify(x =>
                 x.Log(
@@ -47,6 +47,25 @@ namespace TranslatorApp.Tests.Services
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
                 Times.Once);
             fileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task SaveSoundAsync_WhenFileDownloaderReturnsNull_ThrowsCannotDownloadSoundFileException()
+        {
+            // Arrange
+            string soundUrl = "https://example.com/sound.mp3";
+            string word = "test";
+
+            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>())).ReturnsAsync((byte[]?)null);
+
+            var sut = _fixture.Create<SoundService>();
+
+            // Act
+            Func<Task> act = async () => await sut.SaveSoundAsync(soundUrl, word);
+
+            // Assert
+            await act.Should().ThrowAsync<CannotDownloadSoundFileException>();
         }
 
         [TestMethod]
