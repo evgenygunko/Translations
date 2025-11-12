@@ -1,7 +1,7 @@
 {
     "name": "translations",
     "version": "1.0.0",
-    "description": "Azure Function for calling Translator API in Azure",
+    "description": "ASP.NET web app for Danish and Spanish word lookup and translation.",
     "main": "index.js",
     "scripts": {
         "prettier:check": "prettier --check .",

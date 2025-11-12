@@ -1,32 +1,77 @@
 {
     "version": "2.0.0",
     "tasks": [
-      {
-        "label": "clean",
-        "command": "dotnet",
-        "args": [
-          "clean",
-          "/property:GenerateFullPaths=true",
-          "/consoleloggerparameters:NoSummary"
-        ],
-        "type": "process",
-        "problemMatcher": "$msCompile"
-      },
-      {
-        "label": "build",
-        "command": "dotnet",
-        "args": [
-          "build",
-          "/property:GenerateFullPaths=true",
-          "/consoleloggerparameters:NoSummary"
-        ],
-        "type": "process",
-        "dependsOn": "clean",
-        "group": {
-          "kind": "build",
-          "isDefault": true
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "args": [
+                "clean",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "problemMatcher": "$msCompile"
         },
-        "problemMatcher": "$msCompile"
-      }
+        {
+            "label": "build",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "dependsOn": "clean",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test:solution",
+            "command": "dotnet",
+            "args": [
+                "test",
+                "TranslatorApp.sln",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "dependsOn": "build",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test:Parsers",
+            "command": "dotnet",
+            "args": [
+                "test",
+                "source/Parsers.Tests/Parsers.Tests.csproj",
+                "--no-build",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "dependsOn": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test:TranslatorApp",
+            "command": "dotnet",
+            "args": [
+                "test",
+                "source/TranslatorApp.Tests/TranslatorApp.Tests.csproj",
+                "--no-build",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "dependsOn": "build",
+            "problemMatcher": "$msCompile"
+        }
     ]
-  }
+}

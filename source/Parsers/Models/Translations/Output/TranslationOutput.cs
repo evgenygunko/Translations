@@ -1,6 +1,6 @@
 ﻿namespace CopyWords.Parsers.Models.Translations.Output
 {
-    // The output model returned by the Azure function.
+    // The output model returned by the ASP.NET web application.
     public record TranslationOutput(
         DefinitionOutput[] Definitions);
 
