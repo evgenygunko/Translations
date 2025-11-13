@@ -16,13 +16,14 @@ pool:
     vmImage: 'ubuntu-latest'
 
 variables:
+    - group: AccessTokens
     - name: RENOVATE_PLATFORM
       value: 'azure'
     - name: RENOVATE_ENDPOINT
       value: 'https://dev.azure.com/evgenyg'
     - name: LOG_LEVEL
       value: 'info'
-    # RENOVATE_TOKEN should be set as a secret variable in pipeline settings
+    # RENOVATE_TOKEN should be set as a secret variable in AccessTokens variable group
 
 steps:
     - task: npmAuthenticate@0
@@ -39,11 +40,10 @@ steps:
 
     - script: |
           echo "Running Renovate..."
-          renovate $(Build.Repository.Name) \
+          renovate CopyWords/Translations \
             --platform=$(RENOVATE_PLATFORM) \
             --endpoint=$(RENOVATE_ENDPOINT) \
-            --token=$(RENOVATE_TOKEN) \
-            --log-level=$(LOG_LEVEL)
+            --token=$(RENOVATE_TOKEN)
       displayName: 'Run Renovate'
       env:
           RENOVATE_TOKEN: $(RENOVATE_TOKEN)

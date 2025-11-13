@@ -1,13 +1,9 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": ["config:recommended"],
-    "platform": "azure",
-    "endpoint": "https://dev.azure.com/evgenyg/",
     "platformCommit": "enabled",
     "dependencyDashboard": true,
     "dependencyDashboardTitle": "🤖 Renovate Dependency Dashboard",
-    "onboarding": true,
-    "requireConfig": "optional",
     "hostRules": [
         {
             "hostType": "nuget",
@@ -78,12 +74,9 @@
             "matchManagers": ["dockerfile"],
             "enabled": true,
             "groupName": "Docker base images"
-        },
-        {
-            "description": "Weekly schedule for all updates",
-            "schedule": ["before 6am on Monday"]
         }
     ],
+    "schedule": ["before 6am on Monday"],
     "labels": ["dependencies", "renovate"],
     "assignees": [],
     "reviewers": [],
