@@ -1,0 +1,58 @@
+# Azure Pipeline for Renovate Bot
+# This pipeline runs Renovate to automatically update dependencies
+
+trigger: none # Disable CI trigger
+
+schedules:
+    - cron: '0 2 * * 1' # Run every Monday at 2 AM UTC
+      displayName: Weekly Renovate Run
+      branches:
+          include:
+              - master
+              - main
+      always: true
+
+pool:
+    vmImage: 'ubuntu-latest'
+
+variables:
+    - name: RENOVATE_PLATFORM
+      value: 'azure'
+    - name: RENOVATE_ENDPOINT
+      value: 'https://dev.azure.com/evgenyg'
+    - name: LOG_LEVEL
+      value: 'info'
+    # RENOVATE_TOKEN should be set as a secret variable in pipeline settings
+
+steps:
+    - task: npmAuthenticate@0
+      displayName: 'Authenticate with npm registry'
+      inputs:
+          workingFile: .npmrc
+      condition: eq(variables['Build.Reason'], 'Schedule')
+      continueOnError: true
+
+    - script: |
+          echo "Installing Renovate CLI..."
+          npm install -g renovate
+      displayName: 'Install Renovate'
+
+    - script: |
+          echo "Running Renovate..."
+          renovate $(Build.Repository.Name) \
+            --platform=$(RENOVATE_PLATFORM) \
+            --endpoint=$(RENOVATE_ENDPOINT) \
+            --token=$(RENOVATE_TOKEN) \
+            --log-level=$(LOG_LEVEL)
+      displayName: 'Run Renovate'
+      env:
+          RENOVATE_TOKEN: $(RENOVATE_TOKEN)
+          LOG_LEVEL: $(LOG_LEVEL)
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Renovate Logs'
+      condition: always()
+      inputs:
+          pathtoPublish: 'renovate-*.log'
+          artifactName: 'renovate-logs'
+      continueOnError: true

@@ -274,3 +274,6 @@ __pycache__/
 # Serilog logs
 logs/
 *.log
+
+# Renovate Bot logs
+renovate-*.log
