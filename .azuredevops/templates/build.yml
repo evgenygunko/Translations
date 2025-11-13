@@ -27,7 +27,7 @@ stages:
 
                 - task: UseDotNet@2
                   inputs:
-                      version: '9.0.100'
+                      version: '10.0.100'
 
                 - task: DotNetCoreCLI@2
                   displayName: 'dotnet test'
