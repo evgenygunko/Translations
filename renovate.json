@@ -76,7 +76,6 @@
             "groupName": "Docker base images"
         }
     ],
-    "schedule": ["before 6am on Monday"],
     "labels": ["dependencies", "renovate"],
     "assignees": [],
     "reviewers": [],
