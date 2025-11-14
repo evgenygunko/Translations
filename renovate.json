@@ -78,7 +78,7 @@
     ],
     "labels": ["dependencies", "renovate"],
     "assignees": [],
-    "reviewers": [],
+    "reviewers": ["evgenyg"],
     "prConcurrentLimit": 5,
     "prCreation": "immediate",
     "prHourlyLimit": 0,

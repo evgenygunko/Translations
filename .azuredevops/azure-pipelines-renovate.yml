@@ -39,3 +39,4 @@ steps:
           LOG_LEVEL: $(LOG_LEVEL)
           LOG_FILE: $(Build.ArtifactStagingDirectory)/renovate.log
           LOG_FILE_LEVEL: debug
+          RENOVATE_RECREATE_CLOSED: true
