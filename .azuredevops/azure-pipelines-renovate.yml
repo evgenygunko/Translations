@@ -25,25 +25,11 @@ variables:
       value: 'debug'
 
 steps:
-    - task: npmAuthenticate@0
-      displayName: 'Authenticate with npm registry'
-      inputs:
-          workingFile: .npmrc
-      condition: eq(variables['Build.Reason'], 'Schedule')
-      continueOnError: true
-
-    - script: |
-          echo "Installing Renovate CLI..."
-          npm install -g renovate
-      displayName: 'Install Renovate'
-
     - script: |
           git config --global user.email 'bot@renovateapp.com'
           git config --global user.name 'Renovate Bot'
-
-    - script: |
           echo "Running Renovate..."
-          renovate CopyWords/Translations \
+          npx renovate CopyWords/Translations \
             --platform=$(RENOVATE_PLATFORM) \
             --endpoint=$(RENOVATE_ENDPOINT)
       displayName: 'Run Renovate'
