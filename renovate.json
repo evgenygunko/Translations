@@ -78,7 +78,7 @@
     ],
     "labels": ["dependencies", "renovate"],
     "assignees": [],
-    "reviewers": ["evgenyg"],
+    "reviewers": ["evgeny.gunko@gmail.com"],
     "prConcurrentLimit": 5,
     "prCreation": "immediate",
     "prHourlyLimit": 0,
