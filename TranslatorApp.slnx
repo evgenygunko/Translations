@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="source/Parsers.Tests/Parsers.Tests.csproj" />
+  <Project Path="source/Parsers/Parsers.csproj" />
+  <Project Path="source/TranslatorApp.Tests/TranslatorApp.Tests.csproj" />
+  <Project Path="source/TranslatorApp/TranslatorApp.csproj" />
+</Solution>
