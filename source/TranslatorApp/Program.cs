@@ -8,105 +8,154 @@ using Serilog;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
 
-Console.OutputEncoding = System.Text.Encoding.UTF8;
+namespace TranslatorApp;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Configure Serilog
-var betterStackToken = Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN")
-    ?? Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN", EnvironmentVariableTarget.User);
-
-var betterStackIngestingHost = Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST")
-    ?? Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST", EnvironmentVariableTarget.User);
-
-var loggerConfiguration = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration);
-
-if (!string.IsNullOrEmpty(betterStackToken) && !string.IsNullOrEmpty(betterStackIngestingHost))
+public static class Program
 {
-    loggerConfiguration = loggerConfiguration.WriteTo.BetterStack(
-        sourceToken: betterStackToken,
-        betterStackEndpoint: $"https://{betterStackIngestingHost}"
-    );
-}
-
-Log.Logger = loggerConfiguration.CreateLogger();
-
-try
-{
-    builder.Services.AddSerilog();
-
-    var requestSecretCode = Environment.GetEnvironmentVariable("REQUEST_SECRET_CODE")
-        ?? Environment.GetEnvironmentVariable("REQUEST_SECRET_CODE", EnvironmentVariableTarget.User);
-    if (string.IsNullOrEmpty(requestSecretCode))
+    public static async Task Main(string[] args)
     {
-        throw new InvalidOperationException("Request secret code key not found. Please make sure it is added to environment variables.");
-    }
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-    var globalSettings = new GlobalSettings();
-    globalSettings.RequestSecretCode = requestSecretCode;
+        var builder = WebApplication.CreateBuilder(args);
 
-    // Configure OpenAI settings
-    builder.Services.Configure<OpenAIConfiguration>(
-        builder.Configuration.GetSection(OpenAIConfiguration.SectionName));
+        GlobalSettings globalSettings = ReadGlobalSettings();
 
-    // Add services to the container.
-    builder.Services.AddControllers();
+        // Configure Serilog
+        var loggerConfiguration = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration);
 
-    // Add custom services
-    builder.Services.AddScoped<ITranslationsService, TranslationsService>();
-    builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
-    builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
-    builder.Services.AddScoped<ISoundService, SoundService>();
-    builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
-    builder.Services.AddScoped<IValidator<NormalizeSoundRequest>, NormalizeSoundRequestValidator>();
-    builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
-    builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
-    builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
-    builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
+        if (!string.IsNullOrEmpty(globalSettings.BetterStackToken) && !string.IsNullOrEmpty(globalSettings.BetterStackIngestingHost))
+        {
+            loggerConfiguration = loggerConfiguration.WriteTo.BetterStack(
+                sourceToken: globalSettings.BetterStackToken,
+                betterStackEndpoint: $"https://{globalSettings.BetterStackIngestingHost}"
+            );
+        }
 
-    builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
+        Log.Logger = loggerConfiguration.CreateLogger();
 
-    var openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-            ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
+        try
+        {
+            builder.Services.AddSerilog();
 
-    if (string.IsNullOrEmpty(openAIApiKey))
-    {
-        throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to environment variables.");
-    }
+            if (string.IsNullOrEmpty(globalSettings.RequestSecretCode))
+            {
+                throw new InvalidOperationException("Request secret code key not found. Please make sure it is added to appsettings.json or environment variables.");
+            }
 
-    // "gpt-5-mini"
-    // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
-    builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4o-mini", apiKey: openAIApiKey));
+            // Configure OpenAI settings
+            builder.Services.Configure<OpenAIConfiguration>(
+                builder.Configuration.GetSection(OpenAIConfiguration.SectionName));
+
+            // Add services to the container.
+            builder.Services.AddControllers();
+
+            // Add custom services
+            builder.Services.AddScoped<ITranslationsService, TranslationsService>();
+            builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
+            builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
+            builder.Services.AddScoped<ISoundService, SoundService>();
+            builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
+            builder.Services.AddScoped<IValidator<NormalizeSoundRequest>, NormalizeSoundRequestValidator>();
+            builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
+            builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
+            builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
+            builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
+
+            builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
+
+            if (string.IsNullOrEmpty(globalSettings.OpenAIApiKey))
+            {
+                throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to appsettings.json or environment variables.");
+            }
+
+            // "gpt-5-mini"
+            // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
+            builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4o-mini", apiKey: globalSettings.OpenAIApiKey));
 
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-    // For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
-    builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4o-mini", apiKey: openAIApiKey));
+            // For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
+            builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4o-mini", apiKey: globalSettings.OpenAIApiKey));
 
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-    var app = builder.Build();
+            var app = builder.Build();
 
-    app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
-    app.UseAuthorization();
+            app.UseAuthorization();
 
-    app.MapControllers();
+            app.MapControllers();
 
-    // Log the version number
-    var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown version";
-    Log.Information("Application started. Version: {Version}", version);
+            // Log the version number
+            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown version";
+            Log.Information("Application started. Version: {Version}", version);
 
-    app.MapGet("/", () => $"Translation app v. {version}");
+            app.MapGet("/", () => $"Translation app v. {version}");
 
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-    await Log.CloseAndFlushAsync();
+            app.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Application terminated unexpectedly");
+        }
+        finally
+        {
+            await Log.CloseAndFlushAsync();
+        }
+    }
+
+    private static GlobalSettings ReadGlobalSettings()
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
+            .Build();
+
+        var globalSettings = new GlobalSettings();
+        configuration.GetSection("GlobalSettings").Bind(globalSettings);
+
+        if (string.IsNullOrEmpty(globalSettings.RequestSecretCode))
+        {
+            string? requestSecretCode = Environment.GetEnvironmentVariable("REQUEST_SECRET_CODE")
+                ?? Environment.GetEnvironmentVariable("REQUEST_SECRET_CODE", EnvironmentVariableTarget.User);
+
+            if (string.IsNullOrEmpty(requestSecretCode))
+            {
+                throw new InvalidOperationException("Request secret code key not found. Please make sure it is added to appsettings.json or environment variables.");
+            }
+
+            globalSettings.RequestSecretCode = requestSecretCode;
+        }
+
+        if (string.IsNullOrEmpty(globalSettings.OpenAIApiKey))
+        {
+            string? openAIApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
+
+            if (string.IsNullOrEmpty(openAIApiKey))
+            {
+                throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to appsettings.json or environment variables.");
+            }
+
+            globalSettings.OpenAIApiKey = openAIApiKey;
+        }
+
+        // BetterStack settings are optional
+        if (string.IsNullOrEmpty(globalSettings.BetterStackToken))
+        {
+            globalSettings.BetterStackToken = Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN")
+                ?? Environment.GetEnvironmentVariable("BETTERSTACK_TOKEN", EnvironmentVariableTarget.User);
+        }
+
+        if (string.IsNullOrEmpty(globalSettings.BetterStackIngestingHost))
+        {
+            globalSettings.BetterStackIngestingHost = Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST")
+                ?? Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST", EnvironmentVariableTarget.User);
+        }
+
+        return globalSettings;
+    }
 }

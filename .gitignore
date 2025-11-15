@@ -277,3 +277,6 @@ logs/
 
 # Renovate Bot logs
 renovate-*.log
+
+# Local settings for the app
+**/appsettings.Local.json
