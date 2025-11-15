@@ -17,15 +17,18 @@ namespace TranslatorApp.Services
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IOpenAITranslationService2 _openAITranslationService2;
         private readonly ILogger<TranslationsService> _logger;
+        private readonly IGlobalSettings _globalSettings;
 
         public TranslationsService(
             IOpenAITranslationService openAITranslationService,
             IOpenAITranslationService2 openAITranslationService2,
-            ILogger<TranslationsService> logger)
+            ILogger<TranslationsService> logger,
+            IGlobalSettings globalSettings)
         {
             _openAITranslationService = openAITranslationService;
             _openAITranslationService2 = openAITranslationService2;
             _logger = logger;
+            _globalSettings = globalSettings;
         }
 
         #region Public Methods
@@ -34,15 +37,8 @@ namespace TranslatorApp.Services
         {
             Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel);
 
-            // Check environment variable to determine which translation service to use
-            var key = Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API")
-                ?? Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API", EnvironmentVariableTarget.User);
-
-            bool shouldUseResponseAPI = !string.IsNullOrEmpty(key) &&
-                (key.Equals("true", StringComparison.OrdinalIgnoreCase) || key.Equals("1", StringComparison.OrdinalIgnoreCase));
-
             Models.Translation.TranslationOutput? translationOutput;
-            if (shouldUseResponseAPI)
+            if (_globalSettings.UseOpenAIResponseAPI == true)
             {
                 translationOutput = await _openAITranslationService2.TranslateAsync(translationInput);
             }

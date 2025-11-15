@@ -20,9 +20,10 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void TranslateAsync_WhenUseOpenAIResponseAPIIsFalse_CallsOpenAITranslationService()
         {
-            Environment.SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "false");
-
             WordModel wordModel = _fixture.Create<WordModel>();
+
+            var globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
+            globalSettingsMock.SetupGet(x => x.UseOpenAIResponseAPI).Returns(false);
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
 
@@ -35,9 +36,10 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void TranslateAsync_WhenUseOpenAIResponseAPIIsTrue_CallsOpenAITranslationService2()
         {
-            Environment.SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "true");
-
             WordModel wordModel = _fixture.Create<WordModel>();
+
+            var globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
+            globalSettingsMock.SetupGet(x => x.UseOpenAIResponseAPI).Returns(true);
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
 

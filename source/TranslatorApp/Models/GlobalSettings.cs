@@ -9,6 +9,8 @@
         string? BetterStackToken { get; set; }
 
         string? BetterStackIngestingHost { get; set; }
+
+        bool? UseOpenAIResponseAPI { get; set; }
     }
 
     public class GlobalSettings : IGlobalSettings
@@ -17,5 +19,6 @@
         public string OpenAIApiKey { get; set; } = null!;
         public string? BetterStackToken { get; set; }
         public string? BetterStackIngestingHost { get; set; }
+        public bool? UseOpenAIResponseAPI { get; set; }
     }
 }
