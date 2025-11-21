@@ -1,4 +1,4 @@
-### Test NormalizeSound endpoint with valid request
+### Test NormalizeSound endpoint with valid request (mp3)
 # @no-log
 
 POST {{HostAddress}}/api/NormalizeSound?code={{code}}
@@ -25,6 +25,36 @@ Content-Type: application/json
     client.assert(response.body.length > 0, "Response body has content");
   });
 %}
+
+
+### Test NormalizeSound endpoint with valid request (mp4)
+# @no-log
+
+POST {{HostAddress}}/api/NormalizeSound?code={{code}}
+Content-Type: application/json
+
+{
+  "soundUrl": "https://d10gt6izjc94x0.cloudfront.net/desktop/lang_es_pron_12305_speaker_7_syllable_all_version_50.mp4",
+  "word": "tiburón",
+  "version": "1"
+}
+
+> {%
+
+  // Assert status code and content type
+  client.test('When sending a valid sound URL, we expect to get 200 (OK)', () => {
+    client.assert(response.status === 200, "Response status is 200");
+  });
+
+  client.test('Response should be audio/mpeg', () => {
+    client.assert(response.contentType.mimeType === "audio/mpeg", "Content-Type is audio/mpeg");
+  });
+
+  client.test('Response should have content', () => {
+    client.assert(response.body.length > 0, "Response body has content");
+  });
+%}
+
 
 ### Test NormalizeSound endpoint with empty soundUrl (should return BadRequest)
 

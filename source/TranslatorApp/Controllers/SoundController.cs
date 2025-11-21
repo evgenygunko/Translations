@@ -60,10 +60,12 @@ namespace TranslatorApp.Controllers
             {
                 _logger.LogInformation("Received request to normalize sound from URL: {SoundUrl} for word: {Word}", normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word);
 
-                // This will download the sound file, normalize it, and return the normalized audio
-                byte[] soundFile = await _soundService.SaveSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word);
+                var ct = new CancellationTokenSource(TimeSpan.FromSeconds(15)).Token;
 
-                return File(soundFile, "audio/mpeg", $"{normalizeSoundRequest.Word}.mp3");
+                // Download the sound file, transcode to mp3 (if necessary), and return the mp3 file stream.
+                Stream soundStream = await _soundService.DownloadAndNormalizeSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word, ct);
+
+                return File(soundStream, "audio/mpeg", $"{normalizeSoundRequest.Word}.mp3");
             }
             catch (Exception ex)
             {

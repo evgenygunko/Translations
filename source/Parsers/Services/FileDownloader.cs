@@ -9,7 +9,7 @@ namespace CopyWords.Parsers.Services
     {
         Task<string?> DownloadPageAsync(string url, Encoding encoding);
 
-        Task<byte[]?> DownloadSoundFileAsync(string url);
+        Task<Stream> DownloadSoundFileAsync(string url, CancellationToken cancellationToken);
     }
 
     public class FileDownloader : IFileDownloader
@@ -48,23 +48,16 @@ namespace CopyWords.Parsers.Services
             return content;
         }
 
-        public async Task<byte[]?> DownloadSoundFileAsync(string url)
+        public async Task<Stream> DownloadSoundFileAsync(string url, CancellationToken cancellationToken)
         {
-            byte[]? content = null;
-            HttpResponseMessage response;
-
-            using (CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
-            {
-                response = await _httpClient.GetAsync(url, cts.Token);
-            }
+            HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
                 throw new ServerErrorException($"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.");
             }
 
-            content = await response.Content.ReadAsByteArrayAsync();
-            return content;
+            return await response.Content.ReadAsStreamAsync(cancellationToken);
         }
     }
 }
