@@ -71,7 +71,7 @@ namespace TranslatorApp.Tests.Services
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
                 openAIConfigurationMock.Object);
 
-            TranslationOutput result = await sut.TranslateAsync(translationInput);
+            TranslationOutput result = await sut.TranslateAsync(translationInput, CancellationToken.None);
 
             result.Should().NotBeNull();
 

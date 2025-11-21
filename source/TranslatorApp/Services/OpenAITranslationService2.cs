@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: App
 
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ namespace TranslatorApp.Services
 
     public interface IOpenAITranslationService2
     {
-        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput);
+        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
     }
 
     public class OpenAITranslationService2 : IOpenAITranslationService2
@@ -35,11 +36,11 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<TranslationOutput> TranslateAsync(TranslationInput input)
+        public async Task<TranslationOutput> TranslateAsync(TranslationInput input, CancellationToken cancellationToken)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            TranslationOutput? openAITranslations = await CallResponseAPIAsync<TranslationOutput>(input);
+            TranslationOutput? openAITranslations = await CallResponseAPIAsync<TranslationOutput>(input, cancellationToken);
 
             stopwatch.Stop();
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationReceived),
@@ -83,7 +84,7 @@ namespace TranslatorApp.Services
 
         #region Private Methods
 
-        private async Task<T?> CallResponseAPIAsync<T>(TranslationInput translationInput)
+        private async Task<T?> CallResponseAPIAsync<T>(TranslationInput translationInput, CancellationToken cancellationToken)
         {
             // At this point it doesn't look that it is possible to send the variables to OpenAI model with any of the strong-typed methods.
             // The only alternative is to send it as a Binary content, but then we will have to parse the response manually.
@@ -92,7 +93,13 @@ namespace TranslatorApp.Services
             BinaryData input = BinaryData.FromString(promptMessage);
             using BinaryContent content = BinaryContent.Create(input);
 
-            ClientResult clientResult = await _openAIResponseClient.CreateResponseAsync(content);
+            // Create RequestOptions with the cancellation token
+            var requestOptions = new RequestOptions
+            {
+                CancellationToken = cancellationToken
+            };
+
+            ClientResult clientResult = await _openAIResponseClient.CreateResponseAsync(content, requestOptions);
 
             BinaryData binaryData = clientResult.GetRawResponse().Content;
             using JsonDocument structuredJson = JsonDocument.Parse(binaryData);

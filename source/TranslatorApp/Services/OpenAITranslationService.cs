@@ -14,7 +14,7 @@ namespace TranslatorApp.Services
 {
     public interface IOpenAITranslationService
     {
-        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput);
+        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
@@ -32,7 +32,7 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<TranslationOutput> TranslateAsync(TranslationInput input)
+        public async Task<TranslationOutput> TranslateAsync(TranslationInput input, CancellationToken cancellationToken)
         {
             StringBuilder prompt = new StringBuilder();
             prompt.AppendLine($@"
@@ -61,7 +61,7 @@ Output requirements:
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            TranslationOutput? openAITranslations = await CallOpenAIAsync<TranslationOutput>(prompt.ToString());
+            TranslationOutput? openAITranslations = await CallOpenAIAsync<TranslationOutput>(prompt.ToString(), cancellationToken);
 
             stopwatch.Stop();
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationReceived),
@@ -75,12 +75,12 @@ Output requirements:
 
         #region Private Methods
 
-        private async Task<T?> CallOpenAIAsync<T>(string prompt)
+        private async Task<T?> CallOpenAIAsync<T>(string prompt, CancellationToken cancellationToken)
         {
             List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
             ChatCompletionOptions options = CreateChatCompletionOptions<T>();
 
-            ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options);
+            ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options, cancellationToken);
 
             string json = completion.Content[0].Text;
 

@@ -99,13 +99,15 @@ namespace TranslatorApp.Services
             Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel);
 
             Models.Translation.TranslationOutput? translationOutput;
+            CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
+
             if (_globalSettings.UseOpenAIResponseAPI == true)
             {
-                translationOutput = await _openAITranslationService2.TranslateAsync(translationInput);
+                translationOutput = await _openAITranslationService2.TranslateAsync(translationInput, cancellationToken);
             }
             else
             {
-                translationOutput = await _openAITranslationService.TranslateAsync(translationInput);
+                translationOutput = await _openAITranslationService.TranslateAsync(translationInput, cancellationToken);
             }
 
             if (translationOutput == null)

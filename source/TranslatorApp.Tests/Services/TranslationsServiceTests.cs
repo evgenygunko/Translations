@@ -161,7 +161,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<TranslationsService>();
             _ = sut.TranslateAsync(wordModel);
 
-            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>()));
+            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
         }
 
         [TestMethod]
@@ -177,7 +177,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<TranslationsService>();
             _ = sut.TranslateAsync(wordModel);
 
-            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>()));
+            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
         }
 
         #endregion

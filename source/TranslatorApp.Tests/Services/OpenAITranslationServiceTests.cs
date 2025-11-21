@@ -59,7 +59,7 @@ namespace TranslatorApp.Tests.Services
 
             var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ILogger<OpenAITranslationService>>().Object);
 
-            TranslationOutput result = await sut.TranslateAsync(translationInput);
+            TranslationOutput result = await sut.TranslateAsync(translationInput, CancellationToken.None);
 
             result.Should().NotBeNull();
 
