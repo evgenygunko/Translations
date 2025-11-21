@@ -1,10 +1,10 @@
 ﻿// Ignore Spelling: Validator req App
 
+using System.Text.Json;
 using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using TranslatorApp.Extensions;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
@@ -84,7 +84,8 @@ namespace TranslatorApp.Controllers
                     lookUpWordRequest.Text,
                     sourceLanguage);
 
-                WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, sourceLanguage);
+                var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
+                WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, sourceLanguage, cancellationToken);
 
                 // If the source language is Danish and the word starts with "at ", remove "at " and search again.
                 if (wordModel == null
@@ -100,7 +101,8 @@ namespace TranslatorApp.Controllers
                         sourceLanguage,
                         textWithoutAt);
 
-                    wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage);
+                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
+                    wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage, cancellationToken);
                 }
 
                 if (wordModel == null)
@@ -114,7 +116,9 @@ namespace TranslatorApp.Controllers
                         lookUpWordRequest.Text,
                         sourceLanguage,
                         anotherLanguage);
-                    wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage);
+
+                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
+                    wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage, cancellationToken);
                 }
 
                 if (wordModel == null)

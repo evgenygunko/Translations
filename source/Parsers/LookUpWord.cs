@@ -10,7 +10,7 @@ namespace CopyWords.Parsers
 {
     public interface ILookUpWord
     {
-        Task<WordModel?> LookUpWordAsync(string searchTerm, string language);
+        Task<WordModel?> LookUpWordAsync(string searchTerm, string language, CancellationToken cancellationToken);
     }
 
     public class LookUpWord : ILookUpWord
@@ -31,7 +31,7 @@ namespace CopyWords.Parsers
 
         #region Public Methods
 
-        public async Task<WordModel?> LookUpWordAsync(string searchTerm, string language)
+        public async Task<WordModel?> LookUpWordAsync(string searchTerm, string language, CancellationToken cancellationToken)
         {
             string url;
             if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
@@ -53,7 +53,7 @@ namespace CopyWords.Parsers
                 url = SpanishDictPageParser.SpanishDictBaseUrl + encodedSearchTerm;
             }
 
-            var wordModel = await GetWordByUrlAsync(url, language);
+            var wordModel = await GetWordByUrlAsync(url, language, cancellationToken);
             return wordModel;
         }
 
@@ -61,10 +61,10 @@ namespace CopyWords.Parsers
 
         #region Internal Methods
 
-        internal async Task<WordModel?> GetWordByUrlAsync(string url, string language)
+        internal async Task<WordModel?> GetWordByUrlAsync(string url, string language, CancellationToken cancellationToken)
         {
             // Download and parse a page from the online dictionary
-            string? html = await _fileDownloader.DownloadPageAsync(url, Encoding.UTF8);
+            string? html = await _fileDownloader.DownloadPageAsync(url, Encoding.UTF8, cancellationToken);
             if (string.IsNullOrEmpty(html))
             {
                 return null;

@@ -202,7 +202,7 @@ namespace TranslatorApp.Tests.Controllers
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((true, SourceLanguage.Danish.ToString()));
 
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString())).ReturnsAsync(wordModel);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -211,7 +211,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
 
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()));
             translationsServiceMock.Verify(x => x.TranslateAsync(wordModel));
         }
 
@@ -232,7 +232,7 @@ namespace TranslatorApp.Tests.Controllers
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((true, SourceLanguage.Spanish.ToString()));
 
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString())).ReturnsAsync(wordModel);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -241,7 +241,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
 
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
             translationsServiceMock.Verify(x => x.TranslateAsync(wordModel));
         }
 
@@ -263,8 +263,8 @@ namespace TranslatorApp.Tests.Controllers
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync("at ligge", SourceLanguage.Danish.ToString())).ReturnsAsync((WordModel?)null);
-            lookUpWordMock.Setup(x => x.LookUpWordAsync("ligge", SourceLanguage.Danish.ToString())).ReturnsAsync(wordModel);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("at ligge", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("ligge", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -274,8 +274,8 @@ namespace TranslatorApp.Tests.Controllers
             actionResult.Value.Should().BeOfType<WordModel>();
             WordModel returnWordModel = actionResult.Value!;
 
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString()), Times.Exactly(2));
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString()), Times.Never);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
@@ -295,8 +295,8 @@ namespace TranslatorApp.Tests.Controllers
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString())).ReturnsAsync((WordModel?)null);
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString())).ReturnsAsync(wordModel);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -307,8 +307,8 @@ namespace TranslatorApp.Tests.Controllers
             WordModel returnWordModel = actionResult.Value!;
             returnWordModel.SourceLanguage.Should().Be(SourceLanguage.Spanish);
 
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString()));
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
         }
 
         [TestMethod]
@@ -325,8 +325,8 @@ namespace TranslatorApp.Tests.Controllers
             translationsServiceMock.Setup(x => x.CheckLanguageSpecificCharacters(It.IsAny<string>())).Returns((false, string.Empty));
 
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString())).ReturnsAsync((WordModel?)null);
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(lookUpWordRequest.Text, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -361,7 +361,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, It.IsAny<CancellationToken>()));
         }
 
         #endregion
