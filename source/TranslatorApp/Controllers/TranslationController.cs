@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Validator req App
 
 using System.Text.Json;
-using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +16,6 @@ namespace TranslatorApp.Controllers
         private readonly ILogger<TranslationController> _logger;
         private readonly ITranslationsService _translationsService;
         private readonly IValidator<LookUpWordRequest> _requestValidatorMock;
-        private readonly ILookUpWord _lookUpWord;
         private readonly IWebHostEnvironment _environment;
         private readonly IGlobalSettings _globalSettings;
 
@@ -25,14 +23,12 @@ namespace TranslatorApp.Controllers
             ILogger<TranslationController> logger,
             ITranslationsService translationsService,
             IValidator<LookUpWordRequest> lookUpWordRequestValidator,
-            ILookUpWord lookUpWord,
             IWebHostEnvironment environment,
             IGlobalSettings globalSettings)
         {
             _logger = logger;
             _translationsService = translationsService;
             _requestValidatorMock = lookUpWordRequestValidator;
-            _lookUpWord = lookUpWord;
             _environment = environment;
             _globalSettings = globalSettings;
         }
@@ -67,59 +63,10 @@ namespace TranslatorApp.Controllers
 
             try
             {
-                string sourceLanguage = lookUpWordRequest.SourceLanguage;
-
-                // First check if the text has language specific characters - then use that language as source language
-                if (_translationsService.CheckLanguageSpecificCharacters(lookUpWordRequest.Text) is (true, string lang))
-                {
-                    sourceLanguage = lang;
-                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
-                        "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
-                        lookUpWordRequest.Text,
-                        sourceLanguage);
-                }
-
-                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
-                    "Will lookup '{Text}' in the '{SourceLanguage}' dictionary.",
+                WordModel? wordModel = await _translationsService.LookUpWordInDictionaryAsync(
                     lookUpWordRequest.Text,
-                    sourceLanguage);
-
-                var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
-                WordModel? wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, sourceLanguage, cancellationToken);
-
-                // If the source language is Danish and the word starts with "at ", remove "at " and search again.
-                if (wordModel == null
-                    && string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                    && lookUpWordRequest.Text.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    string textWithoutAt = lookUpWordRequest.Text[3..];
-
-                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
-                        "The text '{Text}' starts with 'at ' and the destination language is '{SourceLanguage}', so it is most likely a verb. " +
-                        "DDO returns 'not found' when search with 'at ', will try again searching for '{TextWithoutAt}'.",
-                        lookUpWordRequest.Text,
-                        sourceLanguage,
-                        textWithoutAt);
-
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
-                    wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage, cancellationToken);
-                }
-
-                if (wordModel == null)
-                {
-                    // Try another parser - assuming that the user forgot to change the dictionary in the UI
-                    string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                        ? SourceLanguage.Spanish.ToString() : SourceLanguage.Danish.ToString();
-
-                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
-                        "Word '{Text}' not found in the '{Dictionary}' dictionary. Will look it up in the '{AnotherDictionary}' dictionary.",
-                        lookUpWordRequest.Text,
-                        sourceLanguage,
-                        anotherLanguage);
-
-                    cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
-                    wordModel = await _lookUpWord.LookUpWordAsync(lookUpWordRequest.Text, anotherLanguage, cancellationToken);
-                }
+                    lookUpWordRequest.SourceLanguage,
+                    lookUpWordRequest.DestinationLanguage);
 
                 if (wordModel == null)
                 {
@@ -128,33 +75,31 @@ namespace TranslatorApp.Controllers
                         lookUpWordRequest.Text);
                     return NotFound($"Word '{lookUpWordRequest.Text}' not found.");
                 }
+
+                // Call the OpenAI API to translate it
+                _logger.LogInformation(new EventId(32),
+                    "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
+                    wordModel.Word,
+                    wordModel.SourceLanguage,
+                    lookUpWordRequest.DestinationLanguage);
+
+                wordModel = await _translationsService.TranslateAsync(wordModel);
+
+                if (_environment.IsDevelopment())
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
+                        "Returning word model: {TranslationOutput}",
+                        JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
+                }
                 else
                 {
-                    // If the word model is not null, call the OpenAI API to translate it
-                    _logger.LogInformation(new EventId(32),
-                        "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
-                        wordModel.Word,
-                        wordModel.SourceLanguage,
-                        lookUpWordRequest.DestinationLanguage);
-
-                    wordModel = await _translationsService.TranslateAsync(wordModel);
-
-                    if (_environment.IsDevelopment())
-                    {
-                        _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
-                            "Returning word model: {TranslationOutput}",
-                            JsonSerializer.Serialize(wordModel, new JsonSerializerOptions
-                            {
-                                WriteIndented = true,
-                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                            }));
-                    }
-                    else
-                    {
-                        _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
-                            "Returning word model: {@TranslationOutput}",
-                            wordModel);
-                    }
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel),
+                        "Returning word model: {@TranslationOutput}",
+                        wordModel);
                 }
 
                 return wordModel;

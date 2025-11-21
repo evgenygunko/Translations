@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Afeitar Coche App Slå
 
 using AutoFixture;
+using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,136 @@ namespace TranslatorApp.Tests.Services
     public class TranslationsServiceTests
     {
         private readonly IFixture _fixture = FixtureFactory.Create();
+
+        #region Tests for LookUpWordInDictionaryAsync
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenWordHasDanishSymbols_CallsDanishParser()
+        {
+            // Arrange
+            // User probably forgot to switch the dictionary in the app - the text has Danish characters, but source language is Spanish
+            const string searchText = "Løb";
+            string sourceLanguage = SourceLanguage.Spanish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeEquivalentTo(wordModel);
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()));
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenWordHasSpanishSymbols_CallsSpanishParser()
+        {
+            // Arrange
+            // User probably forgot to switch the dictionary in the app - the text has Spanish characters, but source language is Danish
+            const string searchText = "café";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Spanish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeEquivalentTo(wordModel);
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenSourceLanguageIsDanishAndWordsStartsWithAt_RemovesAtAndLooksUpAgain()
+        {
+            // Arrange
+            // DDO returns "not found" when search starts with "at ", will should again searching with "at " removed.
+            const string searchText = "at ligge";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("at ligge", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("ligge", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeEquivalentTo(wordModel);
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenCannotFindWordInDanishDictionary_TriesSpanishParser()
+        {
+            // Arrange
+            const string searchText = "word to translate";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Spanish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeEquivalentTo(wordModel);
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenCannotFindWordInSpanishDictionary_TriesDanishParser()
+        {
+            // Arrange
+            const string searchText = "word to translate";
+            string sourceLanguage = SourceLanguage.Spanish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeEquivalentTo(wordModel);
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
+        }
+
+        #endregion
 
         #region Tests for TranslateAsync
 

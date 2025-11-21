@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: App
 
+using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using TranslatorApp.Models;
 
@@ -7,9 +8,9 @@ namespace TranslatorApp.Services
 {
     public interface ITranslationsService
     {
-        Task<WordModel> TranslateAsync(WordModel wordModel);
+        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage);
 
-        (bool hasLanguageSpecificCharacters, string language) CheckLanguageSpecificCharacters(string text);
+        Task<WordModel> TranslateAsync(WordModel wordModel);
     }
 
     public class TranslationsService : ITranslationsService
@@ -18,20 +19,80 @@ namespace TranslatorApp.Services
         private readonly IOpenAITranslationService2 _openAITranslationService2;
         private readonly ILogger<TranslationsService> _logger;
         private readonly IGlobalSettings _globalSettings;
+        private readonly ILookUpWord _lookUpWord;
 
         public TranslationsService(
             IOpenAITranslationService openAITranslationService,
             IOpenAITranslationService2 openAITranslationService2,
             ILogger<TranslationsService> logger,
-            IGlobalSettings globalSettings)
+            IGlobalSettings globalSettings,
+            ILookUpWord lookUpWord)
         {
             _openAITranslationService = openAITranslationService;
             _openAITranslationService2 = openAITranslationService2;
             _logger = logger;
             _globalSettings = globalSettings;
+            _lookUpWord = lookUpWord;
         }
 
         #region Public Methods
+
+        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage)
+        {
+            // First check if the text has language specific characters - then use that language as source language
+            if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
+            {
+                sourceLanguage = lang;
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
+                    "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
+                    searchTerm,
+                    sourceLanguage);
+            }
+
+            _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
+                "Will lookup '{Text}' in the '{SourceLanguage}' dictionary.",
+                searchTerm,
+                sourceLanguage);
+
+            var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
+            WordModel? wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, sourceLanguage, cancellationToken);
+
+            // If the source language is Danish and the word starts with "at ", remove "at " and search again.
+            if (wordModel == null
+                && string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                && searchTerm.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string textWithoutAt = searchTerm[3..];
+
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
+                    "The text '{Text}' starts with 'at ' and the destination language is '{SourceLanguage}', so it is most likely a verb. " +
+                    "DDO returns 'not found' when search with 'at ', will try again searching for '{TextWithoutAt}'.",
+                    searchTerm,
+                    sourceLanguage,
+                    textWithoutAt);
+
+                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
+                wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage, cancellationToken);
+            }
+
+            if (wordModel == null)
+            {
+                // Try another parser - assuming that the user forgot to change the dictionary in the UI
+                string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                    ? SourceLanguage.Spanish.ToString() : SourceLanguage.Danish.ToString();
+
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
+                    "Word '{Text}' not found in the '{Dictionary}' dictionary. Will look it up in the '{AnotherDictionary}' dictionary.",
+                    searchTerm,
+                    sourceLanguage,
+                    anotherLanguage);
+
+                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
+                wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, anotherLanguage, cancellationToken);
+            }
+
+            return wordModel;
+        }
 
         public async Task<WordModel> TranslateAsync(WordModel wordModel)
         {
@@ -56,7 +117,10 @@ namespace TranslatorApp.Services
             return wordModelWithTranslations;
         }
 
-        public (bool hasLanguageSpecificCharacters, string language) CheckLanguageSpecificCharacters(string text)
+        #endregion
+
+        #region Internal Methods
+        internal (bool hasLanguageSpecificCharacters, string language) CheckLanguageSpecificCharacters(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -79,10 +143,6 @@ namespace TranslatorApp.Services
 
             return (false, string.Empty);
         }
-
-        #endregion
-
-        #region Internal Methods
 
         internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel)
         {
