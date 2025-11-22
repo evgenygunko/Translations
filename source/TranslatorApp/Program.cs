@@ -61,6 +61,8 @@ public static class Program
             builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
             builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
             builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
+            builder.Services.AddSingleton<IFileIOService, FileIOService>();
+            builder.Services.AddSingleton<IFFMpegWrapper, FFMpegWrapper>();
 
             builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
 

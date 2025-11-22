@@ -157,10 +157,9 @@ namespace TranslatorApp.Tests.Controllers
             var soundServiceMock = _fixture.Freeze<Mock<ISoundService>>();
 
             var expectedBytes = new byte[] { 1, 2, 3, 4, 5 };
-            var soundStream = new MemoryStream(expectedBytes);
             soundServiceMock
                 .Setup(x => x.DownloadAndNormalizeSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(soundStream);
+                .ReturnsAsync(expectedBytes);
 
             var sut = _fixture.Create<SoundController>();
 
@@ -168,11 +167,11 @@ namespace TranslatorApp.Tests.Controllers
             IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
 
             // Assert
-            var result = actionResult as FileStreamResult;
+            var result = actionResult as FileContentResult;
             result.Should().NotBeNull();
             result!.ContentType.Should().Be("audio/mpeg");
             result.FileDownloadName.Should().Be($"{normalizeSoundRequest.Word}.mp3");
-            result.FileStream.Should().BeSameAs(soundStream);
+            result.FileContents.Should().BeEquivalentTo(expectedBytes);
 
             soundServiceMock.Verify(x => x.DownloadAndNormalizeSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word, It.IsAny<CancellationToken>()), Times.Once);
 
