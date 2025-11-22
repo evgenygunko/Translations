@@ -1,14 +1,7 @@
-### Test NormalizeSound endpoint with valid request (mp3)
+### Test DownloadSound endpoint with valid request (mp3)
 # @no-log
 
-POST {{HostAddress}}/api/NormalizeSound?code={{code}}
-Content-Type: application/json
-
-{
-  "soundUrl": "https://static.ordnet.dk/mp3/12004/12004770_1.mp3",
-  "word": "underholdning",
-  "version": "1"
-}
+GET {{HostAddress}}/api/DownloadSound?soundUrl=https://static.ordnet.dk/mp3/12004/12004770_1.mp3&word=underholdning&version=1&code={{code}}
 
 > {%
 
@@ -27,17 +20,10 @@ Content-Type: application/json
 %}
 
 
-### Test NormalizeSound endpoint with valid request (mp4)
+### Test DownloadSound endpoint with valid request (mp4)
 # @no-log
 
-POST {{HostAddress}}/api/NormalizeSound?code={{code}}
-Content-Type: application/json
-
-{
-  "soundUrl": "https://d10gt6izjc94x0.cloudfront.net/desktop/lang_es_pron_12305_speaker_7_syllable_all_version_50.mp4",
-  "word": "tiburón",
-  "version": "1"
-}
+GET {{HostAddress}}/api/DownloadSound?soundUrl=https://d10gt6izjc94x0.cloudfront.net/desktop/lang_es_pron_12305_speaker_7_syllable_all_version_50.mp4&word=tiburón&version=1&code={{code}}
 
 > {%
 
@@ -56,16 +42,9 @@ Content-Type: application/json
 %}
 
 
-### Test NormalizeSound endpoint with empty soundUrl (should return BadRequest)
+### Test DownloadSound endpoint with empty soundUrl (should return BadRequest)
 
-POST {{HostAddress}}/api/NormalizeSound?code={{code}}
-Content-Type: application/json
-
-{
-  "soundUrl": "",
-  "word": "test",
-  "version": "1"
-}
+GET {{HostAddress}}/api/DownloadSound?soundUrl=&word=test&version=1&code={{code}}
 
 > {%
 
@@ -76,29 +55,21 @@ Content-Type: application/json
 %}
 
 
-### Test NormalizeSound endpoint with null body (should return BadRequest)
+### Test DownloadSound endpoint with missing parameters (should return BadRequest)
 
-POST {{HostAddress}}/api/NormalizeSound?code={{code}}
-Content-Type: application/json
+GET {{HostAddress}}/api/DownloadSound?code={{code}}
 
 > {%
 
   // Assert status code
-  client.test('When request body is null, we expect to get BadRequest', () => {
+  client.test('When soundUrl and word are missing, we expect to get BadRequest', () => {
     client.assert(response.status === 400, "Response status is 400");
   });
 %}
 
-### Test NormalizeSound endpoint with unsupported protocol version (should return BadRequest)
+### Test DownloadSound endpoint with unsupported protocol version (should return BadRequest)
 
-POST {{HostAddress}}/api/NormalizeSound?code={{code}}
-Content-Type: application/json
-
-{
-  "soundUrl": "https://example.com/audio/sample.mp3",
-  "word": "example",
-  "version": "2"
-}
+GET {{HostAddress}}/api/DownloadSound?soundUrl=https://example.com/audio/sample.mp3&word=example&version=2&code={{code}}
 
 > {%
 
@@ -108,16 +79,9 @@ Content-Type: application/json
   });
 %}
 
-### Test NormalizeSound endpoint with invalid code (should return Unauthorized)
+### Test DownloadSound endpoint with invalid code (should return Unauthorized)
 
-POST {{HostAddress}}/api/NormalizeSound?code=wrong-code
-Content-Type: application/json
-
-{
-  "soundUrl": "https://example.com/audio/sample.mp3",
-  "word": "example",
-  "version": "1"
-}
+GET {{HostAddress}}/api/DownloadSound?soundUrl=https://example.com/audio/sample.mp3&word=example&version=1&code=wrong-code
 
 > {%
 

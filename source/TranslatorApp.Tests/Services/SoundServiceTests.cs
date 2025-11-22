@@ -14,10 +14,10 @@ namespace TranslatorApp.Tests.Services
     {
         private readonly IFixture _fixture = FixtureFactory.Create();
 
-        #region Tests for DownloadAndNormalizeSoundAsync
+        #region Tests for DownloadSoundAsync
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_Should_CallFileDownloader()
+        public async Task DownloadSoundAsync_Should_CallFileDownloader()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
@@ -33,7 +33,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            byte[] result = await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            byte[] result = await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             result.Should().BeSameAs(soundBytes);
@@ -50,7 +50,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithNonMp4Url_ReturnsBytesDirectly()
+        public async Task DownloadSoundAsync_WithNonMp4Url_ReturnsBytesDirectly()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
@@ -68,7 +68,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            byte[] result = await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            byte[] result = await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             result.Should().BeSameAs(soundBytes);
@@ -101,7 +101,7 @@ namespace TranslatorApp.Tests.Services
         [DataRow("https://example.com/sound.mp4")]
         [DataRow("https://example.com/sound.MP4")]
         [DataRow("https://example.com/sound.Mp4")]
-        public async Task DownloadAndNormalizeSoundAsync_WithMp4Url_ExtractsAudioSuccessfully(string soundUrl)
+        public async Task DownloadSoundAsync_WithMp4Url_ExtractsAudioSuccessfully(string soundUrl)
         {
             // Arrange
             string word = "test";
@@ -127,7 +127,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            byte[] result = await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            byte[] result = await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             result.Should().BeSameAs(mp3Bytes);
@@ -156,7 +156,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WhenFileDownloaderThrowsException_ExceptionPropagatesToCaller()
+        public async Task DownloadSoundAsync_WhenFileDownloaderThrowsException_ExceptionPropagatesToCaller()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
@@ -170,7 +170,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            Func<Task> act = async () => await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             await act.Should().ThrowAsync<HttpRequestException>()
@@ -178,7 +178,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithMp4Url_WhenConversionFails_LogsError()
+        public async Task DownloadSoundAsync_WithMp4Url_WhenConversionFails_LogsError()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp4";
@@ -203,7 +203,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            Func<Task> act = async () => await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             await act.Should().ThrowAsync<Exception>();
@@ -219,7 +219,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithMp4Url_WhenConversionFails_ThrowsException()
+        public async Task DownloadSoundAsync_WithMp4Url_WhenConversionFails_ThrowsException()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp4";
@@ -241,14 +241,14 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            Func<Task> act = async () => await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             await act.Should().ThrowAsync<Exception>();
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithCancellationToken_PassesToFileDownloader()
+        public async Task DownloadSoundAsync_WithCancellationToken_PassesToFileDownloader()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
@@ -262,7 +262,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            Func<Task> act = async () => await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, cancellationToken);
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, cancellationToken);
 
             // Assert
             await act.Should().ThrowAsync<OperationCanceledException>();
@@ -270,7 +270,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithMp4Url_WritesInputFileBeforeConversion()
+        public async Task DownloadSoundAsync_WithMp4Url_WritesInputFileBeforeConversion()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp4";
@@ -295,7 +295,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             fileIOServiceMock.Verify(x => x.WriteAllBytesAsync(
@@ -306,7 +306,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithMp4Url_ReadsOutputFileAfterConversion()
+        public async Task DownloadSoundAsync_WithMp4Url_ReadsOutputFileAfterConversion()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp4";
@@ -331,7 +331,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, CancellationToken.None);
+            await sut.DownloadSoundAsync(soundUrl, word, CancellationToken.None);
 
             // Assert
             fileIOServiceMock.Verify(x => x.ReadAllBytesAsync(
@@ -341,7 +341,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadAndNormalizeSoundAsync_WithMp4Url_PassesCancellationTokenToFileIO()
+        public async Task DownloadSoundAsync_WithMp4Url_PassesCancellationTokenToFileIO()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp4";
@@ -367,7 +367,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<SoundService>();
 
             // Act
-            await sut.DownloadAndNormalizeSoundAsync(soundUrl, word, cancellationToken);
+            await sut.DownloadSoundAsync(soundUrl, word, cancellationToken);
 
             // Assert
             fileIOServiceMock.Verify(x => x.WriteAllBytesAsync(It.IsAny<string>(), mp4Bytes, cancellationToken), Times.Once);

@@ -19,7 +19,6 @@ namespace TranslatorApp.Tests.Controllers
     {
         private IFixture _fixture = default!;
         private Mock<IGlobalSettings> _globalSettingsMock = default!;
-        private Mock<IValidator<NormalizeSoundRequest>> _requestValidatorMock = default!;
 
         [TestInitialize]
         public void TestInitialize()
@@ -28,45 +27,81 @@ namespace TranslatorApp.Tests.Controllers
 
             _globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
             _globalSettingsMock.Setup(x => x.RequestSecretCode).Returns("test-code");
-
-            _requestValidatorMock = _fixture.Freeze<Mock<IValidator<NormalizeSoundRequest>>>();
-            _requestValidatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<NormalizeSoundRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ValidationResult());
         }
 
-        #region Tests for NormalizeSoundAsync
+        #region Tests for DownloadSoundAsync
 
         [TestMethod]
-        public async Task NormalizeSoundAsync_WhenInputDataIsNull_ReturnsBadRequest()
+        public async Task DownloadSoundAsync_WhenSoundUrlIsNull_ReturnsBadRequest()
         {
             // Arrange
-            NormalizeSoundRequest? normalizeSoundRequest = null;
-
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest!, "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync(null, "test", "1", "test-code");
 
             // Assert
             var result = actionResult as BadRequestObjectResult;
             result.Should().NotBeNull();
             result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
-            result.Value.Should().Be("Input data is null");
+            result.Value.Should().Be("soundUrl and word are required");
+        }
+
+        [TestMethod]
+        public async Task DownloadSoundAsync_WhenWordIsNull_ReturnsBadRequest()
+        {
+            // Arrange
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", null, "1", "test-code");
+
+            // Assert
+            var result = actionResult as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            result.Value.Should().Be("soundUrl and word are required");
+        }
+
+        [TestMethod]
+        public async Task DownloadSoundAsync_WhenSoundUrlIsEmpty_ReturnsBadRequest()
+        {
+            // Arrange
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            IActionResult actionResult = await sut.DownloadSoundAsync(string.Empty, "test", "1", "test-code");
+
+            // Assert
+            var result = actionResult as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            result.Value.Should().Be("soundUrl and word are required");
+        }
+
+        [TestMethod]
+        public async Task DownloadSoundAsync_WhenWordIsEmpty_ReturnsBadRequest()
+        {
+            // Arrange
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", string.Empty, "1", "test-code");
+
+            // Assert
+            var result = actionResult as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            result.Value.Should().Be("soundUrl and word are required");
         }
 
         [TestMethod]
         [DataRow("2")]
         [DataRow("3")]
-        public async Task NormalizeSoundAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
+        public async Task DownloadSoundAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
         {
-            var normalizeSoundRequest = new NormalizeSoundRequest(
-                SoundUrl: "https://example.com/sound.mp3",
-                Word: "test",
-                Version: protocolVersion);
-
             var sut = _fixture.Create<SoundController>();
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", protocolVersion, "test-code");
 
             var result = actionResult as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -75,18 +110,13 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task NormalizeSoundAsync_WhenCodeIsInvalid_ReturnsUnauthorized()
+        public async Task DownloadSoundAsync_WhenCodeIsInvalid_ReturnsUnauthorized()
         {
             // Arrange
-            var normalizeSoundRequest = new NormalizeSoundRequest(
-                SoundUrl: "https://example.com/sound.mp3",
-                Word: "test",
-                Version: "1");
-
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "invalid-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", "1", "invalid-code");
 
             // Assert
             var result = actionResult as UnauthorizedResult;
@@ -95,18 +125,13 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task NormalizeSoundAsync_WhenCodeIsNull_ReturnsUnauthorized()
+        public async Task DownloadSoundAsync_WhenCodeIsNull_ReturnsUnauthorized()
         {
             // Arrange
-            var normalizeSoundRequest = new NormalizeSoundRequest(
-                SoundUrl: "https://example.com/sound.mp3",
-                Word: "test",
-                Version: "1");
-
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, null);
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", "1", null);
 
             // Assert
             var result = actionResult as UnauthorizedResult;
@@ -115,71 +140,39 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task NormalizeSoundAsync_WhenValidationHasMultipleErrors_ReturnsBadRequest()
+        public async Task DownloadSoundAsync_WhenValidRequest_ReturnsFileResult()
         {
             // Arrange
-            var normalizeSoundRequest = new NormalizeSoundRequest(
-                SoundUrl: string.Empty,
-                Word: string.Empty,
-                Version: "1");
-
-            var validationResult = _fixture.Create<ValidationResult>();
-            validationResult.Errors.Clear();
-            validationResult.Errors.Add(new ValidationFailure("SoundUrl", "'SoundUrl' must not be empty"));
-            validationResult.Errors.Add(new ValidationFailure("Word", "'Word' must not be empty"));
-
-            _requestValidatorMock
-                .Setup(x => x.ValidateAsync(It.IsAny<NormalizeSoundRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(validationResult);
-
-            var sut = _fixture.Create<SoundController>();
-
-            // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
-
-            // Assert
-            var result = actionResult as BadRequestObjectResult;
-            result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
-            result.Value.Should().Be("Error: 'SoundUrl' must not be empty, 'Word' must not be empty.");
-        }
-
-        [TestMethod]
-        public async Task NormalizeSoundAsync_WhenValidRequest_ReturnsFileResult()
-        {
-            // Arrange
-            var normalizeSoundRequest = new NormalizeSoundRequest(
-                SoundUrl: "https://example.com/sound.mp3",
-                Word: "test",
-                Version: "1");
+            string soundUrl = "https://example.com/sound.mp3";
+            string word = "test";
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<SoundController>>>();
             var soundServiceMock = _fixture.Freeze<Mock<ISoundService>>();
 
             var expectedBytes = new byte[] { 1, 2, 3, 4, 5 };
             soundServiceMock
-                .Setup(x => x.DownloadAndNormalizeSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word, It.IsAny<CancellationToken>()))
+                .Setup(x => x.DownloadSoundAsync(soundUrl, word, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedBytes);
 
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.NormalizeSoundAsync(normalizeSoundRequest, "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code");
 
             // Assert
             var result = actionResult as FileContentResult;
             result.Should().NotBeNull();
             result!.ContentType.Should().Be("audio/mpeg");
-            result.FileDownloadName.Should().Be($"{normalizeSoundRequest.Word}.mp3");
+            result.FileDownloadName.Should().Be($"{word}.mp3");
             result.FileContents.Should().BeEquivalentTo(expectedBytes);
 
-            soundServiceMock.Verify(x => x.DownloadAndNormalizeSoundAsync(normalizeSoundRequest.SoundUrl, normalizeSoundRequest.Word, It.IsAny<CancellationToken>()), Times.Once);
+            soundServiceMock.Verify(x => x.DownloadSoundAsync(soundUrl, word, It.IsAny<CancellationToken>()), Times.Once);
 
             loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Received request to normalize sound from URL")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Received request to download sound from URL")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
                 Times.Once);

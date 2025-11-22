@@ -6,7 +6,7 @@ namespace TranslatorApp.Services
 {
     public interface ISoundService
     {
-        Task<byte[]> DownloadAndNormalizeSoundAsync(string soundUrl, string word, CancellationToken cancellationToken);
+        Task<byte[]> DownloadSoundAsync(string soundUrl, string word, CancellationToken cancellationToken);
     }
 
     public class SoundService : ISoundService
@@ -28,7 +28,7 @@ namespace TranslatorApp.Services
             _ffmpegWrapper = ffmpegWrapper;
         }
 
-        public async Task<byte[]> DownloadAndNormalizeSoundAsync(string soundUrl, string word, CancellationToken cancellationToken)
+        public async Task<byte[]> DownloadSoundAsync(string soundUrl, string word, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Downloading sound file from URL: {SoundUrl} for word: {Word}", soundUrl, word);
 
