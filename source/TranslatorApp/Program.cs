@@ -53,6 +53,19 @@ public static class Program
             // Add Response Caching
             builder.Services.AddResponseCaching();
 
+            // Configure HTTP request logging to capture all requests including 404s
+            builder.Services.AddHttpLogging(logging =>
+            {
+                logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestPath
+                    | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestQuery
+                    | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestMethod
+                    | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseStatusCode
+                    | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.Duration;
+                
+                logging.RequestBodyLogLimit = 4096;
+                logging.ResponseBodyLogLimit = 4096;
+            });
+
             // Add custom services
             builder.Services.AddScoped<ITranslationsService, TranslationsService>();
             builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
@@ -86,7 +99,15 @@ public static class Program
 
             var app = builder.Build();
 
-            app.UseHttpsRedirection();
+            // Add HTTP request logging to capture all requests (including 404s)
+            app.UseHttpLogging();
+
+            // Only use HTTPS redirection in Development environment
+            // In production (Digital Ocean, etc.), SSL termination happens at the load balancer
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
 
             // Use Response Caching Middleware
             app.UseResponseCaching();
