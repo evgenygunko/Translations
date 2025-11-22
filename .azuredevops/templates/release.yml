@@ -19,15 +19,22 @@ stages:
                       filePath: './.build/UpdateVersion.ps1'
 
                 - task: Docker@2
-                  displayName: 'Build & push image to the container registry'
+                  displayName: 'Build Docker image'
                   inputs:
-                      command: buildAndPush # change to `build` if you only want to build
-                      containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
+                      command: build
                       repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
                       tags: latest
                       dockerfile: './source/TranslatorApp/Dockerfile'
                       buildContext: '$(Build.SourcesDirectory)'
                       arguments: '--build-arg VERSION=$(Build.BuildNumber)'
+
+                - task: Docker@2
+                  displayName: 'Push image to container registry'
+                  inputs:
+                      command: push
+                      containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
+                      repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
+                      tags: latest
 
                 #—————————— download and install doctl ——————————
                 - bash: |
