@@ -23,7 +23,7 @@ stages:
                   inputs:
                       command: build
                       containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
-                      repository: $(DOCR_REPOSITORY)
+                      repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
                       tags: latest
                       dockerfile: './source/TranslatorApp/Dockerfile'
                       buildContext: '$(Build.SourcesDirectory)'
@@ -34,7 +34,7 @@ stages:
                   inputs:
                       command: push
                       containerRegistry: ${{ variables.DOCR_SERVICE_CONN }}
-                      repository: $(DOCR_REPOSITORY)
+                      repository: $(DOCR_REGISTRY)/$(DOCR_REPOSITORY)
                       tags: latest
 
                 #—————————— download and install doctl ——————————

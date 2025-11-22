@@ -1,5 +1,6 @@
 stages:
     - stage: Build
+      #trigger: manual # uncomment this like to allow triggering the stage manually
 
       jobs:
           - job: Build
