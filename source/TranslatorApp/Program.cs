@@ -50,6 +50,9 @@ public static class Program
             // Add services to the container.
             builder.Services.AddControllers();
 
+            // Add Response Caching
+            builder.Services.AddResponseCaching();
+
             // Add custom services
             builder.Services.AddScoped<ITranslationsService, TranslationsService>();
             builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
@@ -84,6 +87,9 @@ public static class Program
             var app = builder.Build();
 
             app.UseHttpsRedirection();
+
+            // Use Response Caching Middleware
+            app.UseResponseCaching();
 
             app.UseAuthorization();
 
