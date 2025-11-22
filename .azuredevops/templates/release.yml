@@ -27,6 +27,7 @@ stages:
                       tags: latest
                       dockerfile: './source/TranslatorApp/Dockerfile'
                       buildContext: '$(Build.SourcesDirectory)'
+                      arguments: '--build-arg VERSION=$(Build.BuildNumber)'
 
                 #—————————— download and install doctl ——————————
                 - bash: |

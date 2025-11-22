@@ -30,6 +30,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 ARG BUILD_CONFIGURATION=Release
+ARG VERSION=1.0.0
 WORKDIR /src
 
 # Copy project file(s) and restore as a separate layer for better caching
@@ -39,7 +40,7 @@ RUN dotnet restore "./source/TranslatorApp/TranslatorApp.csproj"
 # Copy the rest of the source and build
 COPY . .
 WORKDIR "/src/source/TranslatorApp"
-RUN dotnet build "./TranslatorApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./TranslatorApp.csproj" -c $BUILD_CONFIGURATION -o /app/build /p:Version=$VERSION /p:AssemblyVersion=$VERSION /p:FileVersion=$VERSION
 
 
 ############################
@@ -48,7 +49,8 @@ RUN dotnet build "./TranslatorApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 FROM build AS publish
 
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TranslatorApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+ARG VERSION=1.0.0
+RUN dotnet publish "./TranslatorApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:Version=$VERSION /p:AssemblyVersion=$VERSION /p:FileVersion=$VERSION
 
 
 ############################
