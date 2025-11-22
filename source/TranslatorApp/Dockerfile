@@ -35,6 +35,7 @@ WORKDIR /src
 
 # Copy project file(s) and restore as a separate layer for better caching
 COPY ["source/TranslatorApp/TranslatorApp.csproj", "source/TranslatorApp/"]
+COPY ["source/Parsers/Parsers.csproj", "source/Parsers/"]
 RUN dotnet restore "./source/TranslatorApp/TranslatorApp.csproj"
 
 # Copy the rest of the source and build
