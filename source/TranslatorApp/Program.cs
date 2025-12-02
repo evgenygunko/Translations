@@ -61,7 +61,7 @@ public static class Program
                     | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestMethod
                     | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseStatusCode
                     | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.Duration;
-                
+
                 logging.RequestBodyLogLimit = 4096;
                 logging.ResponseBodyLogLimit = 4096;
             });
@@ -78,13 +78,7 @@ public static class Program
             builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
             builder.Services.AddSingleton<IFileIOService, FileIOService>();
             builder.Services.AddSingleton<IFFMpegWrapper, FFMpegWrapper>();
-
             builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
-
-            if (string.IsNullOrEmpty(globalSettings.OpenAIApiKey))
-            {
-                throw new InvalidOperationException("OpenAI API key not found. Please make sure it is added to appsettings.json or environment variables.");
-            }
 
             // "gpt-5-mini"
             // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
@@ -96,6 +90,21 @@ public static class Program
             builder.Services.AddSingleton<OpenAIResponseClient>(_ => new OpenAIResponseClient(model: "gpt-4o-mini", apiKey: globalSettings.OpenAIApiKey));
 
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+            // Initialize LaunchDarkly if SDK key is provided.
+            // Client must be constructed before the web application.
+            ILaunchDarklyService launchDarklyService = new LaunchDarklyService();
+            if (!string.IsNullOrEmpty(globalSettings.LaunchDarklySdkKey))
+            {
+                launchDarklyService.Initialize(globalSettings.LaunchDarklySdkKey);
+                Log.Information("LaunchDarkly initialized successfully");
+            }
+            else
+            {
+                Log.Information("LaunchDarkly SDK key not provided, skipping initialization");
+            }
+
+            builder.Services.AddSingleton<ILaunchDarklyService>(launchDarklyService);
 
             var app = builder.Build();
 
@@ -198,6 +207,13 @@ public static class Program
         {
             globalSettings.BetterStackIngestingHost = Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST")
                 ?? Environment.GetEnvironmentVariable("BETTERSTACK_INGESTING_HOST", EnvironmentVariableTarget.User);
+        }
+
+        // LaunchDarkly SDK key is optional
+        if (string.IsNullOrEmpty(globalSettings.LaunchDarklySdkKey))
+        {
+            globalSettings.LaunchDarklySdkKey = Environment.GetEnvironmentVariable("LAUNCHDARKLY_SDK_KEY")
+                ?? Environment.GetEnvironmentVariable("LAUNCHDARKLY_SDK_KEY", EnvironmentVariableTarget.User);
         }
 
         return globalSettings;

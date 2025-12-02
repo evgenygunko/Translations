@@ -149,7 +149,7 @@ namespace TranslatorApp.Tests.Services
         #region Tests for TranslateAsync
 
         [TestMethod]
-        public void TranslateAsync_WhenUseOpenAIResponseAPIIsFalse_CallsOpenAITranslationService()
+        public void TranslateAsync_WhenUseOpenAIResponseApiIsFalse_CallsOpenAITranslationService()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
 
@@ -165,7 +165,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public void TranslateAsync_WhenUseOpenAIResponseAPIIsTrue_CallsOpenAITranslationService2()
+        public void TranslateAsync_WhenGlobalSettingUseOpenAIResponseApiIsTrue_CallsOpenAITranslationService2()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
 
@@ -178,6 +178,26 @@ namespace TranslatorApp.Tests.Services
             _ = sut.TranslateAsync(wordModel);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
+        }
+
+        [TestMethod]
+        public void TranslateAsync_WhenLDFlagUseOpenAIResponseApiIsTrue_CallsOpenAITranslationService2()
+        {
+            WordModel wordModel = _fixture.Create<WordModel>();
+
+            var globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
+            globalSettingsMock.SetupGet(x => x.UseOpenAIResponseAPI).Returns(false);
+
+            var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
+            launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-response-api")).Returns(true);
+
+            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
+
+            var sut = _fixture.Create<TranslationsService>();
+            _ = sut.TranslateAsync(wordModel);
+
+            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
+            launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-response-api"), Times.Once);
         }
 
         #endregion

@@ -20,19 +20,22 @@ namespace TranslatorApp.Services
         private readonly ILogger<TranslationsService> _logger;
         private readonly IGlobalSettings _globalSettings;
         private readonly ILookUpWord _lookUpWord;
+        private readonly ILaunchDarklyService _launchDarklyService;
 
         public TranslationsService(
             IOpenAITranslationService openAITranslationService,
             IOpenAITranslationService2 openAITranslationService2,
             ILogger<TranslationsService> logger,
             IGlobalSettings globalSettings,
-            ILookUpWord lookUpWord)
+            ILookUpWord lookUpWord,
+            ILaunchDarklyService launchDarklyService)
         {
             _openAITranslationService = openAITranslationService;
             _openAITranslationService2 = openAITranslationService2;
             _logger = logger;
             _globalSettings = globalSettings;
             _lookUpWord = lookUpWord;
+            _launchDarklyService = launchDarklyService;
         }
 
         #region Public Methods
@@ -101,7 +104,7 @@ namespace TranslatorApp.Services
             Models.Translation.TranslationOutput? translationOutput;
             CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
 
-            if (_globalSettings.UseOpenAIResponseAPI == true)
+            if (_launchDarklyService.GetBooleanFlag("use-open-ai-response-api") || _globalSettings.UseOpenAIResponseAPI == true)
             {
                 translationOutput = await _openAITranslationService2.TranslateAsync(translationInput, cancellationToken);
             }
