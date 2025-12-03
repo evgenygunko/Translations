@@ -149,12 +149,12 @@ namespace TranslatorApp.Tests.Services
         #region Tests for TranslateAsync
 
         [TestMethod]
-        public void TranslateAsync_WhenUseOpenAIResponseApiIsFalse_CallsOpenAITranslationService()
+        public void TranslateAsync_WhenLDFlagUseOpenAIChatCompletionIsTrue_CallsOpenAITranslationService()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
 
-            var globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
-            globalSettingsMock.SetupGet(x => x.UseOpenAIResponseAPI).Returns(false);
+            var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
+            launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(true);
 
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
 
@@ -162,42 +162,24 @@ namespace TranslatorApp.Tests.Services
             _ = sut.TranslateAsync(wordModel);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
+            launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-chat-completion"), Times.Once);
         }
 
         [TestMethod]
-        public void TranslateAsync_WhenGlobalSettingUseOpenAIResponseApiIsTrue_CallsOpenAITranslationService2()
+        public void TranslateAsync_WhenLDFlagUseOpenAIChatCompletionIsFalse_CallsOpenAITranslationService2()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
-
-            var globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
-            globalSettingsMock.SetupGet(x => x.UseOpenAIResponseAPI).Returns(true);
-
-            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
-
-            var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(wordModel);
-
-            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
-        }
-
-        [TestMethod]
-        public void TranslateAsync_WhenLDFlagUseOpenAIResponseApiIsTrue_CallsOpenAITranslationService2()
-        {
-            WordModel wordModel = _fixture.Create<WordModel>();
-
-            var globalSettingsMock = _fixture.Freeze<Mock<IGlobalSettings>>();
-            globalSettingsMock.SetupGet(x => x.UseOpenAIResponseAPI).Returns(false);
 
             var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
-            launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-response-api")).Returns(true);
+            launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(false);
 
-            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
+            var openAITranslationService2Mock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
 
             var sut = _fixture.Create<TranslationsService>();
             _ = sut.TranslateAsync(wordModel);
 
-            openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
-            launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-response-api"), Times.Once);
+            openAITranslationService2Mock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
+            launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-chat-completion"), Times.Once);
         }
 
         #endregion

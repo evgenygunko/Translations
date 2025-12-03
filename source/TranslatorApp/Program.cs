@@ -180,22 +180,6 @@ public static class Program
             globalSettings.OpenAIApiKey = openAIApiKey;
         }
 
-        if (!globalSettings.UseOpenAIResponseAPI.HasValue)
-        {
-            string? useResponseAPI = Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API")
-                ?? Environment.GetEnvironmentVariable("USE_OPENAI_RESPONSE_API", EnvironmentVariableTarget.User);
-
-            if (!string.IsNullOrEmpty(useResponseAPI))
-            {
-                globalSettings.UseOpenAIResponseAPI = useResponseAPI.Equals("true", StringComparison.OrdinalIgnoreCase)
-                    || useResponseAPI.Equals("1", StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                globalSettings.UseOpenAIResponseAPI = false; // Default to false if not set
-            }
-        }
-
         // BetterStack settings are optional
         if (string.IsNullOrEmpty(globalSettings.BetterStackToken))
         {

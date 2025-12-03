@@ -18,7 +18,6 @@ namespace TranslatorApp.Services
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IOpenAITranslationService2 _openAITranslationService2;
         private readonly ILogger<TranslationsService> _logger;
-        private readonly IGlobalSettings _globalSettings;
         private readonly ILookUpWord _lookUpWord;
         private readonly ILaunchDarklyService _launchDarklyService;
 
@@ -26,14 +25,12 @@ namespace TranslatorApp.Services
             IOpenAITranslationService openAITranslationService,
             IOpenAITranslationService2 openAITranslationService2,
             ILogger<TranslationsService> logger,
-            IGlobalSettings globalSettings,
             ILookUpWord lookUpWord,
             ILaunchDarklyService launchDarklyService)
         {
             _openAITranslationService = openAITranslationService;
             _openAITranslationService2 = openAITranslationService2;
             _logger = logger;
-            _globalSettings = globalSettings;
             _lookUpWord = lookUpWord;
             _launchDarklyService = launchDarklyService;
         }
@@ -104,13 +101,13 @@ namespace TranslatorApp.Services
             Models.Translation.TranslationOutput? translationOutput;
             CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
 
-            if (_launchDarklyService.GetBooleanFlag("use-open-ai-response-api") || _globalSettings.UseOpenAIResponseAPI == true)
+            if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
             {
-                translationOutput = await _openAITranslationService2.TranslateAsync(translationInput, cancellationToken);
+                translationOutput = await _openAITranslationService.TranslateAsync(translationInput, cancellationToken);
             }
             else
             {
-                translationOutput = await _openAITranslationService.TranslateAsync(translationInput, cancellationToken);
+                translationOutput = await _openAITranslationService2.TranslateAsync(translationInput, cancellationToken);
             }
 
             if (translationOutput == null)
