@@ -23,15 +23,18 @@ namespace TranslatorApp.Services
         private readonly OpenAIResponseClient _openAIResponseClient;
         private readonly ILogger<OpenAITranslationService2> _logger;
         private readonly OpenAIConfiguration _openAIConfiguration;
+        private readonly ILaunchDarklyService _launchDarklyService;
 
         public OpenAITranslationService2(
             OpenAIResponseClient openAIResponseClient,
             ILogger<OpenAITranslationService2> logger,
-            IOptions<OpenAIConfiguration> openAIConfiguration)
+            IOptions<OpenAIConfiguration> openAIConfiguration,
+            ILaunchDarklyService launchDarklyService)
         {
             _openAIResponseClient = openAIResponseClient;
             _logger = logger;
             _openAIConfiguration = openAIConfiguration.Value;
+            _launchDarklyService = launchDarklyService;
         }
 
         #region Public Methods
@@ -64,11 +67,20 @@ namespace TranslatorApp.Services
             string escapedInputJson = JsonSerializer.Serialize(inputJson);
             escapedInputJson = escapedInputJson[1..^1];
 
+            // Get the prompt version from LaunchDarkly
+            string promptVersion = _launchDarklyService.GetStringFlag("open-ai-prompt-version", "");
+
+            // Determine if we should add the version property
+            bool shouldAddVersion = !string.IsNullOrEmpty(promptVersion) && promptVersion != "current";
+
             // Prompt is saved in the Dashboard: https://platform.openai.com/chat
+            string versionProperty = shouldAddVersion ? $@"
+                        ""version"": ""{promptVersion}""," : "";
+
             string message = $@"
                 {{
                    ""prompt"": {{
-                        ""id"": ""{_openAIConfiguration.PromptId}"",
+                        ""id"": ""{_openAIConfiguration.PromptId}"",{versionProperty}
                         ""variables"": {{
                             ""source_language"": ""{translationInput.SourceLanguage}"",
                             ""destination_language"": ""{translationInput.DestinationLanguage}"",

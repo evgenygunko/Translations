@@ -69,7 +69,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             TranslationOutput result = await sut.TranslateAsync(translationInput, CancellationToken.None);
 
@@ -156,7 +157,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -221,7 +223,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -292,7 +295,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -331,7 +335,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -389,7 +394,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -434,7 +440,8 @@ namespace TranslatorApp.Tests.Services
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
                 new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object);
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
 
             // Act
             string result = sut.GetPromptMessage(translationInput);
@@ -447,6 +454,93 @@ namespace TranslatorApp.Tests.Services
                 .GetString();
 
             promptId.Should().Be("prompt_123");
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("current")]
+        public void GetPromptMessage_WhenLDFLagIsEmptyOrCurrent_DoesNotAddPromptVersion(string ldFLagValue)
+        {
+            // Arrange
+            var translationInput = new TranslationInput(
+                Version: "2",
+                SourceLanguage: "en",
+                DestinationLanguage: "fr",
+                Definitions: []);
+
+            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var launchDarklyServiceMock = new Mock<ILaunchDarklyService>();
+            launchDarklyServiceMock
+                .Setup(x => x.GetStringFlag("open-ai-prompt-version", ""))
+                .Returns(ldFLagValue);
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                launchDarklyServiceMock.Object);
+
+            // Act
+            string result = sut.GetPromptMessage(translationInput);
+
+            // Assert
+            using var document = JsonDocument.Parse(result);
+            var promptElement = document.RootElement.GetProperty("prompt");
+
+            bool hasVersionProperty = promptElement.TryGetProperty("version", out _);
+            hasVersionProperty.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void GetPromptMessage_Should_AddPromptVersionProperty()
+        {
+            const string ldFLagValue = "v5.0";
+
+            // Arrange
+            var translationInput = new TranslationInput(
+                Version: "2",
+                SourceLanguage: "en",
+                DestinationLanguage: "fr",
+                Definitions: []);
+
+            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                PromptId = "prompt_123"
+            });
+
+            var launchDarklyServiceMock = new Mock<ILaunchDarklyService>();
+            launchDarklyServiceMock
+                .Setup(x => x.GetStringFlag("open-ai-prompt-version", ""))
+                .Returns(ldFLagValue);
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                launchDarklyServiceMock.Object);
+
+            // Act
+            string result = sut.GetPromptMessage(translationInput);
+
+            // Assert
+            using var document = JsonDocument.Parse(result);
+            var promptVersion = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("version")
+                .GetString();
+
+            promptVersion.Should().Be(ldFLagValue);
         }
 
         #endregion

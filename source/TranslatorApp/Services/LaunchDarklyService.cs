@@ -11,6 +11,8 @@ namespace TranslatorApp.Services
 
         bool GetBooleanFlag(string flagKey, bool defaultValue = false);
 
+        string GetStringFlag(string flagKey, string defaultValue = "");
+
         bool IsInitialized { get; }
     }
 
@@ -60,6 +62,28 @@ namespace TranslatorApp.Services
             catch (Exception ex)
             {
                 throw new LaunchDarklyGetFlagException($"Failed to get boolean flag '{flagKey}': {ex.Message}", ex);
+            }
+        }
+
+        public string GetStringFlag(string flagKey, string defaultValue = "")
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            if (_client == null || !_client.Initialized)
+            {
+                // Log the error but continue with default value
+                Console.WriteLine($"LaunchDarkly client must be initialized before getting flags. Returning default value '{defaultValue}'.");
+                return defaultValue;
+            }
+
+            try
+            {
+                var context = Context.New(ContextKind.Default, "TranslationApp");
+                return _client.StringVariation(flagKey, context, defaultValue);
+            }
+            catch (Exception ex)
+            {
+                throw new LaunchDarklyGetFlagException($"Failed to get string flag '{flagKey}': {ex.Message}", ex);
             }
         }
 
