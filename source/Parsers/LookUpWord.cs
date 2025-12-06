@@ -172,13 +172,15 @@ namespace CopyWords.Parsers
                     Contexts: contexts));
             }
 
+            var variants = _spanishDictPageParser.ParseVariants(wordObj);
+
             var wordModel = new WordModel(
                 Word: headwordES,
                 SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
                 Definitions: definitions,
-                Variations: [] // there are no word variants in SpanishDict
+                Variations: variants
             );
 
             return wordModel;

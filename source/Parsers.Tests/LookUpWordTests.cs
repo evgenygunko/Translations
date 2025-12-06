@@ -297,6 +297,12 @@ namespace CopyWords.Parsers.Tests
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
             spanishDictPageParserMock.Setup(x => x.ParseHeadword(It.IsAny<Models.SpanishDict.WordJsonModel>())).Returns(headwordES);
             spanishDictPageParserMock.Setup(x => x.ParseDefinitions(It.IsAny<Models.SpanishDict.WordJsonModel>())).Returns(CreateDefinitionsForAfeitar());
+            spanishDictPageParserMock.Setup(x => x.ParseVariants(It.IsAny<Models.SpanishDict.WordJsonModel>())).Returns(
+                new List<Variant>
+                    {
+                        new Variant("afeitar", _fixture.Create<Uri>().ToString()),
+                        new Variant("afeitarse", _fixture.Create<Uri>().ToString())
+                    });
 
             var sut = _fixture.Create<LookUpWord>();
 
@@ -306,6 +312,11 @@ namespace CopyWords.Parsers.Tests
 
             result!.Word.Should().Be(headwordES);
             result.SourceLanguage.Should().Be(SourceLanguage.Spanish);
+
+            var variations = result!.Variations.ToList();
+            variations.Should().HaveCount(2);
+            variations[0].Word.Should().Be("afeitar");
+            variations[1].Word.Should().Be("afeitarse");
 
             IEnumerable<Definition> definitions = result!.Definitions;
             definitions.Should().HaveCount(2);

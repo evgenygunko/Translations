@@ -17,6 +17,8 @@ namespace CopyWords.Parsers
         string? ParseSoundURL(WordJsonModel? wordObj);
 
         IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj);
+
+        List<Models.Variant> ParseVariants(WordJsonModel? wordObj);
     }
 
     public class SpanishDictPageParser : ISpanishDictPageParser
@@ -219,6 +221,42 @@ namespace CopyWords.Parsers
             }
 
             return spanishDictDefinitions;
+        }
+
+        public List<Models.Variant> ParseVariants(WordJsonModel? wordObj)
+        {
+            var variants = new List<Models.Variant>();
+
+            if (wordObj == null)
+            {
+                return variants;
+            }
+
+            Neodict[]? neodicts = wordObj.sdDictionaryResultsProps.entry?.neodict;
+
+            if (neodicts == null)
+            {
+                return variants;
+            }
+
+            string baseUrl = wordObj.siteUrlBase ?? SpanishDictBaseUrl.TrimEnd('/');
+
+            foreach (Neodict neodict in neodicts)
+            {
+                foreach (Posgroup posgroup in neodict.posGroups)
+                {
+                    string wordES = posgroup.senses[0].subheadword;
+                    string partOfSpeech = posgroup.posDisplay.name;
+                    string encodedSearchTerm = HttpUtility.UrlEncode(posgroup.senses[0].subheadword);
+
+                    string variantText = $"{wordES} ({partOfSpeech})";
+                    string variantUrl = $"{baseUrl}/translate/{encodedSearchTerm}";
+
+                    variants.Add(new Models.Variant(variantText, variantUrl));
+                }
+            }
+
+            return variants;
         }
 
         #endregion

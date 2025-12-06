@@ -670,6 +670,205 @@ namespace CopyWords.Parsers.Tests
 
         #endregion
 
+        #region Tests for ParseVariants
+
+        [TestMethod]
+        public void ParseVariants_ForAconsejar_Returns2Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("aconsejar"));
+
+            variants.Should().HaveCount(2);
+
+            variants[0].Word.Should().Be("aconsejar (transitive verb)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/aconsejar");
+
+            variants[1].Word.Should().Be("aconsejarse (pronominal verb)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/aconsejarse");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForAfeitar_Returns2Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("Afeitar"));
+
+            variants.Should().HaveCount(2);
+
+            variants[0].Word.Should().Be("afeitar (transitive verb)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/afeitar");
+
+            variants[1].Word.Should().Be("afeitarse (reflexive verb)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/afeitarse");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForÁguila_Returns2Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("Águila"));
+
+            variants.Should().HaveCount(2);
+
+            variants[0].Word.Should().Be("águila (feminine noun)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/%c3%a1guila");
+
+            variants[1].Word.Should().Be("águila (interjection)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/%c3%a1guila");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForAprovechar_Returns3Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("Aprovechar"));
+
+            variants.Should().HaveCount(3);
+
+            variants[0].Word.Should().Be("aprovechar (transitive verb)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar");
+
+            variants[1].Word.Should().Be("aprovechar (intransitive verb)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar");
+
+            variants[2].Word.Should().Be("aprovecharse (pronominal verb)");
+            variants[2].Url.Should().Be("https://www.spanishdict.com/translate/aprovecharse");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForAcensor_Returns1Variant()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("ascensor"));
+
+            variants.Should().HaveCount(1);
+
+            variants[0].Word.Should().Be("ascensor (masculine noun)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/ascensor");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForCoche_Returns1Variant()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("Coche"));
+
+            variants.Should().HaveCount(1);
+
+            variants[0].Word.Should().Be("coche (masculine noun)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/coche");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForGuay_Returns3Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("Guay"));
+
+            variants.Should().HaveCount(3);
+
+            variants[0].Word.Should().Be("guay (interjection)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/guay");
+
+            variants[1].Word.Should().Be("guay (adjective)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/guay");
+
+            variants[2].Word.Should().Be("guay (adverb)");
+            variants[2].Url.Should().Be("https://www.spanishdict.com/translate/guay");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForHipócrita_Returns2Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("hipócrita"));
+
+            variants.Should().HaveCount(2);
+
+            variants[0].Word.Should().Be("hipócrita (masculine or feminine noun)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/hip%c3%b3crita");
+
+            variants[1].Word.Should().Be("hipócrita (adjective)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/hip%c3%b3crita");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForIndígena_Returns2Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("indígena"));
+
+            variants.Should().HaveCount(2);
+
+            variants[0].Word.Should().Be("indígena (adjective)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/ind%c3%adgena");
+
+            variants[1].Word.Should().Be("indígena (masculine or feminine noun)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/ind%c3%adgena");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForIndigente_Returns2Variants()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("indigente"));
+
+            variants.Should().HaveCount(2);
+
+            variants[0].Word.Should().Be("indigente (adjective)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/indigente");
+
+            variants[1].Word.Should().Be("indigente (masculine or feminine noun)");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/indigente");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForVeneno_Returns1Variant()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("veneno"));
+
+            variants.Should().HaveCount(1);
+
+            variants[0].Word.Should().Be("veneno (masculine noun)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/veneno");
+        }
+
+        [TestMethod]
+        public void ParseVariants_ForWasapear_Returns1Variant()
+        {
+            var parser = new SpanishDictPageParser();
+
+            List<Models.Variant> variants = parser.ParseVariants(LoadTestObject("wasapear"));
+
+            variants.Should().HaveCount(1);
+
+            variants[0].Word.Should().Be("wasapear (transitive verb)");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/wasapear");
+        }
+
+        [TestMethod]
+        public void ParseVariants_WhenWordJsonModelIsNull_ReturnsEmptyList()
+        {
+            var parser = new SpanishDictPageParser();
+            List<Models.Variant> variants = parser.ParseVariants(null);
+
+            variants.Should().BeEmpty();
+        }
+
+        #endregion
+
         #region Private methods
 
         private static Models.SpanishDict.WordJsonModel LoadTestObject(string word)
