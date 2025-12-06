@@ -166,13 +166,13 @@ namespace CopyWords.Parsers
                 soundFileName = $"{headwordES}.mp4";
             }
 
-            // SpanishDict can return several definitions (e.g. for a "transitive verb" and "reflexive verb").
-            IEnumerable<Models.SpanishDict.SpanishDictDefinition> spanishDictDefinitions = _spanishDictPageParser.ParseDefinitions(wordObj, n, p);
+            Models.SpanishDict.SpanishDictDefinition? spanishDictDefinition = _spanishDictPageParser.ParseDefinition(wordObj, n, p);
 
             List<Definition> definitions = new();
-            foreach (var spanishDictDefinition in spanishDictDefinitions)
+            List<Context> contexts = new();
+
+            if (spanishDictDefinition != null)
             {
-                List<Context> contexts = new();
                 foreach (var spanishDictContext in spanishDictDefinition.Contexts)
                 {
                     // We don't want to translate meanings for Spanish words. They usually are very short and consist of one word.

@@ -81,85 +81,74 @@ namespace CopyWords.Parsers.Tests
 
         #endregion
 
-        #region ParseDefinitions tests
+        #region ParseDefinition tests
 
         [TestMethod]
-        public void ParseDefinitions_ForAfeitar_ReturnsDefinitionForTransitiveVerb()
+        public void ParseDefinition_ForAfeitar_ReturnsDefinitionForTransitiveVerb()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Afeitar")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Afeitar"));
 
-            result.Should().HaveCount(1);
-
-            SpanishDictDefinition definition;
-            SpanishDictContext context;
-            Meaning meaning;
-            Models.Example example;
+            definition.Should().NotBeNull();
 
             // We return only first variant - "afeitar". For getting "afeitarse", a user will need to click on the variant link.
-            definition = result[0];
             definition.WordES.Should().Be("afeitar");
             definition.PartOfSpeech.Should().Be("transitive verb");
 
             definition.Contexts.Should().HaveCount(1);
-            context = definition.Contexts.First();
+            SpanishDictContext context = definition.Contexts.First();
             context.ContextEN.Should().Be("(to remove hair)");
             context.Meanings.Should().HaveCount(1);
-            meaning = context.Meanings.First();
+
+            Meaning meaning = context.Meanings.First();
             meaning.Original.Should().Be("to shave");
             meaning.Examples.Should().HaveCount(1);
-            example = meaning.Examples.First();
+
+            Models.Example example = meaning.Examples.First();
             example.Original.Should().Be("Para el verano, papá decidió afeitar al perro.");
             example.Translation.Should().Be("For the summer, dad decided to shave the dog.");
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForAfeitar_ReturnsDefinitionForReflexiveVerb()
+        public void ParseDefinition_ForAfeitar_ReturnsDefinitionForReflexiveVerb()
         {
             var parser = new SpanishDictPageParser();
 
             string n = "1";
             string p = "0";
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Afeitar"), n, p).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Afeitar"), n, p);
 
-            result.Should().HaveCount(1);
-
-            SpanishDictDefinition definition;
-            SpanishDictContext context;
-            Meaning meaning;
-            Models.Example example;
-
-            definition = result[0];
+            definition.Should().NotBeNull();
             definition.WordES.Should().Be("afeitarse");
             definition.PartOfSpeech.Should().Be("reflexive verb");
 
             definition.Contexts.Should().HaveCount(1);
-            context = definition.Contexts.First();
+            SpanishDictContext context = definition.Contexts.First();
             context.ContextEN.Should().Be("(to shave oneself)");
+
             context.Meanings.Should().HaveCount(1);
-            meaning = context.Meanings.First();
+            Meaning meaning = context.Meanings.First();
             meaning.Original.Should().Be("to shave");
-            example = meaning.Examples.First();
+
+            Models.Example example = meaning.Examples.First();
             example.Original.Should().Be("¿Con qué frecuencia te afeitas la barba?");
             example.Translation.Should().Be("How often do you shave your beard?");
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForTrotar_ReturnsTranslationsFromModel()
+        public void ParseDefinition_ForTrotar_ReturnsTranslationsFromModel()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Trotar")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Trotar"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("trotar");
             definition.PartOfSpeech.Should().Be("intransitive verb");
 
@@ -197,20 +186,18 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForCoche_ReturnsTranslationsFromModel()
+        public void ParseDefinition_ForCoche_ReturnsTranslationsFromModel()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Coche")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Coche"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("coche");
             definition.PartOfSpeech.Should().Be("masculine noun");
 
@@ -258,21 +245,19 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForHipócrita_ReturnsDefinitionForNoun()
+        public void ParseDefinition_ForHipócrita_ReturnsDefinitionForNoun()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("hipócrita")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("hipócrita"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
             // el hipócrita, la hipócrita
-            definition = result[0];
             definition.WordES.Should().Be("el hipócrita, la hipócrita");
             definition.PartOfSpeech.Should().Be("masculine or feminine noun");
 
@@ -292,23 +277,21 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForHipócrita_ReturnsDefinitionForAdjective()
+        public void ParseDefinition_ForHipócrita_ReturnsDefinitionForAdjective()
         {
             var parser = new SpanishDictPageParser();
 
             string n = "0";
             string p = "1";
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("hipócrita"), n, p).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("hipócrita"), n, p);
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
             // el hipócrita, la hipócrita
-            definition = result[0];
             context = definition.Contexts.First();
             context.ContextEN.Should().Be("(false)");
             context.Meanings.Should().HaveCount(1);
@@ -322,21 +305,20 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForGuay_ReturnsDefinitionForInterjection()
+        public void ParseDefinition_ForGuay_ReturnsDefinitionForInterjection()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Guay")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Guay"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
             // guay
-            definition = result[0];
+            context = definition.Contexts.First();
             definition.WordES.Should().Be("guay");
             definition.PartOfSpeech.Should().Be("interjection");
 
@@ -359,23 +341,22 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForGuay_ReturnsDefinitionForAdjective()
+        public void ParseDefinition_ForGuay_ReturnsDefinitionForAdjective()
         {
             var parser = new SpanishDictPageParser();
 
             string n = "0";
             string p = "1";
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Guay"), n, p).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Guay"), n, p);
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
             // guay
-            definition = result[0];
+            context = definition.Contexts.First();
             definition.WordES.Should().Be("guay");
             definition.PartOfSpeech.Should().Be("adjective");
 
@@ -404,23 +385,22 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForGuay_ReturnsDefinitionForAdverb()
+        public void ParseDefinition_ForGuay_ReturnsDefinitionForAdverb()
         {
             var parser = new SpanishDictPageParser();
 
             string n = "0";
             string p = "2";
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Guay"), n, p).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("Guay"), n, p);
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
             // guay
-            definition = result[0];
+            context = definition.Contexts.First();
             definition.WordES.Should().Be("guay");
             definition.PartOfSpeech.Should().Be("adverb");
 
@@ -446,21 +426,20 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForClubNocturno_ReturnsTranslationsFromModel()
+        public void ParseDefinition_ForClubNocturno_ReturnsTranslationsFromModel()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("club nocturno")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("club nocturno"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
-            definition.WordES.Should().Be("club nocturno");
+            context = definition.Contexts.First();
+            context.ContextEN.Should().Be("(general)");
             definition.PartOfSpeech.Should().Be("masculine noun");
 
             definition.Contexts.Should().HaveCount(1);
@@ -479,19 +458,17 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForVeneno_ReturnsTranslationsFromModel()
+        public void ParseDefinition_ForVeneno_ReturnsTranslationsFromModel()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("veneno")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("veneno"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("veneno");
             definition.PartOfSpeech.Should().Be("masculine noun");
 
@@ -533,40 +510,38 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForMitologo_ReturnsEmptyTranslationsList()
+        public void ParseDefinition_ForMitologo_ReturnsEmptyTranslationsList()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("mitologo")).ToList();
+            SpanishDictDefinition? result = parser.ParseDefinition(LoadTestObject("mitologo"));
 
-            result.Should().BeEmpty();
+            result.Should().BeNull();
         }
 
         [TestMethod]
-        public void ParseDefinitions_For123_ReturnsEmptyTranslationsList()
+        public void ParseDefinition_For123_ReturnsEmptyTranslationsList()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("123")).ToList();
+            SpanishDictDefinition? result = parser.ParseDefinition(LoadTestObject("123"));
 
-            result.Should().BeEmpty();
+            result.Should().BeNull();
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForSaltamontes_SetsImageUrl()
+        public void ParseDefinition_ForSaltamontes_SetsImageUrl()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("saltamontes")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("saltamontes"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("saltamontes");
             definition.PartOfSpeech.Should().Be("masculine noun");
 
@@ -588,20 +563,18 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForIndígena_SetsImageUrl()
+        public void ParseDefinition_ForIndígena_SetsImageUrl()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("indígena")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("indígena"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("indígena");
             definition.PartOfSpeech.Should().Be("adjective");
 
@@ -630,20 +603,18 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForIglesia_SetsImageUrl()
+        public void ParseDefinition_ForIglesia_SetsImageUrl()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("iglesia")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("iglesia"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("iglesia");
             definition.PartOfSpeech.Should().Be("feminine noun");
 
@@ -665,20 +636,18 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForVaso_SetsImageUrl()
+        public void ParseDefinition_ForVaso_SetsImageUrl()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("vaso")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("vaso"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("vaso");
             definition.PartOfSpeech.Should().Be("masculine noun");
 
@@ -700,20 +669,18 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForNoTePreocupes_SetsImageUrl()
+        public void ParseDefinition_ForNoTePreocupes_SetsImageUrl()
         {
             var parser = new SpanishDictPageParser();
 
-            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("NoTePreocupes")).ToList();
+            SpanishDictDefinition? definition = parser.ParseDefinition(LoadTestObject("NoTePreocupes"));
 
-            result.Should().HaveCount(1);
+            definition.Should().NotBeNull();
 
-            SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            definition = result[0];
             definition.WordES.Should().Be("no te preocupes");
             definition.PartOfSpeech.Should().Be("phrase");
 

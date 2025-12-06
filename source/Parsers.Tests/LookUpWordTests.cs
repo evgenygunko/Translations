@@ -49,6 +49,8 @@ namespace CopyWords.Parsers.Tests
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
 
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
+            spanishDictPageParserMock.Setup(x => x.ParseDefinition(It.IsAny<Models.SpanishDict.WordJsonModel>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns((Models.SpanishDict.SpanishDictDefinition?)null);
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("coche.html");
@@ -92,14 +94,13 @@ namespace CopyWords.Parsers.Tests
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
 
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
+            spanishDictPageParserMock.Setup(x => x.ParseDefinition(It.IsAny<Models.SpanishDict.WordJsonModel>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns((Models.SpanishDict.SpanishDictDefinition?)null);
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("ser.html");
 
             var sut = _fixture.Create<LookUpWord>();
-            _ = sut.Invoking(y => y.LookUpWordAsync(searchTerm, sourceLanguage.ToString(), CancellationToken.None))
-                .Should().ThrowAsync<ArgumentException>();
-
             WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString(), CancellationToken.None);
 
             result.Should().NotBeNull();
@@ -296,7 +297,7 @@ namespace CopyWords.Parsers.Tests
 
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
             spanishDictPageParserMock.Setup(x => x.ParseHeadword(It.IsAny<Models.SpanishDict.WordJsonModel>())).Returns(headwordES);
-            spanishDictPageParserMock.Setup(x => x.ParseDefinitions(It.IsAny<Models.SpanishDict.WordJsonModel>())).Returns(CreateDefinitionsForAfeitar());
+            spanishDictPageParserMock.Setup(x => x.ParseDefinition(It.IsAny<Models.SpanishDict.WordJsonModel>(), null, null)).Returns(CreateDefinitionForAfeitar());
             spanishDictPageParserMock.Setup(x => x.ParseVariants(It.IsAny<Models.SpanishDict.WordJsonModel>())).Returns(
                 new List<Variant>
                     {
@@ -319,9 +320,9 @@ namespace CopyWords.Parsers.Tests
             variations[1].Word.Should().Be("afeitarse");
 
             IEnumerable<Definition> definitions = result!.Definitions;
-            definitions.Should().HaveCount(2);
+            definitions.Should().HaveCount(1);
 
-            // 1. afeitar
+            // afeitar (transitive verb)
             Definition definition1 = definitions.First();
             definition1.Headword.Original.Should().Be("afeitar");
             definition1.Contexts.Should().HaveCount(1);
@@ -341,29 +342,10 @@ namespace CopyWords.Parsers.Tests
             example1.Original.Should().Be("Para el verano, papá decidió afeitar al perro.");
             example1.Translation.Should().Be("For the summer, dad decided to shave the dog.");
 
-            // 2. afeitarse
-            Definition definition2 = definitions.Skip(1).First();
-            definition2.Headword.Original.Should().Be("afeitarse");
-            definition2.PartOfSpeech.Should().Be("REFLEXIVE VERB");
-            definition2.Contexts.Should().HaveCount(1);
-            context1 = definition2.Contexts.First();
-            context1.Position.Should().Be("1");
-            context1.Meanings.Should().HaveCount(1);
-
-            meaning1 = context1.Meanings.First();
-            meaning1.Original.Should().Be("to shave");
-            meaning1.AlphabeticalPosition.Should().Be("a");
-            meaning1.Tag.Should().BeNull();
-            meaning1.ImageUrl.Should().BeNull();
-            meaning1.Examples.Should().HaveCount(1);
-            example1 = meaning1!.Examples.First();
-            example1.Original.Should().Be("¿Con qué frecuencia te afeitas la barba?");
-            example1.Translation.Should().Be("How often do you shave your beard?");
-
             spanishDictPageParserMock.Verify(x => x.ParseWordJson(html));
             spanishDictPageParserMock.Verify(x => x.ParseHeadword(It.IsAny<Models.SpanishDict.WordJsonModel>()));
             spanishDictPageParserMock.Verify(x => x.ParseSoundURL(It.IsAny<Models.SpanishDict.WordJsonModel>()));
-            spanishDictPageParserMock.Verify(x => x.ParseDefinitions(It.IsAny<Models.SpanishDict.WordJsonModel>()));
+            spanishDictPageParserMock.Verify(x => x.ParseDefinition(It.IsAny<Models.SpanishDict.WordJsonModel>(), null, null));
         }
 
         #endregion
@@ -390,7 +372,7 @@ namespace CopyWords.Parsers.Tests
             return new List<Models.DDO.DDODefinition>() { definition1, definition2, definition3 };
         }
 
-        private static List<Models.SpanishDict.SpanishDictDefinition> CreateDefinitionsForAfeitar()
+        private static Models.SpanishDict.SpanishDictDefinition CreateDefinitionForAfeitar()
         {
             var definition1 = new Models.SpanishDict.SpanishDictDefinition(WordES: "afeitar", PartOfSpeech: "TRANSITIVE VERB",
                 new List<Models.SpanishDict.SpanishDictContext>
@@ -403,18 +385,7 @@ namespace CopyWords.Parsers.Tests
                         }),
                 });
 
-            var definition2 = new Models.SpanishDict.SpanishDictDefinition(WordES: "afeitarse", PartOfSpeech: "REFLEXIVE VERB",
-                new List<Models.SpanishDict.SpanishDictContext>
-                {
-                    new Models.SpanishDict.SpanishDictContext(ContextEN: "(to shave oneself)", Position: 1,
-                        new List<Models.SpanishDict.Meaning>
-                        {
-                            new Models.SpanishDict.Meaning(Original: "to shave", AlphabeticalPosition: "a", ImageUrl: null,
-                                new List<Example>() { new Example(Original: "¿Con qué frecuencia te afeitas la barba?", Translation: "How often do you shave your beard?") }),
-                        }),
-                });
-
-            return new List<Models.SpanishDict.SpanishDictDefinition>() { definition1, definition2 };
+            return definition1;
         }
 
         #endregion

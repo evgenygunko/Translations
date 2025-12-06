@@ -16,7 +16,7 @@ namespace CopyWords.Parsers
 
         string? ParseSoundURL(WordJsonModel? wordObj);
 
-        IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj, string? n = null, string? p = null);
+        SpanishDictDefinition? ParseDefinition(WordJsonModel? wordObj, string? n = null, string? p = null);
 
         List<Models.Variant> ParseVariants(WordJsonModel? wordObj);
     }
@@ -115,20 +115,17 @@ namespace CopyWords.Parsers
             return soundURL;
         }
 
-        public IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj, string? n = null, string? p = null)
+        public SpanishDictDefinition? ParseDefinition(WordJsonModel? wordObj, string? n = null, string? p = null)
         {
             if (wordObj == null)
             {
-                return Enumerable.Empty<SpanishDictDefinition>();
+                return null;
             }
 
-            var spanishDictDefinitions = new List<SpanishDictDefinition>();
-
             Neodict[]? neodicts = wordObj.sdDictionaryResultsProps.entry?.neodict;
-
             if (neodicts == null)
             {
-                return spanishDictDefinitions;
+                return null;
             }
 
             int neodictIndex;
@@ -228,9 +225,7 @@ namespace CopyWords.Parsers
                 contexts.Add(new SpanishDictContext(fullContext, contextPosition++, meanings));
             }
 
-            spanishDictDefinitions.Add(new SpanishDictDefinition(wordES, partOfSpeech, contexts));
-
-            return spanishDictDefinitions;
+            return new SpanishDictDefinition(wordES, partOfSpeech, contexts);
         }
 
         public List<Models.Variant> ParseVariants(WordJsonModel? wordObj)
