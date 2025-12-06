@@ -24,6 +24,44 @@ namespace CopyWords.Parsers.Tests
         #region Tests for LookUpWordAsync
 
         [TestMethod]
+        public async Task LookUpWordAsync_WhenSearchTermIsDDOUrl_CallsGivenUrl()
+        {
+            string searchTerm = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
+            SourceLanguage sourceLanguage = SourceLanguage.Danish;
+
+            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("bestemme.html");
+
+            var sut = _fixture.Create<LookUpWord>();
+            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString(), CancellationToken.None);
+
+            result.Should().NotBeNull();
+            ddoPageParserMock.Verify(x => x.ParseHeadword());
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync(searchTerm, Encoding.UTF8, It.IsAny<CancellationToken>()));
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenSearchTermIsSpanishDictUrl_CallsUrlWithoutQueryParameters()
+        {
+            string searchTerm = "https://www.spanishdict.com/translate/coche?n=1&p1";
+            SourceLanguage sourceLanguage = SourceLanguage.Spanish;
+
+            Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("coche.html");
+
+            var sut = _fixture.Create<LookUpWord>();
+            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString(), CancellationToken.None);
+
+            result.Should().NotBeNull();
+            spanishDictPageParserMock.Verify(x => x.ParseHeadword(It.IsAny<Models.SpanishDict.WordJsonModel>()));
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync("https://www.spanishdict.com/translate/coche", Encoding.UTF8, It.IsAny<CancellationToken>()));
+        }
+
+        [TestMethod]
         [DataRow("haj")]
         [DataRow("")]
         [DataRow("æø")]
@@ -45,44 +83,6 @@ namespace CopyWords.Parsers.Tests
 
             fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.StartsWith("https://ordnet.dk/ddo/ordbog?query=")), Encoding.UTF8, It.IsAny<CancellationToken>()));
             ddoPageParserMock.Verify(x => x.ParseHeadword());
-        }
-
-        [TestMethod]
-        public async Task LookUpWordAsync_WhenSearchTermIsDDOUrlAndSourceLanguageIsDanish_CallsGivenUrl()
-        {
-            string searchTerm = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
-            SourceLanguage sourceLanguage = SourceLanguage.Danish;
-
-            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
-
-            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("bestemme.html");
-
-            var sut = _fixture.Create<LookUpWord>();
-            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString(), CancellationToken.None);
-
-            result.Should().NotBeNull();
-            ddoPageParserMock.Verify(x => x.ParseHeadword());
-            fileDownloaderMock.Verify(x => x.DownloadPageAsync(searchTerm, Encoding.UTF8, It.IsAny<CancellationToken>()));
-        }
-
-        [TestMethod]
-        public async Task LookUpWordAsync_WhenSearchTermIsNotADDOUrlAndSourceLanguageIsDanish_CallsDDOUrl()
-        {
-            string searchTerm = "https://docs.fluentvalidation.net/";
-            SourceLanguage sourceLanguage = SourceLanguage.Danish;
-
-            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
-
-            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("notfound.html");
-
-            var sut = _fixture.Create<LookUpWord>();
-            WordModel? result = await sut.LookUpWordAsync(searchTerm, sourceLanguage.ToString(), CancellationToken.None);
-
-            result.Should().NotBeNull();
-            ddoPageParserMock.Verify(x => x.ParseHeadword());
-            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.StartsWith("https://ordnet.dk/ddo/ordbog?query=https")), Encoding.UTF8, It.IsAny<CancellationToken>()));
         }
 
         [TestMethod]
@@ -306,7 +306,7 @@ namespace CopyWords.Parsers.Tests
 
             var sut = _fixture.Create<LookUpWord>();
 
-            WordModel? result = sut.ParseSpanishWord(html);
+            WordModel? result = sut.ParseSpanishWord(html, n: null, p: null);
 
             result.Should().NotBeNull();
 

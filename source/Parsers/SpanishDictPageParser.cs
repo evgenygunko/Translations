@@ -16,7 +16,7 @@ namespace CopyWords.Parsers
 
         string? ParseSoundURL(WordJsonModel? wordObj);
 
-        IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj);
+        IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj, string? n = null, string? p = null);
 
         List<Models.Variant> ParseVariants(WordJsonModel? wordObj);
     }
@@ -115,7 +115,7 @@ namespace CopyWords.Parsers
             return soundURL;
         }
 
-        public IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj)
+        public IEnumerable<SpanishDictDefinition> ParseDefinitions(WordJsonModel? wordObj, string? n = null, string? p = null)
         {
             if (wordObj == null)
             {
@@ -131,94 +131,104 @@ namespace CopyWords.Parsers
                 return spanishDictDefinitions;
             }
 
-            foreach (Neodict neodict in neodicts)
+            int neodictIndex;
+            if (!int.TryParse(n, out neodictIndex))
             {
-                // WordVariant: WordES + WortType
-                //      Contexts
-                //          Translations
-                //              Examples
-                Posgroup posgroup = neodict.posGroups[0];
-                string wordES = neodict.subheadword;
-                string partOfSpeech = posgroup.posDisplay.name;
+                neodictIndex = 0;
+            }
 
-                // Flatten the list  - some words have 2 elements in neodict (hipócrita) and some just one (afeitar)
-                var senses = neodict.posGroups.SelectMany(x => x.senses);
+            Neodict neodict = neodicts[neodictIndex];
 
-                var contexts = new List<SpanishDictContext>();
-                int contextPosition = 1;
-                foreach (Sens sens in senses)
+            // WordVariant: WordES + WortType
+            //      Contexts
+            //          Translations
+            //              Examples
+            int posGroupsIndex;
+            if (!int.TryParse(p, out posGroupsIndex))
+            {
+                posGroupsIndex = 0;
+            }
+            Posgroup posgroup = neodict.posGroups[posGroupsIndex];
+
+            string wordES = neodict.subheadword;
+            string partOfSpeech = posgroup.posDisplay.name;
+
+            var senses = posgroup.senses;
+
+            var contexts = new List<SpanishDictContext>();
+            int contextPosition = 1;
+            foreach (Sens sens in senses)
+            {
+                var meanings = new List<Meaning>();
+                int translationPosition = 0;
+
+                foreach (Translation tr in sens.translations)
                 {
-                    var meanings = new List<Meaning>();
-                    int translationPosition = 0;
-
-                    foreach (Translation tr in sens.translations)
+                    var examples = new List<Models.Example>();
+                    foreach (Example ex in tr.examples)
                     {
-                        var examples = new List<Models.Example>();
-                        foreach (Example ex in tr.examples)
-                        {
-                            examples.Add(new Models.Example(Original: ex.textEs, Translation: ex.textEn));
-                        }
-
-                        string alphabeticalPosition = char.ConvertFromUtf32((int)'a' + translationPosition++);
-
-                        // Add translation, e.g. "cool (colloquial)"
-                        string fullTranslation = tr.translation;
-
-                        string? label = tr.registerLabels.FirstOrDefault()?.nameEn;
-                        if (!string.IsNullOrEmpty(label))
-                        {
-                            fullTranslation = $"{fullTranslation} ({label})";
-                        }
-
-                        if (!string.IsNullOrEmpty(tr.contextEn))
-                        {
-                            fullTranslation = $"{fullTranslation} ({tr.contextEn})";
-                        }
-
-                        string? imageUrl = null;
-                        if (!string.IsNullOrEmpty(tr.imagePath))
-                        {
-                            string imageId = tr.imagePath.Split('/').Last();
-
-                            // Sometimes images are encoded, but with some very strict rules. Try to decode and then encode again.
-                            string decoded = HttpUtility.UrlDecode(imageId);
-                            string encoded = decoded
-                                .Replace(",", "%2C")
-                                .Replace(";", "%3B")
-                                .Replace("'", "%27")
-                                .Replace("(", "%28")
-                                .Replace(")", "%29")
-                                .Replace(" ", "%20")
-                                .Replace("%", "%25");
-
-                            imageUrl = ImageBaseUrl + encoded;
-                        }
-
-                        meanings.Add(new Meaning(fullTranslation, alphabeticalPosition, imageUrl, examples));
+                        examples.Add(new Models.Example(Original: ex.textEs, Translation: ex.textEn));
                     }
 
-                    // Add context, e.g. "(colloquial) (extremely good) (Spain)"
-                    string? contextLabel = sens.registerLabels.FirstOrDefault()?.nameEn;
-                    string? contextRegion = sens.regions.FirstOrDefault()?.nameEn;
+                    string alphabeticalPosition = char.ConvertFromUtf32((int)'a' + translationPosition++);
 
-                    // context always has parenthesis in spanishdict.com UI
-                    string fullContext = $"({sens.context})";
+                    // Add translation, e.g. "cool (colloquial)"
+                    string fullTranslation = tr.translation;
 
-                    if (!string.IsNullOrEmpty(contextLabel))
+                    string? label = tr.registerLabels.FirstOrDefault()?.nameEn;
+                    if (!string.IsNullOrEmpty(label))
                     {
-                        fullContext = $"({contextLabel}) " + fullContext;
+                        fullTranslation = $"{fullTranslation} ({label})";
                     }
 
-                    if (!string.IsNullOrEmpty(contextRegion))
+                    if (!string.IsNullOrEmpty(tr.contextEn))
                     {
-                        fullContext += $" ({contextRegion})";
+                        fullTranslation = $"{fullTranslation} ({tr.contextEn})";
                     }
 
-                    contexts.Add(new SpanishDictContext(fullContext, contextPosition++, meanings));
+                    string? imageUrl = null;
+                    if (!string.IsNullOrEmpty(tr.imagePath))
+                    {
+                        string imageId = tr.imagePath.Split('/').Last();
+
+                        // Sometimes images are encoded, but with some very strict rules. Try to decode and then encode again.
+                        string decoded = HttpUtility.UrlDecode(imageId);
+                        string encoded = decoded
+                            .Replace(",", "%2C")
+                            .Replace(";", "%3B")
+                            .Replace("'", "%27")
+                            .Replace("(", "%28")
+                            .Replace(")", "%29")
+                            .Replace(" ", "%20")
+                            .Replace("%", "%25");
+
+                        imageUrl = ImageBaseUrl + encoded;
+                    }
+
+                    meanings.Add(new Meaning(fullTranslation, alphabeticalPosition, imageUrl, examples));
                 }
 
-                spanishDictDefinitions.Add(new SpanishDictDefinition(wordES, partOfSpeech, contexts));
+                // Add context, e.g. "(colloquial) (extremely good) (Spain)"
+                string? contextLabel = sens.registerLabels.FirstOrDefault()?.nameEn;
+                string? contextRegion = sens.regions.FirstOrDefault()?.nameEn;
+
+                // context always has parenthesis in spanishdict.com UI
+                string fullContext = $"({sens.context})";
+
+                if (!string.IsNullOrEmpty(contextLabel))
+                {
+                    fullContext = $"({contextLabel}) " + fullContext;
+                }
+
+                if (!string.IsNullOrEmpty(contextRegion))
+                {
+                    fullContext += $" ({contextRegion})";
+                }
+
+                contexts.Add(new SpanishDictContext(fullContext, contextPosition++, meanings));
             }
+
+            spanishDictDefinitions.Add(new SpanishDictDefinition(wordES, partOfSpeech, contexts));
 
             return spanishDictDefinitions;
         }
@@ -240,17 +250,26 @@ namespace CopyWords.Parsers
             }
 
             string baseUrl = wordObj.siteUrlBase ?? SpanishDictBaseUrl.TrimEnd('/');
+            string searchTerm = wordObj
+                .resultCardHeaderProps
+                .headwordAndQuickdefsProps
+                .headword
+                .displayText;
+            string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
 
-            foreach (Neodict neodict in neodicts)
+            for (int neodictIndex = 0; neodictIndex < neodicts.Length; neodictIndex++)
             {
-                foreach (Posgroup posgroup in neodict.posGroups)
+                var neodict = neodicts[neodictIndex];
+
+                for (int posgroupIndex = 0; posgroupIndex < neodict.posGroups.Length; posgroupIndex++)
                 {
+                    Posgroup posgroup = neodict.posGroups[posgroupIndex];
+
                     string wordES = posgroup.senses[0].subheadword;
                     string partOfSpeech = posgroup.posDisplay.name;
-                    string encodedSearchTerm = HttpUtility.UrlEncode(posgroup.senses[0].subheadword);
 
                     string variantText = $"{wordES} ({partOfSpeech})";
-                    string variantUrl = $"{baseUrl}/translate/{encodedSearchTerm}";
+                    string variantUrl = $"{baseUrl}/translate/{encodedSearchTerm}?n={neodictIndex}&p={posgroupIndex}";
 
                     variants.Add(new Models.Variant(variantText, variantUrl));
                 }

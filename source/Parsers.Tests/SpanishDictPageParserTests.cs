@@ -84,20 +84,20 @@ namespace CopyWords.Parsers.Tests
         #region ParseDefinitions tests
 
         [TestMethod]
-        public void ParseDefinitions_ForAfeitar_ReturnsTranslationsFromModel()
+        public void ParseDefinitions_ForAfeitar_ReturnsDefinitionForTransitiveVerb()
         {
             var parser = new SpanishDictPageParser();
 
             List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Afeitar")).ToList();
 
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(1);
 
             SpanishDictDefinition definition;
             SpanishDictContext context;
             Meaning meaning;
             Models.Example example;
 
-            // afeitar
+            // We return only first variant - "afeitar". For getting "afeitarse", a user will need to click on the variant link.
             definition = result[0];
             definition.WordES.Should().Be("afeitar");
             definition.PartOfSpeech.Should().Be("transitive verb");
@@ -112,9 +112,25 @@ namespace CopyWords.Parsers.Tests
             example = meaning.Examples.First();
             example.Original.Should().Be("Para el verano, papá decidió afeitar al perro.");
             example.Translation.Should().Be("For the summer, dad decided to shave the dog.");
+        }
 
-            // afeitarse
-            definition = result[1];
+        [TestMethod]
+        public void ParseDefinitions_ForAfeitar_ReturnsDefinitionForReflexiveVerb()
+        {
+            var parser = new SpanishDictPageParser();
+
+            string n = "1";
+            string p = "0";
+            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Afeitar"), n, p).ToList();
+
+            result.Should().HaveCount(1);
+
+            SpanishDictDefinition definition;
+            SpanishDictContext context;
+            Meaning meaning;
+            Models.Example example;
+
+            definition = result[0];
             definition.WordES.Should().Be("afeitarse");
             definition.PartOfSpeech.Should().Be("reflexive verb");
 
@@ -242,7 +258,7 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForHipócrita_ReturnsTranslationsFromModel()
+        public void ParseDefinitions_ForHipócrita_ReturnsDefinitionForNoun()
         {
             var parser = new SpanishDictPageParser();
 
@@ -260,7 +276,7 @@ namespace CopyWords.Parsers.Tests
             definition.WordES.Should().Be("el hipócrita, la hipócrita");
             definition.PartOfSpeech.Should().Be("masculine or feminine noun");
 
-            definition.Contexts.Should().HaveCount(2);
+            definition.Contexts.Should().HaveCount(1);
 
             // 1. (false person)
             context = definition.Contexts.First();
@@ -273,9 +289,27 @@ namespace CopyWords.Parsers.Tests
             example = meaning.Examples.First();
             example.Original.Should().Be("Es una hipócrita. Pues y no va por ahí criticándome a mis espaldas.");
             example.Translation.Should().Be("She's a hypocrite. It turns out she goes around criticizing me behind my back.");
+        }
 
-            // (false)
-            context = definition.Contexts.Skip(1).First();
+        [TestMethod]
+        public void ParseDefinitions_ForHipócrita_ReturnsDefinitionForAdjective()
+        {
+            var parser = new SpanishDictPageParser();
+
+            string n = "0";
+            string p = "1";
+            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("hipócrita"), n, p).ToList();
+
+            result.Should().HaveCount(1);
+
+            SpanishDictDefinition definition;
+            SpanishDictContext context;
+            Meaning meaning;
+            Models.Example example;
+
+            // el hipócrita, la hipócrita
+            definition = result[0];
+            context = definition.Contexts.First();
             context.ContextEN.Should().Be("(false)");
             context.Meanings.Should().HaveCount(1);
 
@@ -288,7 +322,7 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinitions_ForGuay_ReturnsTranslationsFromModel()
+        public void ParseDefinitions_ForGuay_ReturnsDefinitionForInterjection()
         {
             var parser = new SpanishDictPageParser();
 
@@ -306,7 +340,7 @@ namespace CopyWords.Parsers.Tests
             definition.WordES.Should().Be("guay");
             definition.PartOfSpeech.Should().Be("interjection");
 
-            definition.Contexts.Should().HaveCount(3);
+            definition.Contexts.Should().HaveCount(1);
 
             // 1. (colloquial) (used to express approval) (Spain)
             context = definition.Contexts.First();
@@ -322,9 +356,32 @@ namespace CopyWords.Parsers.Tests
             example = meaning.Examples.Skip(1).First();
             example.Original.Should().Be("¡Gané un viaje a Francia! - ¡Guay!");
             example.Translation.Should().Be("I won a trip to France! - Cool!");
+        }
 
-            // 2. (colloquial) (extremely good) (Spain)
-            context = definition.Contexts.Skip(1).First();
+        [TestMethod]
+        public void ParseDefinitions_ForGuay_ReturnsDefinitionForAdjective()
+        {
+            var parser = new SpanishDictPageParser();
+
+            string n = "0";
+            string p = "1";
+            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Guay"), n, p).ToList();
+
+            result.Should().HaveCount(1);
+
+            SpanishDictDefinition definition;
+            SpanishDictContext context;
+            Meaning meaning;
+            Models.Example example;
+
+            // guay
+            definition = result[0];
+            definition.WordES.Should().Be("guay");
+            definition.PartOfSpeech.Should().Be("adjective");
+
+            definition.Contexts.Should().HaveCount(1);
+
+            context = definition.Contexts.First();
             context.ContextEN.Should().Be("(colloquial) (extremely good) (Spain)");
             context.Meanings.Should().HaveCount(2);
 
@@ -344,9 +401,32 @@ namespace CopyWords.Parsers.Tests
             example = meaning.Examples.First();
             example.Original.Should().Be("¡Que monopatín tan guay!");
             example.Translation.Should().Be("That's a super skateboard!");
+        }
 
-            // 3. (colloquial) (extremely well) (Spain)
-            context = definition.Contexts.Skip(2).First();
+        [TestMethod]
+        public void ParseDefinitions_ForGuay_ReturnsDefinitionForAdverb()
+        {
+            var parser = new SpanishDictPageParser();
+
+            string n = "0";
+            string p = "2";
+            List<SpanishDictDefinition> result = parser.ParseDefinitions(LoadTestObject("Guay"), n, p).ToList();
+
+            result.Should().HaveCount(1);
+
+            SpanishDictDefinition definition;
+            SpanishDictContext context;
+            Meaning meaning;
+            Models.Example example;
+
+            // guay
+            definition = result[0];
+            definition.WordES.Should().Be("guay");
+            definition.PartOfSpeech.Should().Be("adverb");
+
+            definition.Contexts.Should().HaveCount(1);
+
+            context = definition.Contexts.First();
             context.ContextEN.Should().Be("(colloquial) (extremely well) (Spain)");
             context.Meanings.Should().HaveCount(2);
 
@@ -525,7 +605,7 @@ namespace CopyWords.Parsers.Tests
             definition.WordES.Should().Be("indígena");
             definition.PartOfSpeech.Should().Be("adjective");
 
-            definition.Contexts.Should().HaveCount(2);
+            definition.Contexts.Should().HaveCount(1);
 
             // 1. (of native origins)
             context = definition.Contexts.First();
@@ -547,20 +627,6 @@ namespace CopyWords.Parsers.Tests
             example = meaning.Examples.First();
             example.Original.Should().Be("La comunidad indígena no está de acuerdo con la tala del bosque.");
             example.Translation.Should().Be("The native community is against the clearing of the forest.");
-
-            // 2. (indigenous person)
-            context = definition.Contexts.Skip(1).First();
-            context.ContextEN.Should().Be("(indigenous person)");
-            context.Meanings.Should().HaveCount(1);
-
-            meaning = context.Meanings.First();
-            meaning.Original.Should().Be("native");
-            meaning.Examples.Should().HaveCount(1);
-            example = meaning.Examples.First();
-            example.Original.Should().Be("Este parque natural está protegido por los indígenas que habitan la zona.");
-            example.Translation.Should().Be("This natural park is protected by the natives that inhabit the area.");
-
-            meaning.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/0ca649f9-134a-4210-ae48-2a8bbadb32cc.jpg");
         }
 
         [TestMethod]
@@ -682,10 +748,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("aconsejar (transitive verb)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/aconsejar");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/aconsejar?n=0&p=0");
 
             variants[1].Word.Should().Be("aconsejarse (pronominal verb)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/aconsejarse");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/aconsejar?n=1&p=0");
         }
 
         [TestMethod]
@@ -698,10 +764,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("afeitar (transitive verb)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/afeitar");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/afeitar?n=0&p=0");
 
             variants[1].Word.Should().Be("afeitarse (reflexive verb)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/afeitarse");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/afeitar?n=1&p=0");
         }
 
         [TestMethod]
@@ -714,10 +780,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("águila (feminine noun)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/%c3%a1guila");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/%c3%a1guila?n=0&p=0");
 
             variants[1].Word.Should().Be("águila (interjection)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/%c3%a1guila");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/%c3%a1guila?n=0&p=1");
         }
 
         [TestMethod]
@@ -730,13 +796,13 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(3);
 
             variants[0].Word.Should().Be("aprovechar (transitive verb)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar?n=0&p=0");
 
             variants[1].Word.Should().Be("aprovechar (intransitive verb)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar?n=0&p=1");
 
             variants[2].Word.Should().Be("aprovecharse (pronominal verb)");
-            variants[2].Url.Should().Be("https://www.spanishdict.com/translate/aprovecharse");
+            variants[2].Url.Should().Be("https://www.spanishdict.com/translate/aprovechar?n=1&p=0");
         }
 
         [TestMethod]
@@ -749,7 +815,7 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("ascensor (masculine noun)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/ascensor");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/ascensor?n=0&p=0");
         }
 
         [TestMethod]
@@ -762,7 +828,7 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("coche (masculine noun)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/coche");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/coche?n=0&p=0");
         }
 
         [TestMethod]
@@ -775,13 +841,13 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(3);
 
             variants[0].Word.Should().Be("guay (interjection)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/guay");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/guay?n=0&p=0");
 
             variants[1].Word.Should().Be("guay (adjective)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/guay");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/guay?n=0&p=1");
 
             variants[2].Word.Should().Be("guay (adverb)");
-            variants[2].Url.Should().Be("https://www.spanishdict.com/translate/guay");
+            variants[2].Url.Should().Be("https://www.spanishdict.com/translate/guay?n=0&p=2");
         }
 
         [TestMethod]
@@ -794,10 +860,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("hipócrita (masculine or feminine noun)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/hip%c3%b3crita");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/hip%c3%b3crita?n=0&p=0");
 
             variants[1].Word.Should().Be("hipócrita (adjective)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/hip%c3%b3crita");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/hip%c3%b3crita?n=0&p=1");
         }
 
         [TestMethod]
@@ -810,10 +876,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("indígena (adjective)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/ind%c3%adgena");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/ind%c3%adgena?n=0&p=0");
 
             variants[1].Word.Should().Be("indígena (masculine or feminine noun)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/ind%c3%adgena");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/ind%c3%adgena?n=0&p=1");
         }
 
         [TestMethod]
@@ -826,10 +892,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("indigente (adjective)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/indigente");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/indigente?n=0&p=0");
 
             variants[1].Word.Should().Be("indigente (masculine or feminine noun)");
-            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/indigente");
+            variants[1].Url.Should().Be("https://www.spanishdict.com/translate/indigente?n=0&p=1");
         }
 
         [TestMethod]
@@ -842,7 +908,7 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("veneno (masculine noun)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/veneno");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/veneno?n=0&p=0");
         }
 
         [TestMethod]
@@ -855,7 +921,7 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("wasapear (transitive verb)");
-            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/wasapear");
+            variants[0].Url.Should().Be("https://www.spanishdict.com/translate/wasapear?n=0&p=0");
         }
 
         [TestMethod]

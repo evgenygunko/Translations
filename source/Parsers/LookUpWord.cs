@@ -34,18 +34,16 @@ namespace CopyWords.Parsers
         public async Task<WordModel?> LookUpWordAsync(string searchTerm, string language, CancellationToken cancellationToken)
         {
             string url;
-            if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
+
+            if (searchTerm.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase)
+                || searchTerm.StartsWith(SpanishDictPageParser.SpanishDictBaseUrl, StringComparison.CurrentCultureIgnoreCase))
             {
-                // Danish dictionary has "word variants", which have direct URLs. If a user clicks on such a link, we need to use it directly.
-                if (searchTerm.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    url = searchTerm;
-                }
-                else
-                {
-                    string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
-                    url = DDOPageParser.DDOBaseUrl + $"?query={encodedSearchTerm}";
-                }
+                url = searchTerm;
+            }
+            else if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
+                url = DDOPageParser.DDOBaseUrl + $"?query={encodedSearchTerm}";
             }
             else
             {
@@ -63,14 +61,33 @@ namespace CopyWords.Parsers
 
         internal async Task<WordModel?> GetWordByUrlAsync(string url, string language, CancellationToken cancellationToken)
         {
+            SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(language);
+
+            string? n = null;
+            string? p = null;
+
+            if (sourceLanguage == SourceLanguage.Spanish)
+            {
+                // Parse query parameters before removing them
+                int queryIndex = url.IndexOf('?');
+                if (queryIndex >= 0)
+                {
+                    string queryString = url.Substring(queryIndex + 1);
+                    var queryParams = HttpUtility.ParseQueryString(queryString);
+                    n = queryParams["n"];
+                    p = queryParams["p"];
+
+                    // Remove special parameters - we will use them when returning the word model
+                    url = url.Substring(0, queryIndex);
+                }
+            }
+
             // Download and parse a page from the online dictionary
             string? html = await _fileDownloader.DownloadPageAsync(url, Encoding.UTF8, cancellationToken);
             if (string.IsNullOrEmpty(html))
             {
                 return null;
             }
-
-            SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(language);
 
             WordModel? wordModel;
             switch (sourceLanguage)
@@ -80,7 +97,7 @@ namespace CopyWords.Parsers
                     break;
 
                 case SourceLanguage.Spanish:
-                    wordModel = ParseSpanishWord(html);
+                    wordModel = ParseSpanishWord(html, n, p);
                     break;
 
                 default:
@@ -131,7 +148,7 @@ namespace CopyWords.Parsers
             return wordModel;
         }
 
-        internal WordModel? ParseSpanishWord(string html)
+        internal WordModel? ParseSpanishWord(string html, string? n, string? p)
         {
             Models.SpanishDict.WordJsonModel? wordObj = _spanishDictPageParser.ParseWordJson(html);
             if (wordObj == null)
@@ -150,7 +167,7 @@ namespace CopyWords.Parsers
             }
 
             // SpanishDict can return several definitions (e.g. for a "transitive verb" and "reflexive verb").
-            IEnumerable<Models.SpanishDict.SpanishDictDefinition> spanishDictDefinitions = _spanishDictPageParser.ParseDefinitions(wordObj);
+            IEnumerable<Models.SpanishDict.SpanishDictDefinition> spanishDictDefinitions = _spanishDictPageParser.ParseDefinitions(wordObj, n, p);
 
             List<Definition> definitions = new();
             foreach (var spanishDictDefinition in spanishDictDefinitions)
