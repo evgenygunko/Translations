@@ -20,13 +20,13 @@ namespace TranslatorApp.Services
 
     public class OpenAITranslationService2 : IOpenAITranslationService2
     {
-        private readonly OpenAIResponseClient _openAIResponseClient;
+        private readonly ResponsesClient _openAIResponseClient;
         private readonly ILogger<OpenAITranslationService2> _logger;
         private readonly OpenAIConfiguration _openAIConfiguration;
         private readonly ILaunchDarklyService _launchDarklyService;
 
         public OpenAITranslationService2(
-            OpenAIResponseClient openAIResponseClient,
+            ResponsesClient openAIResponseClient,
             ILogger<OpenAITranslationService2> logger,
             IOptions<OpenAIConfiguration> openAIConfiguration,
             ILaunchDarklyService launchDarklyService)

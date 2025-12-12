@@ -55,7 +55,7 @@ namespace TranslatorApp.Tests.Services
 
             var openAIResponse = CreateReponseFromJson("TranslationOutput_ES.json");
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
             openAIResponseClientMock
                 .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
                 .ReturnsAsync(openAIResponse);
@@ -146,7 +146,7 @@ namespace TranslatorApp.Tests.Services
                     )
                 ]);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -212,7 +212,7 @@ namespace TranslatorApp.Tests.Services
                     )
                 ]);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -284,7 +284,7 @@ namespace TranslatorApp.Tests.Services
                     )
                 ]);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -324,7 +324,7 @@ namespace TranslatorApp.Tests.Services
                 DestinationLanguage: "es",
                 Definitions: []);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -383,7 +383,7 @@ namespace TranslatorApp.Tests.Services
                     )
                 ]);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -429,7 +429,7 @@ namespace TranslatorApp.Tests.Services
                 DestinationLanguage: "fr",
                 Definitions: []);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -469,7 +469,7 @@ namespace TranslatorApp.Tests.Services
                 DestinationLanguage: "fr",
                 Definitions: []);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
@@ -511,7 +511,7 @@ namespace TranslatorApp.Tests.Services
                 DestinationLanguage: "fr",
                 Definitions: []);
 
-            var openAIResponseClientMock = new Mock<OpenAIResponseClient>();
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
 
             var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
             openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
