@@ -77,7 +77,7 @@ namespace TranslatorApp.Controllers
                 }
 
                 // Call the OpenAI API to translate it
-                _logger.LogInformation(new EventId(32),
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.WillTranslateWithOpenAI),
                     "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
                     wordModel.Word,
                     wordModel.SourceLanguage,
@@ -106,7 +106,8 @@ namespace TranslatorApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while trying to look up the word.");
+                _logger.LogError(new EventId((int)TranslatorAppEventId.ErrorDuringLookup),
+                    ex, "An error occurred while trying to look up the word.");
                 throw;
             }
         }

@@ -49,7 +49,8 @@ namespace TranslatorApp.Controllers
 
             try
             {
-                _logger.LogInformation("Received request to download sound from URL: {SoundUrl} for word: {Word}", soundUrl, word);
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.SoundDownloadRequestReceived),
+                    "Received request to download sound from URL: {SoundUrl} for word: {Word}", soundUrl, word);
 
                 var ct = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
 
@@ -60,7 +61,8 @@ namespace TranslatorApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while trying to download the sound.");
+                _logger.LogError(new EventId((int)TranslatorAppEventId.ErrorDownloadingSound),
+                    ex, "An error occurred while trying to download the sound.");
                 throw;
             }
         }

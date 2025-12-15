@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Downloader ffmpeg
 
 using CopyWords.Parsers.Services;
+using TranslatorApp.Models;
 
 namespace TranslatorApp.Services
 {
@@ -30,13 +31,15 @@ namespace TranslatorApp.Services
 
         public async Task<byte[]> DownloadSoundAsync(string soundUrl, string word, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Downloading sound file from URL: {SoundUrl} for word: {Word}", soundUrl, word);
+            _logger.LogInformation(new EventId((int)TranslatorAppEventId.DownloadingSoundFile),
+                "Downloading sound file from URL: {SoundUrl} for word: {Word}", soundUrl, word);
 
             byte[] fileBytes = await _fileDownloader.DownloadSoundFileAsync(soundUrl, cancellationToken);
 
             if (soundUrl.EndsWith(".mp4", StringComparison.InvariantCultureIgnoreCase))
             {
-                _logger.LogInformation("Extracting audio from MP4 to MP3 for word: {Word}", word);
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.ExtractingAudioFromMP4),
+                    "Extracting audio from MP4 to MP3 for word: {Word}", word);
 
                 // Use temporary files for more reliable processing in containers
                 string tempInputFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp4");
@@ -46,21 +49,24 @@ namespace TranslatorApp.Services
 
                 try
                 {
-                    _logger.LogInformation("Wrote input file to {TempPath}, size: {Size} bytes",
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.WroteInputFile),
+                        "Wrote input file to {TempPath}, size: {Size} bytes",
                         tempInputFilePath, fileBytes.Length);
 
                     // Process with FFmpeg using file paths - the pipes return only a few bytes when used in containers
                     await _ffmpegWrapper.ExtractAudioAsync(tempInputFilePath, tempOutputFilePath);
 
                     byte[] mp3FileBytes = await _fileIOService.ReadAllBytesAsync(tempOutputFilePath, cancellationToken);
-                    _logger.LogInformation("Successfully extracted audio to MP3 for word: {Word}. Output size: {Size} bytes",
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.AudioExtractionSuccessful),
+                        "Successfully extracted audio to MP3 for word: {Word}. Output size: {Size} bytes",
                         word, mp3FileBytes.Length);
 
                     return mp3FileBytes;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to extract audio from MP4 for word: {Word}", word);
+                    _logger.LogError(new EventId((int)TranslatorAppEventId.AudioExtractionFailed),
+                        ex, "Failed to extract audio from MP4 for word: {Word}", word);
                     throw;
                 }
             }

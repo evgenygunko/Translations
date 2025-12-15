@@ -137,7 +137,8 @@ namespace TranslatorApp.Services
 
             if (string.IsNullOrEmpty(extractedText))
             {
-                _logger.LogWarning("No text found in the response from OpenAI.");
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.NoTextFromOpenAI),
+                    "No text found in the response from OpenAI.");
                 return default;
             }
 
