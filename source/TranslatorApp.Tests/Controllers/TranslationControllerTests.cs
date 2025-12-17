@@ -166,7 +166,7 @@ namespace TranslatorApp.Tests.Controllers
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
             var translateServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
-            translateServiceMock.Setup(x => x.TranslateAsync(It.IsAny<WordModel>())).ThrowsAsync(new Exception("exception from unit test"));
+            translateServiceMock.Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("exception from unit test"));
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -196,7 +196,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((WordModel?)null);
 
             // Act
@@ -225,7 +225,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
 
             // Act
@@ -234,7 +234,123 @@ namespace TranslatorApp.Tests.Controllers
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
-            translationsServiceMock.Verify(x => x.LookUpWordInDictionaryAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, lookUpWordRequest.DestinationLanguage));
+            translationsServiceMock.Verify(x => x.LookUpWordInDictionaryAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, lookUpWordRequest.DestinationLanguage, It.IsAny<CancellationToken>()));
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(async (string text, string source, string dest, CancellationToken ct) =>
+                {
+                    await Task.Delay(200, ct);
+                    return _fixture.Create<WordModel>();
+                });
+
+            var sut = _fixture.Create<TranslationController>();
+            sut.LookupRequestTimeout = TimeSpan.FromMilliseconds(10);
+
+            // Act
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            // Assert
+            var result = actionResult.Result as ObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be(504);
+            result.Value.Should().Be("Translation timed out");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    new EventId((int)TranslatorAppEventId.CallingOnlineDictionaryTimedOut),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Calling online dictionary timed out")),
+                    null,
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenTranslateTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(wordModel);
+            translationsServiceMock
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<CancellationToken>()))
+                .Returns(async (WordModel wm, CancellationToken ct) =>
+                {
+                    await Task.Delay(200, ct);
+                    return wm;
+                });
+
+            var sut = _fixture.Create<TranslationController>();
+            sut.TranslateRequestTimeout = TimeSpan.FromMilliseconds(10);
+
+            // Act
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            // Assert
+            var result = actionResult.Result as ObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be(504);
+            result.Value.Should().Be("Translation timed out");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    new EventId((int)TranslatorAppEventId.CallingOpenAITimeoudOut),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Calling OpenAI API timed out")),
+                    null,
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenClientCancelsRequest_RethrowsOperationCanceledException()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "ru",
+                Version: "1");
+
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new OperationCanceledException());
+
+            var sut = _fixture.Create<TranslationController>();
+
+            // Act & Assert
+            await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest, "test-code", cts.Token))
+                .Should().ThrowAsync<OperationCanceledException>();
         }
 
         #endregion

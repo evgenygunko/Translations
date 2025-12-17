@@ -21,5 +21,8 @@ namespace TranslatorApp.Models
         AudioExtractionFailed = 48,
         SoundDownloadRequestReceived = 49,
         ErrorDownloadingSound = 50,
+        CallingOnlineDictionaryTimedOut = 51,
+        CallingOpenAITimeoudOut = 52,
+        DownloadingSoundTimedOut = 53,
     }
 }

@@ -178,6 +178,118 @@ namespace TranslatorApp.Tests.Controllers
                 Times.Once);
         }
 
+        [TestMethod]
+        public async Task DownloadSoundAsync_WhenServiceTimesOut_Returns504AndLogsWarning()
+        {
+            // Arrange
+            string soundUrl = "https://example.com/sound.mp3";
+            string word = "test";
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<SoundController>>>();
+            var soundServiceMock = _fixture.Freeze<Mock<ISoundService>>();
+
+            // Simulate a timeout by using a CancellationToken that will be cancelled
+            soundServiceMock
+                .Setup(x => x.DownloadSoundAsync(soundUrl, word, It.IsAny<CancellationToken>()))
+                .Returns(async (string url, string w, CancellationToken ct) =>
+                {
+                    // Wait longer than the timeout to trigger timeout
+                    await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                    return new byte[] { 1, 2, 3 };
+                });
+
+            var sut = _fixture.Create<SoundController>();
+            sut.DownloadSoundRequestTimeout = TimeSpan.FromSeconds(1); // Set short timeout for faster test
+
+            // Act
+            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code");
+
+            // Assert
+            var result = actionResult as ObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be(504);
+            result.Value.Should().Be("Sound download timed out");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.Is<EventId>(e => e.Id == (int)TranslatorAppEventId.DownloadingSoundTimedOut),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Sound download timed out after")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DownloadSoundAsync_WhenClientCancelsRequest_RethrowsOperationCanceledException()
+        {
+            // Arrange
+            string soundUrl = "https://example.com/sound.mp3";
+            string word = "test";
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<SoundController>>>();
+            var soundServiceMock = _fixture.Freeze<Mock<ISoundService>>();
+
+            var clientCts = new CancellationTokenSource();
+            clientCts.Cancel(); // Simulate client cancellation
+
+            soundServiceMock
+                .Setup(x => x.DownloadSoundAsync(soundUrl, word, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new OperationCanceledException());
+
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code", clientCts.Token);
+
+            // Assert
+            await act.Should().ThrowAsync<OperationCanceledException>();
+
+            // Verify that warning was NOT logged (client cancellation is not logged)
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Never);
+        }
+
+        [TestMethod]
+        public async Task DownloadSoundAsync_WhenServiceThrowsException_RethrowsAndLogsError()
+        {
+            // Arrange
+            string soundUrl = "https://example.com/sound.mp3";
+            string word = "test";
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<SoundController>>>();
+            var soundServiceMock = _fixture.Freeze<Mock<ISoundService>>();
+
+            var expectedException = new InvalidOperationException("Test exception");
+            soundServiceMock
+                .Setup(x => x.DownloadSoundAsync(soundUrl, word, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(expectedException);
+
+            var sut = _fixture.Create<SoundController>();
+
+            // Act
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code");
+
+            // Assert
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("Test exception");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.Is<EventId>(e => e.Id == (int)TranslatorAppEventId.ErrorDownloadingSound),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("An error occurred while trying to download the sound")),
+                    expectedException,
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
         #endregion
     }
 }

@@ -13,6 +13,8 @@ namespace TranslatorApp.Controllers
         private readonly ISoundService _soundService;
         private readonly IGlobalSettings _globalSettings;
 
+        internal TimeSpan DownloadSoundRequestTimeout { get; set; } = TimeSpan.FromSeconds(20);
+
         public SoundController(
             ILogger<SoundController> logger,
             ISoundService soundService,
@@ -30,7 +32,8 @@ namespace TranslatorApp.Controllers
             [FromQuery] string? soundUrl = null,
             [FromQuery] string? word = null,
             [FromQuery] string? version = "1",
-            [FromQuery] string? code = null)
+            [FromQuery] string? code = null,
+            CancellationToken cancellationToken = default)
         {
             if (code != _globalSettings.RequestSecretCode)
             {
@@ -47,17 +50,28 @@ namespace TranslatorApp.Controllers
                 return BadRequest("Only protocol version 1 is supported.");
             }
 
+            using var timeoutCts = new CancellationTokenSource(DownloadSoundRequestTimeout);
             try
             {
                 _logger.LogInformation(new EventId((int)TranslatorAppEventId.SoundDownloadRequestReceived),
                     "Received request to download sound from URL: {SoundUrl} for word: {Word}", soundUrl, word);
 
-                var ct = new CancellationTokenSource(TimeSpan.FromSeconds(20)).Token;
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-                // Download the sound file, transcode to mp3 (if necessary), and return the mp3 file stream.
-                byte[] fileBytes = await _soundService.DownloadSoundAsync(soundUrl, word, ct);
+                byte[] fileBytes = await _soundService.DownloadSoundAsync(soundUrl, word, linkedCts.Token);
 
                 return File(fileBytes, "audio/mpeg", $"{word}.mp3");
+            }
+            catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true)
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.DownloadingSoundTimedOut),
+                    "Sound download timed out after {Timeout} seconds for URL: {SoundUrl}", DownloadSoundRequestTimeout.TotalSeconds, soundUrl);
+                return StatusCode(504, "Sound download timed out");
+            }
+            catch (OperationCanceledException)
+            {
+                // Client cancelled the request - don't log as error
+                throw;
             }
             catch (Exception ex)
             {

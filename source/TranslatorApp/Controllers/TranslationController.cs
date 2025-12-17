@@ -19,6 +19,9 @@ namespace TranslatorApp.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly IGlobalSettings _globalSettings;
 
+        internal TimeSpan LookupRequestTimeout { get; set; } = TimeSpan.FromSeconds(10);
+        internal TimeSpan TranslateRequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
         public TranslationController(
             ILogger<TranslationController> logger,
             ITranslationsService translationsService,
@@ -37,7 +40,8 @@ namespace TranslatorApp.Controllers
         [Route("api/LookUpWord")]
         public async Task<ActionResult<WordModel?>> LookUpWordAsync(
             [FromBody] LookUpWordRequest lookUpWordRequest,
-            [FromQuery] string? code = null)
+            [FromQuery] string? code = null,
+            CancellationToken cancellationToken = default)
         {
             if (lookUpWordRequest == null)
             {
@@ -54,19 +58,26 @@ namespace TranslatorApp.Controllers
                 return Unauthorized();
             }
 
-            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest);
+            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest, cancellationToken);
             if (!validation.IsValid)
             {
                 string errorMessage = validation.FormatErrorMessage();
                 return BadRequest(errorMessage);
             }
 
+            CancellationToken? lookupRequestCt = null;
+            CancellationToken? translateRequestCt = null;
+
             try
             {
+                lookupRequestCt = new CancellationTokenSource(LookupRequestTimeout).Token;
+                using var lookupLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, lookupRequestCt.Value);
+
                 WordModel? wordModel = await _translationsService.LookUpWordInDictionaryAsync(
                     lookUpWordRequest.Text,
                     lookUpWordRequest.SourceLanguage,
-                    lookUpWordRequest.DestinationLanguage);
+                    lookUpWordRequest.DestinationLanguage,
+                    lookupLinkedCts.Token);
 
                 if (wordModel == null)
                 {
@@ -83,7 +94,10 @@ namespace TranslatorApp.Controllers
                     wordModel.SourceLanguage,
                     lookUpWordRequest.DestinationLanguage);
 
-                wordModel = await _translationsService.TranslateAsync(wordModel);
+                translateRequestCt = new CancellationTokenSource(TranslateRequestTimeout).Token;
+                using var translateLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, translateRequestCt.Value);
+
+                wordModel = await _translationsService.TranslateAsync(wordModel, translateLinkedCts.Token);
 
                 if (_environment.IsDevelopment())
                 {
@@ -103,6 +117,23 @@ namespace TranslatorApp.Controllers
                 }
 
                 return wordModel;
+            }
+            catch (OperationCanceledException) when (lookupRequestCt?.IsCancellationRequested == true)
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOnlineDictionaryTimedOut),
+                    "Calling online dictionary timed out after {Timeout} seconds", LookupRequestTimeout.TotalSeconds);
+                return StatusCode(504, "Translation timed out");
+            }
+            catch (OperationCanceledException) when (translateRequestCt?.IsCancellationRequested == true)
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOpenAITimeoudOut),
+                    "Calling OpenAI API timed out after {Timeout} seconds", TranslateRequestTimeout.TotalSeconds);
+                return StatusCode(504, "Translation timed out");
+            }
+            catch (OperationCanceledException)
+            {
+                // Client cancelled the request - don't log as error
+                throw;
             }
             catch (Exception ex)
             {

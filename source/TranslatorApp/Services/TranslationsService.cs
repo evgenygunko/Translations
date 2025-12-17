@@ -8,9 +8,9 @@ namespace TranslatorApp.Services
 {
     public interface ITranslationsService
     {
-        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage);
+        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default);
 
-        Task<WordModel> TranslateAsync(WordModel wordModel);
+        Task<WordModel> TranslateAsync(WordModel wordModel, CancellationToken cancellationToken = default);
     }
 
     public class TranslationsService : ITranslationsService
@@ -37,7 +37,7 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage)
+        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default)
         {
             // First check if the text has language specific characters - then use that language as source language
             if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
@@ -54,7 +54,6 @@ namespace TranslatorApp.Services
                 searchTerm,
                 sourceLanguage);
 
-            var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
             WordModel? wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, sourceLanguage, cancellationToken);
 
             // If the source language is Danish and the word starts with "at ", remove "at " and search again.
@@ -71,7 +70,6 @@ namespace TranslatorApp.Services
                     sourceLanguage,
                     textWithoutAt);
 
-                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
                 wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage, cancellationToken);
             }
 
@@ -87,19 +85,17 @@ namespace TranslatorApp.Services
                     sourceLanguage,
                     anotherLanguage);
 
-                cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
                 wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, anotherLanguage, cancellationToken);
             }
 
             return wordModel;
         }
 
-        public async Task<WordModel> TranslateAsync(WordModel wordModel)
+        public async Task<WordModel> TranslateAsync(WordModel wordModel, CancellationToken cancellationToken = default)
         {
             Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel);
 
             Models.Translation.TranslationOutput? translationOutput;
-            CancellationToken cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token;
 
             if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
             {
