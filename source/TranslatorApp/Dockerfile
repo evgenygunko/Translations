@@ -34,6 +34,9 @@ ARG VERSION=1.0.0
 WORKDIR /src
 
 # Copy project file(s) and restore as a separate layer for better caching
+# Include Directory.Build.Props and Directory.Packages.props for Central Package Management
+COPY ["Directory.Build.Props", "./"]
+COPY ["Directory.Packages.props", "./"]
 COPY ["source/TranslatorApp/TranslatorApp.csproj", "source/TranslatorApp/"]
 COPY ["source/Parsers/Parsers.csproj", "source/Parsers/"]
 RUN dotnet restore "./source/TranslatorApp/TranslatorApp.csproj"
