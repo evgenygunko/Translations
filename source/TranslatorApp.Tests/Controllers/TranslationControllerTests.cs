@@ -55,6 +55,7 @@ namespace TranslatorApp.Tests.Controllers
 
         [TestMethod]
         [DataRow("0")]
+        [DataRow("1")]
         [DataRow("3")]
         public async Task LookUpWordAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
         {
@@ -71,47 +72,11 @@ namespace TranslatorApp.Tests.Controllers
             result.Should().NotBeNull();
             result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
 
-            result.Value.Should().Be("Only protocol version 1 and 2 are supported.");
+            result.Value.Should().Be("Only protocol version 2 is supported.");
         }
 
         [TestMethod]
-        public async Task NormalizeSoundAsync_WhenProtocolVersion1_DoesNotCheckCode()
-        {
-            // Arrange
-            var lookUpWordRequest = new LookUpWordRequest(
-                Text: "word to translate",
-                SourceLanguage: "",
-                DestinationLanguage: "ru",
-                Version: "1");
-
-            // Assert
-            var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "invalid-code");
-
-            // Assert
-            actionResult.Value.Should().BeOfType<WordModel>();
-        }
-
-        [TestMethod]
-        public async Task LookUpWordAsync_WhenProtocolVersion1AndCodeIsNull_ReturnsWordModel()
-        {
-            // Arrange
-            var lookUpWordRequest = new LookUpWordRequest(
-                Text: "word to translate",
-                SourceLanguage: "",
-                DestinationLanguage: "ru",
-                Version: "1");
-
-            // Act
-            var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, null);
-
-            // Assert
-            actionResult.Value.Should().BeOfType<WordModel>();
-        }
-
-        [TestMethod]
-        public async Task NormalizeSoundAsync_WhenProtocolVersion2AndCodeIsInvalid_ReturnsUnauthorized()
+        public async Task LookUpWordAsync_WhenProtocolVersion2AndCodeIsInvalid_ReturnsUnauthorized()
         {
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
@@ -135,7 +100,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: "",
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
@@ -161,7 +126,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -192,7 +157,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
@@ -219,7 +184,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             WordModel wordModel = _fixture.Create<WordModel>();
 
@@ -245,7 +210,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -288,7 +253,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -336,7 +301,7 @@ namespace TranslatorApp.Tests.Controllers
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
                 DestinationLanguage: "ru",
-                Version: "1");
+                Version: "2");
 
             var cts = new CancellationTokenSource();
             cts.Cancel();

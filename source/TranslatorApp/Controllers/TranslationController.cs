@@ -48,12 +48,12 @@ namespace TranslatorApp.Controllers
                 return BadRequest("Input data is null");
             }
 
-            if (!(lookUpWordRequest.Version == "1" || lookUpWordRequest.Version == "2"))
+            if (lookUpWordRequest.Version != "2")
             {
-                return BadRequest("Only protocol version 1 and 2 are supported.");
+                return BadRequest("Only protocol version 2 is supported.");
             }
 
-            if (lookUpWordRequest.Version == "2" && code != _globalSettings.RequestSecretCode)
+            if (code != _globalSettings.RequestSecretCode)
             {
                 return Unauthorized();
             }

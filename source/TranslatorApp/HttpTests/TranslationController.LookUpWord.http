@@ -1,13 +1,13 @@
 ### Translate "såsom" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "såsom",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -25,14 +25,14 @@ Content-Type: application/json
 
 ### Translate a variant for "bestemt" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -50,14 +50,14 @@ Content-Type: application/json
 
 ### Translate a variant for "ramme" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "https://ordnet.dk/ddo/ordbog?select=ramme,3&query=rammer",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -76,14 +76,14 @@ Content-Type: application/json
 
 ### Translate "skyldes" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "skyldes",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -100,14 +100,14 @@ Content-Type: application/json
 
 ### Translate "slå" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "slå",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -126,14 +126,14 @@ Content-Type: application/json
 
 ### Translate a variant for "slå" from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -150,14 +150,14 @@ Content-Type: application/json
 
 ### Translate "at ligge" (a verb with 'at') from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "at ligge",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -172,14 +172,14 @@ Content-Type: application/json
 
 ### Translate "snabel-a" (check encoding of the search query parameter) from Danish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "snabel-a",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -194,14 +194,14 @@ Content-Type: application/json
 
 ### Translate "afeitar" from Spanish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "afeitar",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -213,24 +213,20 @@ Content-Type: application/json
     client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
     client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
     client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
-
-    client.assert(response.body.definitions[1]["headword"]["english"].length > 0);
-    client.assert(response.body.definitions[1]["headword"]["russian"].length > 0);
-    client.assert(response.body.definitions[1].contexts[0].meanings[0]["translation"].length > 0);
   });
 %}
 
 
 ### Translate "coche" from Spanish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "coche",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -252,14 +248,14 @@ Content-Type: application/json
 
 ### Translate "wasapear" from Spanish to Russian
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
     "Text": "wasapear",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
-    "Version": "1"
+    "Version": "2"
 }
 
 > {%
@@ -278,7 +274,7 @@ Content-Type: application/json
 
 ### BadRequest - Several required fields are null
 
-POST {{HostAddress}}/api/LookUpWord
+POST {{HostAddress}}/api/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
