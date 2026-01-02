@@ -1,0 +1,294 @@
+### Translate "såsom" from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "såsom",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0].meanings[1]["translation"].length > 0);
+  });
+%}
+
+### Translate a variant for "bestemt" from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0].meanings[1]["translation"].length > 0);
+  });
+%}
+
+### Translate a variant for "ramme" from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://ordnet.dk/ddo/ordbog?select=ramme,3&query=rammer",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["partOfSpeech"] === "verbum");
+
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+  });
+%}
+
+### Translate "skyldes" from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "skyldes",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+  });
+%}
+
+### Translate "slå" from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "slå",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.variations[0]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
+    client.assert(response.body.variations[1]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
+    client.assert(response.body.variations[2]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
+  });
+%}
+
+### Translate a variant for "slå" from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["original"] === "slå om-nederdel");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+  });
+%}
+
+
+### Translate "at ligge" (a verb with 'at') from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "at ligge",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+  });
+%}
+
+### Translate "snabel-a" (check encoding of the search query parameter) from Danish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "snabel-a",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+  });
+%}
+
+### Translate "afeitar" from Spanish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "afeitar",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+  });
+%}
+
+
+### Translate "coche" from Spanish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "coche",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[1].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[2].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definitions[0].contexts[3].meanings[0]["translation"].length > 0);
+  });
+%}
+
+
+### Translate "wasapear" from Spanish to Russian
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "wasapear",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 200, "Response status is 200");
+
+    client.assert(response.body.definitions[0]["headword"]["english"].length > 0);
+    client.assert(response.body.definitions[0]["headword"]["russian"].length > 0);
+
+    client.assert(response.body.definitions[0].contexts[0].meanings[0]["translation"].length > 0);
+  });
+%}
+
+
+### BadRequest - Several required fields are null
+
+POST {{HostAddress}}/api/v1/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "coche",
+    "SourceLanguage": null,
+    "DestinationLanguage": null,
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When several required fields are null, we expect to get an error', () => {
+    client.assert(response.status === 400, "Response status is BadRequest");
+    client.assert(response.body.title === "One or more validation errors occurred.")
+  });
+%}

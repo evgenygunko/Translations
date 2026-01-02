@@ -1,6 +1,7 @@
 ﻿// Ignore Spelling: Validator req App
 
 using System.Text.Json;
+using Asp.Versioning;
 using CopyWords.Parsers.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,8 @@ using TranslatorApp.Services;
 namespace TranslatorApp.Controllers
 {
     [ApiController]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public class TranslationController : ControllerBase
     {
         private readonly ILogger<TranslationController> _logger;
@@ -37,7 +40,9 @@ namespace TranslatorApp.Controllers
         }
 
         [HttpPost]
-        [Route("api/LookUpWord")]
+        [MapToApiVersion("1.0")]
+        [Route("api/v{version:apiVersion}/[controller]/LookUpWord")]
+        [Route("api/LookUpWord")] // Legacy route for backward compatibility
         public async Task<ActionResult<WordModel?>> LookUpWordAsync(
             [FromBody] LookUpWordRequest lookUpWordRequest,
             [FromQuery] string? code = null,
@@ -46,11 +51,6 @@ namespace TranslatorApp.Controllers
             if (lookUpWordRequest == null)
             {
                 return BadRequest("Input data is null");
-            }
-
-            if (lookUpWordRequest.Version != "2")
-            {
-                return BadRequest("Only protocol version 2 is supported.");
             }
 
             if (code != _globalSettings.RequestSecretCode)

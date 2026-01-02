@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Asp.Versioning;
 using CopyWords.Parsers;
 using CopyWords.Parsers.Services;
 using FluentValidation;
@@ -49,6 +50,20 @@ public static class Program
 
             // Add services to the container.
             builder.Services.AddControllers();
+
+            // Add API Versioning
+            builder.Services
+                .AddApiVersioning(options =>
+                {
+                    options.DefaultApiVersion = new ApiVersion(1, 0);
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+                    options.ReportApiVersions = true;
+                    options.ApiVersionReader = ApiVersionReader.Combine(
+                        new UrlSegmentApiVersionReader(),
+                        new QueryStringApiVersionReader("api-version"),
+                        new HeaderApiVersionReader("X-Api-Version"));
+                })
+                .AddMvc();
 
             // Add Response Caching
             builder.Services.AddResponseCaching();

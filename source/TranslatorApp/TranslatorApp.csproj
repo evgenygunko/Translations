@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc" />
     <PackageReference Include="BetterStack.Logs.Serilog" />
     <PackageReference Include="FFMpegCore" />
     <PackageReference Include="FluentValidation" />

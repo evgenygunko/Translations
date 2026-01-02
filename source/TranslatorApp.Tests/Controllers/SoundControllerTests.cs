@@ -4,7 +4,6 @@ using System.Net;
 using AutoFixture;
 using FluentAssertions;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -32,13 +31,15 @@ namespace TranslatorApp.Tests.Controllers
         #region Tests for DownloadSoundAsync
 
         [TestMethod]
-        public async Task DownloadSoundAsync_WhenSoundUrlIsNull_ReturnsBadRequest()
+        [DataRow(null)]
+        [DataRow("")]
+        public async Task DownloadSoundAsync_WhenSoundUrlIsNullOrEmpty_ReturnsBadRequest(string soundUrl)
         {
             // Arrange
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync(null, "test", "1", "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word: "test", code: "test-code");
 
             // Assert
             var result = actionResult as BadRequestObjectResult;
@@ -54,23 +55,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", null, "1", "test-code");
-
-            // Assert
-            var result = actionResult as BadRequestObjectResult;
-            result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
-            result.Value.Should().Be("soundUrl and word are required");
-        }
-
-        [TestMethod]
-        public async Task DownloadSoundAsync_WhenSoundUrlIsEmpty_ReturnsBadRequest()
-        {
-            // Arrange
-            var sut = _fixture.Create<SoundController>();
-
-            // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync(string.Empty, "test", "1", "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", null, "test-code");
 
             // Assert
             var result = actionResult as BadRequestObjectResult;
@@ -86,7 +71,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", string.Empty, "1", "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", string.Empty, "test-code");
 
             // Assert
             var result = actionResult as BadRequestObjectResult;
@@ -96,27 +81,13 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        [DataRow("2")]
-        [DataRow("3")]
-        public async Task DownloadSoundAsync_WhenUnsupportedProtocolVersion_ReturnsBadRequest(string protocolVersion)
-        {
-            var sut = _fixture.Create<SoundController>();
-            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", protocolVersion, "test-code");
-
-            var result = actionResult as BadRequestObjectResult;
-            result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
-            result.Value.Should().Be("Only protocol version 1 is supported.");
-        }
-
-        [TestMethod]
         public async Task DownloadSoundAsync_WhenCodeIsInvalid_ReturnsUnauthorized()
         {
             // Arrange
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", "1", "invalid-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", "invalid-code");
 
             // Assert
             var result = actionResult as UnauthorizedResult;
@@ -131,7 +102,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", "1", null);
+            IActionResult actionResult = await sut.DownloadSoundAsync("https://example.com/sound.mp3", "test", null);
 
             // Assert
             var result = actionResult as UnauthorizedResult;
@@ -157,7 +128,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word, "test-code");
 
             // Assert
             var result = actionResult as FileContentResult;
@@ -202,7 +173,7 @@ namespace TranslatorApp.Tests.Controllers
             sut.DownloadSoundRequestTimeout = TimeSpan.FromSeconds(1); // Set short timeout for faster test
 
             // Act
-            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code");
+            IActionResult actionResult = await sut.DownloadSoundAsync(soundUrl, word, "test-code");
 
             // Assert
             var result = actionResult as ObjectResult;
@@ -240,7 +211,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code", clientCts.Token);
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, "test-code", clientCts.Token);
 
             // Assert
             await act.Should().ThrowAsync<OperationCanceledException>();
@@ -274,7 +245,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<SoundController>();
 
             // Act
-            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, "1", "test-code");
+            Func<Task> act = async () => await sut.DownloadSoundAsync(soundUrl, word, "test-code");
 
             // Assert
             await act.Should().ThrowAsync<InvalidOperationException>()

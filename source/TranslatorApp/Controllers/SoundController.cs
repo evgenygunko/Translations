@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Validator
 
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
@@ -7,6 +8,7 @@ using TranslatorApp.Services;
 namespace TranslatorApp.Controllers
 {
     [ApiController]
+    [ApiVersion("1.0")]
     public class SoundController : ControllerBase
     {
         private readonly ILogger<SoundController> _logger;
@@ -26,12 +28,12 @@ namespace TranslatorApp.Controllers
         }
 
         [HttpGet]
-        [Route("api/DownloadSound")]
+        [Route("api/v{version:apiVersion}/[controller]/DownloadSound")]
+        [Route("api/DownloadSound")] // Legacy route for backward compatibility
         [ResponseCache(Duration = 604800, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "soundUrl", "word" })] // cache for 1 week
         public async Task<IActionResult> DownloadSoundAsync(
             [FromQuery] string? soundUrl = null,
             [FromQuery] string? word = null,
-            [FromQuery] string? version = "1",
             [FromQuery] string? code = null,
             CancellationToken cancellationToken = default)
         {
@@ -43,11 +45,6 @@ namespace TranslatorApp.Controllers
             if (string.IsNullOrEmpty(soundUrl) || string.IsNullOrEmpty(word))
             {
                 return BadRequest("soundUrl and word are required");
-            }
-
-            if (!(version == "1"))
-            {
-                return BadRequest("Only protocol version 1 is supported.");
             }
 
             using var timeoutCts = new CancellationTokenSource(DownloadSoundRequestTimeout);

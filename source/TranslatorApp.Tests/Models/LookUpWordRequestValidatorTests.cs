@@ -19,8 +19,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru",
-                Version: "1");
+                DestinationLanguage: "ru");
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -36,8 +35,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru",
-                Version: "1");
+                DestinationLanguage: "ru");
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -55,8 +53,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru",
-                Version: "1");
+                DestinationLanguage: "ru");
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -70,8 +67,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: "",
-                DestinationLanguage: "ru",
-                Version: "1");
+                DestinationLanguage: "ru");
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -89,8 +85,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage.ToString(),
-                DestinationLanguage: "ru",
-                Version: "1");
+                DestinationLanguage: "ru");
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -108,8 +103,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage,
-                DestinationLanguage: "ru",
-                Version: "1");
+                DestinationLanguage: "ru");
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -124,8 +118,7 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: null!,
-                Version: "1");
+                DestinationLanguage: null!);
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
