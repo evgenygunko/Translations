@@ -142,5 +142,109 @@ namespace TranslatorApp.Controllers
                 throw;
             }
         }
+
+        [HttpPost]
+        [MapToApiVersion("2.0")]
+        [Route("api/v{version:apiVersion}/[controller]/LookUpWord")]
+        public async Task<ActionResult<WordModel2?>> LookUpWord2Async(
+            [FromBody] LookUpWordRequest lookUpWordRequest,
+            [FromQuery] string? code = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (lookUpWordRequest == null)
+            {
+                return BadRequest("Input data is null");
+            }
+
+            if (code != _globalSettings.RequestSecretCode)
+            {
+                return Unauthorized();
+            }
+
+            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest, cancellationToken);
+            if (!validation.IsValid)
+            {
+                string errorMessage = validation.FormatErrorMessage();
+                return BadRequest(errorMessage);
+            }
+
+            CancellationToken? lookupRequestCt = null;
+            CancellationToken? translateRequestCt = null;
+
+            try
+            {
+                lookupRequestCt = new CancellationTokenSource(LookupRequestTimeout).Token;
+                using var lookupLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, lookupRequestCt.Value);
+
+                WordModel? wordModel = await _translationsService.LookUpWordInDictionaryAsync(
+                    lookUpWordRequest.Text,
+                    lookUpWordRequest.SourceLanguage,
+                    lookUpWordRequest.DestinationLanguage,
+                    lookupLinkedCts.Token);
+
+                if (wordModel == null)
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.WordNotFound),
+                        "Word '{Text}' not found in any dictionary.",
+                        lookUpWordRequest.Text);
+                    return NotFound($"Word '{lookUpWordRequest.Text}' not found.");
+                }
+
+                // Call the OpenAI API to translate it
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.WillTranslateWithOpenAI),
+                    "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
+                    wordModel.Word,
+                    wordModel.SourceLanguage,
+                    lookUpWordRequest.DestinationLanguage);
+
+                translateRequestCt = new CancellationTokenSource(TranslateRequestTimeout).Token;
+                using var translateLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, translateRequestCt.Value);
+
+                wordModel = await _translationsService.TranslateAsync(wordModel, translateLinkedCts.Token);
+                WordModel2 wordModel2 = WordModel2.FromWordModel(wordModel);
+
+                if (_environment.IsDevelopment())
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel2),
+                        "Returning word model: {TranslationOutput}",
+                        JsonSerializer.Serialize(wordModel2, new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
+                }
+                else
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel2),
+                        "Returning word model: {@TranslationOutput}",
+                        wordModel2);
+                }
+
+                return wordModel2;
+            }
+            catch (OperationCanceledException) when (lookupRequestCt?.IsCancellationRequested == true)
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOnlineDictionaryTimedOut),
+                    "Calling online dictionary timed out after {Timeout} seconds", LookupRequestTimeout.TotalSeconds);
+                return StatusCode(504, "Translation timed out");
+            }
+            catch (OperationCanceledException) when (translateRequestCt?.IsCancellationRequested == true)
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOpenAITimeoudOut),
+                    "Calling OpenAI API timed out after {Timeout} seconds", TranslateRequestTimeout.TotalSeconds);
+                return StatusCode(504, "Translation timed out");
+            }
+            catch (OperationCanceledException)
+            {
+                // Client cancelled the request - don't log as error
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(new EventId((int)TranslatorAppEventId.ErrorDuringLookup),
+                    ex, "An error occurred while trying to look up the word.");
+                throw;
+            }
+        }
     }
 }

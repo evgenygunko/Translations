@@ -1,5 +1,23 @@
 ﻿namespace CopyWords.Parsers.Models
 {
+    public record WordModel2(
+       string Word,
+       SourceLanguage SourceLanguage,
+       string? SoundUrl,
+       string? SoundFileName,
+       Definition Definition,
+       IEnumerable<Variant> Variants)
+    {
+        public static WordModel2 FromWordModel(WordModel other) =>
+            new(
+                other.Word,
+                other.SourceLanguage,
+                other.SoundUrl,
+                other.SoundFileName,
+                other.Definitions.First(),
+                other.Variations);
+    }
+
     public record WordModel(
         string Word,
         SourceLanguage SourceLanguage,
