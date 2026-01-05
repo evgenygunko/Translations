@@ -326,14 +326,13 @@ namespace TranslatorApp.Tests.Services
             result.Version.Should().Be("2");
             result.SourceLanguage.Should().Be(sourceLanguage.ToString());
             result.DestinationLanguage.Should().Be(destinationLanguage);
-            result.Definitions.Should().HaveCount(1);
 
             Definition definition = wordModel.Definition;
 
             // Headword is taken from the first meaning
             Meaning firstMeaning = definition.Contexts.First().Meanings.First();
 
-            TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definitions.First();
+            TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definition;
 
             inputDefinition.Headword.Text.Should().Be(definition.Headword.Original);
             inputDefinition.Headword.PartOfSpeech.Should().Be(definition.PartOfSpeech);
@@ -362,7 +361,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public void CreateTranslationInputFromWordModel_ForSlå_Adds2DefinitionsToTranslationInput()
+        public void CreateTranslationInputFromWordModel_ForSlå_AddsDefinitionToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
             string destinationLanguage = "Russian";
@@ -376,16 +375,13 @@ namespace TranslatorApp.Tests.Services
             result.SourceLanguage.Should().Be(sourceLanguage.ToString());
             result.DestinationLanguage.Should().Be(destinationLanguage);
 
-            result.Definitions.Should().HaveCount(1);
-
             TranslatorApp.Models.Translation.DefinitionInput inputDefinition;
             TranslatorApp.Models.Translation.ContextInput inputContext;
 
             /***********************************************************************/
             // Afeitar
             /***********************************************************************/
-            inputDefinition = result.Definitions.First();
-            inputDefinition.id.Should().Be(1);
+            inputDefinition = result.Definition;
             inputDefinition.Headword.Text.Should().Be("slå om-nederdel");
             inputDefinition.Headword.PartOfSpeech.Should().Be("transitive verb");
             inputDefinition.Headword.Meaning.Should().Be("");
@@ -410,8 +406,6 @@ namespace TranslatorApp.Tests.Services
             result.SourceLanguage.Should().Be(sourceLanguage.ToString());
             result.DestinationLanguage.Should().Be(destinationLanguage);
 
-            result.Definitions.Should().HaveCount(1);
-
             TranslatorApp.Models.Translation.DefinitionInput inputDefinition;
             TranslatorApp.Models.Translation.ContextInput inputContext;
             TranslatorApp.Models.Translation.MeaningInput inputMeaning;
@@ -419,8 +413,7 @@ namespace TranslatorApp.Tests.Services
             /***********************************************************************/
             // Afeitar
             /***********************************************************************/
-            inputDefinition = result.Definitions.First();
-            inputDefinition.id.Should().Be(1);
+            inputDefinition = result.Definition;
             inputDefinition.Headword.Text.Should().Be("afeitar");
             inputDefinition.Headword.PartOfSpeech.Should().Be("transitive verb");
             inputDefinition.Headword.Meaning.Should().Be("to shave");
@@ -450,10 +443,7 @@ namespace TranslatorApp.Tests.Services
             result.SourceLanguage.Should().Be(sourceLanguage.ToString());
             result.DestinationLanguage.Should().Be(destinationLanguage);
 
-            result.Definitions.Should().HaveCount(1);
-
-            TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definitions.First();
-            inputDefinition.id.Should().Be(1);
+            TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definition;
             inputDefinition.Headword.Text.Should().Be("el coche");
             inputDefinition.Headword.PartOfSpeech.Should().Be("masculine noun");
             inputDefinition.Headword.Meaning.Should().Be("car");
@@ -521,14 +511,11 @@ namespace TranslatorApp.Tests.Services
             var originalWordModel = CreateWordModelForSlå();
 
             var translationOutput = new TranslatorApp.Models.Translation.TranslationOutput(
-                Definitions: [
-                    new TranslatorApp.Models.Translation.DefinitionOutput(
-                        id: 1,
-                        HeadwordTranslation: _fixture.Create<string>(),
-                        HeadwordTranslationEnglish: _fixture.Create<string>(),
-                        Contexts: []
-                    )
-                ]
+                Definition: new TranslatorApp.Models.Translation.DefinitionOutput(
+                    HeadwordTranslation: _fixture.Create<string>(),
+                    HeadwordTranslationEnglish: _fixture.Create<string>(),
+                    Contexts: []
+                )
             );
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationsService>>>();
@@ -748,24 +735,21 @@ namespace TranslatorApp.Tests.Services
             WordModel originalWordModel = CreateWordModelForAefitar();
 
             var translationOutput = new TranslatorApp.Models.Translation.TranslationOutput(
-                [
-                    new TranslatorApp.Models.Translation.DefinitionOutput(
-                        id: 1,
-                        HeadwordTranslation: "брить",
-                        HeadwordTranslationEnglish: "to shave",
-                        Contexts: [
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 1,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 1,
-                                        MeaningTranslation: "брить"
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                ]
+                new TranslatorApp.Models.Translation.DefinitionOutput(
+                    HeadwordTranslation: "брить",
+                    HeadwordTranslationEnglish: "to shave",
+                    Contexts: [
+                        new TranslatorApp.Models.Translation.ContextOutput(
+                            id: 1,
+                            Meanings: [
+                                new TranslatorApp.Models.Translation.MeaningOutput(
+                                    id: 1,
+                                    MeaningTranslation: "брить"
+                                )
+                            ]
+                        )
+                    ]
+                )
             );
 
             // Act
@@ -808,51 +792,48 @@ namespace TranslatorApp.Tests.Services
             WordModel originalWordModel = CreateWordModelForCoche();
 
             var translationOutput = new TranslatorApp.Models.Translation.TranslationOutput(
-                [
-                    new TranslatorApp.Models.Translation.DefinitionOutput(
-                        id: 1,
-                        HeadwordTranslation: "автомобиль",
-                        HeadwordTranslationEnglish: "car",
-                        Contexts: [
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 1,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 1,
-                                        MeaningTranslation: "автомобиль"
-                                    )
-                                ]
-                            ),
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 2,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 1,
-                                        MeaningTranslation: "повозка"
-                                    )
-                                ]
-                            ),
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 3,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 1,
-                                        MeaningTranslation: "вагон"
-                                    )
-                                ]
-                            ),
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 4,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 1,
-                                        MeaningTranslation: "коляска"
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                ]
+                new TranslatorApp.Models.Translation.DefinitionOutput(
+                    HeadwordTranslation: "автомобиль",
+                    HeadwordTranslationEnglish: "car",
+                    Contexts: [
+                        new TranslatorApp.Models.Translation.ContextOutput(
+                            id: 1,
+                            Meanings: [
+                                new TranslatorApp.Models.Translation.MeaningOutput(
+                                    id: 1,
+                                    MeaningTranslation: "автомобиль"
+                                )
+                            ]
+                        ),
+                        new TranslatorApp.Models.Translation.ContextOutput(
+                            id: 2,
+                            Meanings: [
+                                new TranslatorApp.Models.Translation.MeaningOutput(
+                                    id: 1,
+                                    MeaningTranslation: "повозка"
+                                )
+                            ]
+                        ),
+                        new TranslatorApp.Models.Translation.ContextOutput(
+                            id: 3,
+                            Meanings: [
+                                new TranslatorApp.Models.Translation.MeaningOutput(
+                                    id: 1,
+                                    MeaningTranslation: "вагон"
+                                )
+                            ]
+                        ),
+                        new TranslatorApp.Models.Translation.ContextOutput(
+                            id: 4,
+                            Meanings: [
+                                new TranslatorApp.Models.Translation.MeaningOutput(
+                                    id: 1,
+                                    MeaningTranslation: "коляска"
+                                )
+                            ]
+                        )
+                    ]
+                )
             );
 
             // Act
@@ -1073,23 +1054,20 @@ namespace TranslatorApp.Tests.Services
         private TranslatorApp.Models.Translation.TranslationOutput CreateOutputWithOneDefinition()
         {
             var translationOutput = new TranslatorApp.Models.Translation.TranslationOutput(
-                Definitions: [
-                    new TranslatorApp.Models.Translation.DefinitionOutput(
-                        id: 1,
-                        HeadwordTranslation: _fixture.Create<string>(),
-                        HeadwordTranslationEnglish: _fixture.Create<string>(),
-                        Contexts: [
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 1,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 0,
-                                        MeaningTranslation: _fixture.Create<string>())
-                                ]
-                            )
-                        ]
-                    )
-                ]
+                Definition: new TranslatorApp.Models.Translation.DefinitionOutput(
+                    HeadwordTranslation: _fixture.Create<string>(),
+                    HeadwordTranslationEnglish: _fixture.Create<string>(),
+                    Contexts: [
+                        new TranslatorApp.Models.Translation.ContextOutput(
+                            id: 1,
+                            Meanings: [
+                                new TranslatorApp.Models.Translation.MeaningOutput(
+                                    id: 0,
+                                    MeaningTranslation: _fixture.Create<string>())
+                            ]
+                        )
+                    ]
+                )
             );
 
             return translationOutput;

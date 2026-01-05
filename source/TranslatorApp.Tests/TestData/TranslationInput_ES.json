@@ -1,61 +1,31 @@
 {
-  "Version": "2",
-  "SourceLanguage": "Spanish",
-  "DestinationLanguage": "Russian",
-  "Definitions": [
-    {
-      "id": 1,
-      "Headword": {
-        "Text": "afeitar",
-        "PartOfSpeech": "transitive verb",
-        "Meaning": "to shave",
-        "Examples": [
-          "Para el verano, pap\u00E1 decidi\u00F3 afeitar al perro."
-        ]
-      },
-      "Contexts": [
-        {
-          "id": 1,
-          "ContextString": "(to remove hair)",
-          "Meanings": [
-            {
-              "id": 1,
-              "Text": "to shave",
-              "PartOfSpeech": "transitive verb",
-              "Examples": [
+    "Version": "2",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Definition": {
+        "Headword": {
+            "Text": "afeitar",
+            "PartOfSpeech": "transitive verb",
+            "Meaning": "to shave",
+            "Examples": [
                 "Para el verano, pap\u00E1 decidi\u00F3 afeitar al perro."
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "Headword": {
-        "Text": "afeitarse",
-        "PartOfSpeech": "reflexive verb",
-        "Meaning": "to shave",
-        "Examples": [
-          "\u00BFCon qu\u00E9 frecuencia te afeitas la barba?"
-        ]
-      },
-      "Contexts": [
-        {
-          "id": 1,
-          "ContextString": "(to shave oneself)",
-          "Meanings": [
+            ]
+        },
+        "Contexts": [
             {
-              "id": 1,
-              "Text": "to shave",
-              "PartOfSpeech": "reflexive verb",
-              "Examples": [
-                "\u00BFCon qu\u00E9 frecuencia te afeitas la barba?"
-              ]
+                "id": 1,
+                "ContextString": "(to remove hair)",
+                "Meanings": [
+                    {
+                        "id": 1,
+                        "Text": "to shave",
+                        "PartOfSpeech": "transitive verb",
+                        "Examples": [
+                            "Para el verano, pap\u00E1 decidi\u00F3 afeitar al perro."
+                        ]
+                    }
+                ]
             }
-          ]
-        }
-      ]
+        ]
     }
-  ]
 }

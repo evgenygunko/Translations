@@ -15,7 +15,7 @@ namespace TranslatorApp.Services
 
     public interface IOpenAITranslationService2
     {
-        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
+        Task<TranslationOutput?> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
     }
 
     public class OpenAITranslationService2 : IOpenAITranslationService2
@@ -39,7 +39,7 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<TranslationOutput> TranslateAsync(TranslationInput input, CancellationToken cancellationToken)
+        public async Task<TranslationOutput?> TranslateAsync(TranslationInput input, CancellationToken cancellationToken)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -50,7 +50,7 @@ namespace TranslatorApp.Services
                     "The call to OpenAPI Response API took {TotalSeconds} seconds.",
                     stopwatch.Elapsed.TotalSeconds);
 
-            return openAITranslations ?? new TranslationOutput([]);
+            return openAITranslations;
         }
 
         #endregion

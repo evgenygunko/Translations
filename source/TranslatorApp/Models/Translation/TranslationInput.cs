@@ -6,10 +6,9 @@ namespace TranslatorApp.Models.Translation
         string Version,
         string SourceLanguage,
         string DestinationLanguage,
-        IEnumerable<DefinitionInput> Definitions);
+        DefinitionInput Definition);
 
     public record DefinitionInput(
-        int id,
         HeadwordInput Headword,
         IEnumerable<ContextInput> Contexts);
 

@@ -1,36 +1,33 @@
 {
-  "Version": "2",
-  "SourceLanguage": "Danish",
-  "DestinationLanguage": "Russian",
-  "Definitions": [
-    {
-      "id": 1,
-      "Headword": {
-        "Text": "skylde",
-        "PartOfSpeech": "verbum",
-        "Meaning": "have pligt til at betale nogen et tilgodehavende; v\u00E6re i g\u00E6ld til",
-        "Examples": [
-          "da jeg havde sluppet, hvad jeg skyldte min mormor, havde jeg stadig en god tusse tilbage.",
-          "jeg skylder halvanden million kroner v\u00E6k."
-        ]
-      },
-      "Contexts": [
-        {
-          "id": 1,
-          "ContextString": "",
-          "Meanings": [
-            {
-              "id": 1,
-              "Text": "have pligt til at betale nogen et tilgodehavende; v\u00E6re i g\u00E6ld til",
-              "PartOfSpeech": "verbum",
-              "Examples": [
+    "Version": "2",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Definition": {
+        "Headword": {
+            "Text": "skylde",
+            "PartOfSpeech": "verbum",
+            "Meaning": "have pligt til at betale nogen et tilgodehavende; v\u00E6re i g\u00E6ld til",
+            "Examples": [
                 "da jeg havde sluppet, hvad jeg skyldte min mormor, havde jeg stadig en god tusse tilbage.",
                 "jeg skylder halvanden million kroner v\u00E6k."
-              ]
+            ]
+        },
+        "Contexts": [
+            {
+                "id": 1,
+                "ContextString": "",
+                "Meanings": [
+                    {
+                        "id": 1,
+                        "Text": "have pligt til at betale nogen et tilgodehavende; v\u00E6re i g\u00E6ld til",
+                        "PartOfSpeech": "verbum",
+                        "Examples": [
+                            "da jeg havde sluppet, hvad jeg skyldte min mormor, havde jeg stadig en god tusse tilbage.",
+                            "jeg skylder halvanden million kroner v\u00E6k."
+                        ]
+                    }
+                ]
             }
-          ]
-        }
-      ]
+        ]
     }
-  ]
 }

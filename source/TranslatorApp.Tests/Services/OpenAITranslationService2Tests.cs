@@ -28,30 +28,16 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "es",
                 DestinationLanguage: "ru",
-                Definitions: [
-                    new DefinitionInput(
-                        id: 1,
-                        Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech: "noun", Meaning: "meaning", Examples: ["example 1"]),
-                        Contexts:[
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "context 1",
-                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
-                            )
-                        ]
-                    ),
-                    new DefinitionInput(
-                        id: 2,
-                        Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech : "noun", Meaning: "meaning", Examples: ["example 1"]),
-                        Contexts: [
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "context 1",
-                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
-                            )
-                        ]
-                    )
-                ]);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech: "noun", Meaning: "meaning", Examples: ["example 1"]),
+                    Contexts: [
+                        new ContextInput(
+                            id: 1,
+                            ContextString: "context 1",
+                            Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
+                        )
+                    ]
+                ));
 
             var openAIResponse = CreateReponseFromJson("TranslationOutput_ES.json");
 
@@ -72,11 +58,9 @@ namespace TranslatorApp.Tests.Services
                 openAIConfigurationMock.Object,
                 new Mock<ILaunchDarklyService>().Object);
 
-            TranslationOutput result = await sut.TranslateAsync(translationInput, CancellationToken.None);
+            TranslationOutput? result = await sut.TranslateAsync(translationInput, CancellationToken.None);
 
             result.Should().NotBeNull();
-
-            result.Definitions.Should().HaveCount(2);
 
             DefinitionOutput definition;
             MeaningOutput meaning;
@@ -84,8 +68,7 @@ namespace TranslatorApp.Tests.Services
             /***********************************************************************/
             // Afeitar
             /***********************************************************************/
-            definition = result.Definitions[0];
-            definition.id.Should().Be(1);
+            definition = result.Definition;
 
             // Check translations for headword
             definition.HeadwordTranslation.Should().Be("брить, сбривать, подстригать");
@@ -98,24 +81,6 @@ namespace TranslatorApp.Tests.Services
             meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
             meaning.MeaningTranslation.Should().Be("брить, сбривать, подстригать");
-
-            /***********************************************************************/
-            // Afeitarse
-            /***********************************************************************/
-            definition = result.Definitions[1];
-            definition.id.Should().Be(2);
-
-            // Check translations for headword
-            definition.HeadwordTranslation.Should().Be("бриться, побриться, подстричься");
-            definition.HeadwordTranslationEnglish.Should().Be("to shave oneself, to be shaved, to trim oneself");
-
-            // Check translations for meanings
-            definition.Contexts.Should().HaveCount(1);
-            definition.Contexts[0].Meanings.Should().HaveCount(1);
-
-            meaning = definition.Contexts[0].Meanings[0];
-            meaning.id.Should().Be(1);
-            meaning.MeaningTranslation.Should().Be("бриться, побриться, подстричься");
         }
 
         #endregion
@@ -130,21 +95,18 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "en",
                 DestinationLanguage: "fr",
-                Definitions: [
-                    new DefinitionInput(
-                        id: 1,
-                        Headword: new HeadwordInput(Text: "hello", PartOfSpeech: "interjection", Meaning: "greeting", Examples: ["Hello, world!"]),
-                        Contexts: [
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "Casual greeting",
-                                Meanings: [
-                                    new MeaningInput(id: 1, Text: "friendly greeting", PartOfSpeech: "interjection", Examples: ["Hello there!"])
-                                ]
-                            )
-                        ]
-                    )
-                ]);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: "hello", PartOfSpeech: "interjection", Meaning: "greeting", Examples: ["Hello, world!"]),
+                    Contexts: [
+                        new ContextInput(
+                            id: 1,
+                            ContextString: "Casual greeting",
+                            Meanings: [
+                                new MeaningInput(id: 1, Text: "friendly greeting", PartOfSpeech: "interjection", Examples: ["Hello there!"])
+                            ]
+                        )
+                    ]
+                ));
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 
@@ -196,21 +158,18 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "en",
                 DestinationLanguage: "fr",
-                Definitions: [
-                    new DefinitionInput(
-                        id: 1,
-                        Headword: new HeadwordInput(Text: "quote\"test", PartOfSpeech: "noun", Meaning: "test with quotes", Examples: ["He said \"hello\""]),
-                        Contexts: [
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "Context with \"quotes\"",
-                                Meanings: [
-                                    new MeaningInput(id: 1, Text: "meaning with \"quotes\"", PartOfSpeech: "noun", Examples: ["Example with \"quotes\""])
-                                ]
-                            )
-                        ]
-                    )
-                ]);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: "quote\"test", PartOfSpeech: "noun", Meaning: "test with quotes", Examples: ["He said \"hello\""]),
+                    Contexts: [
+                        new ContextInput(
+                            id: 1,
+                            ContextString: "Context with \"quotes\"",
+                            Meanings: [
+                                new MeaningInput(id: 1, Text: "meaning with \"quotes\"", PartOfSpeech: "noun", Examples: ["Example with \"quotes\""])
+                            ]
+                        )
+                    ]
+                ));
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 
@@ -255,9 +214,9 @@ namespace TranslatorApp.Tests.Services
             // Should be able to deserialize the escaped JSON back to the original object
             var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString!, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             deserializedInput.Should().NotBeNull();
-            deserializedInput!.Definitions.First().Headword.Text.Should().Be("quote\"test");
-            deserializedInput.Definitions.First().Headword.Examples.First().Should().Be("He said \"hello\"");
-            deserializedInput.Definitions.First().Contexts.First().ContextString.Should().Be("Context with \"quotes\"");
+            deserializedInput!.Definition.Headword.Text.Should().Be("quote\"test");
+            deserializedInput.Definition.Headword.Examples.First().Should().Be("He said \"hello\"");
+            deserializedInput.Definition.Contexts.First().ContextString.Should().Be("Context with \"quotes\"");
         }
 
         [TestMethod]
@@ -268,21 +227,18 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "zh-CN",
                 DestinationLanguage: "ja-JP",
-                Definitions: [
-                    new DefinitionInput(
-                        id: 1,
-                        Headword: new HeadwordInput(Text: "你好", PartOfSpeech: "interjection", Meaning: "greeting", Examples: ["你好世界"]),
-                        Contexts: [
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "友好问候",
-                                Meanings: [
-                                    new MeaningInput(id: 1, Text: "问候语", PartOfSpeech: "interjection", Examples: ["你好吗？"])
-                                ]
-                            )
-                        ]
-                    )
-                ]);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: "你好", PartOfSpeech: "interjection", Meaning: "greeting", Examples: ["你好世界"]),
+                    Contexts: [
+                        new ContextInput(
+                            id: 1,
+                            ContextString: "友好问候",
+                            Meanings: [
+                                new MeaningInput(id: 1, Text: "问候语", PartOfSpeech: "interjection", Examples: ["你好吗？"])
+                            ]
+                        )
+                    ]
+                ));
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 
@@ -315,51 +271,6 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public void GetPromptMessage_Should_HandleEmptyDefinitions()
-        {
-            // Arrange
-            var translationInput = new TranslationInput(
-                Version: "2",
-                SourceLanguage: "en",
-                DestinationLanguage: "es",
-                Definitions: []);
-
-            var openAIResponseClientMock = new Mock<ResponsesClient>();
-
-            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
-            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
-            {
-                PromptId = "prompt_123"
-            });
-
-            var sut = new OpenAITranslationService2(
-                openAIResponseClientMock.Object,
-                new Mock<ILogger<OpenAITranslationService2>>().Object,
-                openAIConfigurationMock.Object,
-                new Mock<ILaunchDarklyService>().Object);
-
-            // Act
-            string result = sut.GetPromptMessage(translationInput);
-
-            // Assert
-            result.Should().NotBeNullOrEmpty();
-
-            // Should be valid JSON
-            JsonDocument.Parse(result);
-
-            using var document = JsonDocument.Parse(result);
-            var inputJsonString = document.RootElement
-                .GetProperty("prompt")
-                .GetProperty("variables")
-                .GetProperty("input_json")
-                .GetString();
-
-            var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString!);
-            deserializedInput.Should().NotBeNull();
-            deserializedInput.Definitions.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void GetPromptMessage_Should_HandleNullValues()
         {
             // Arrange
@@ -367,21 +278,18 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "en",
                 DestinationLanguage: "es",
-                Definitions: [
-                    new DefinitionInput(
-                        id: 1,
-                        Headword: new HeadwordInput(Text: "test", PartOfSpeech: null, Meaning: "test meaning", Examples: ["test example"]),
-                        Contexts: [
-                            new ContextInput(
-                                id: 1,
-                                ContextString: null,
-                                Meanings: [
-                                    new MeaningInput(id: 1, Text: "meaning", PartOfSpeech: null, Examples: ["example"])
-                                ]
-                            )
-                        ]
-                    )
-                ]);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: "test", PartOfSpeech: null, Meaning: "test meaning", Examples: ["test example"]),
+                    Contexts: [
+                        new ContextInput(
+                            id: 1,
+                            ContextString: null,
+                            Meanings: [
+                                new MeaningInput(id: 1, Text: "meaning", PartOfSpeech: null, Examples: ["example"])
+                            ]
+                        )
+                    ]
+                ));
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 
@@ -415,8 +323,8 @@ namespace TranslatorApp.Tests.Services
 
             var deserializedInput = JsonSerializer.Deserialize<TranslationInput>(inputJsonString!);
             deserializedInput.Should().NotBeNull();
-            deserializedInput.Definitions.First().Headword.PartOfSpeech.Should().BeNull();
-            deserializedInput.Definitions.First().Contexts.First().ContextString.Should().BeNull();
+            deserializedInput.Definition.Headword.PartOfSpeech.Should().BeNull();
+            deserializedInput.Definition.Contexts.First().ContextString.Should().BeNull();
         }
 
         [TestMethod]
@@ -427,7 +335,10 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "en",
                 DestinationLanguage: "fr",
-                Definitions: []);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: string.Empty, PartOfSpeech: null, Meaning: "meaning", Examples: Array.Empty<string>()),
+                    Contexts: Array.Empty<ContextInput>())
+                );
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 
@@ -467,7 +378,10 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "en",
                 DestinationLanguage: "fr",
-                Definitions: []);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: string.Empty, PartOfSpeech: null, Meaning: "meaning", Examples: Array.Empty<string>()),
+                    Contexts: Array.Empty<ContextInput>())
+            );
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 
@@ -509,7 +423,10 @@ namespace TranslatorApp.Tests.Services
                 Version: "2",
                 SourceLanguage: "en",
                 DestinationLanguage: "fr",
-                Definitions: []);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: string.Empty, PartOfSpeech: null, Meaning: "meaning", Examples: Array.Empty<string>()),
+                    Contexts: Array.Empty<ContextInput>())
+            );
 
             var openAIResponseClientMock = new Mock<ResponsesClient>();
 

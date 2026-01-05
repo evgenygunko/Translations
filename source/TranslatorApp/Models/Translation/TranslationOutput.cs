@@ -4,10 +4,9 @@ namespace TranslatorApp.Models.Translation
 {
     // The output model returned by the ASP.NET web application.
     public record TranslationOutput(
-        DefinitionOutput[] Definitions);
+        DefinitionOutput Definition);
 
     public record DefinitionOutput(
-        int id,
         string HeadwordTranslation,
         string HeadwordTranslationEnglish,
         ContextOutput[] Contexts);

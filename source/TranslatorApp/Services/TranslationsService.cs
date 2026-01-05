@@ -144,8 +144,6 @@ namespace TranslatorApp.Services
 
         internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel)
         {
-            var inputDefinitions = new List<Models.Translation.DefinitionInput>();
-
             var definition = wordModel.Definition;
             Meaning? firstMeaning = definition.Contexts.First().Meanings.FirstOrDefault();
 
@@ -175,16 +173,15 @@ namespace TranslatorApp.Services
                     Meanings: inputMeanings));
             }
 
-            inputDefinitions.Add(new Models.Translation.DefinitionInput(
-                id: inputDefinitions.Count + 1,
+            var inputDefinition = new Models.Translation.DefinitionInput(
                 Headword: headwordToTranslate,
-                Contexts: contextsToTranslate));
+                Contexts: contextsToTranslate);
 
             var translationInput = new Models.Translation.TranslationInput(
                 Version: "2",
                 SourceLanguage: wordModel.SourceLanguage.ToString(),
                 DestinationLanguage: "Russian",
-                Definitions: inputDefinitions);
+                Definition: inputDefinition);
 
             return translationInput;
         }
@@ -192,7 +189,7 @@ namespace TranslatorApp.Services
         internal WordModel CreateWordModelFromTranslationOutput(WordModel wordModel, Models.Translation.TranslationOutput translationOutput)
         {
             var originalDefinition = wordModel.Definition;
-            Models.Translation.DefinitionOutput translationDefinition = translationOutput.Definitions[0];
+            Models.Translation.DefinitionOutput translationDefinition = translationOutput.Definition;
 
             var contextsWithTranslations = new List<Context>();
 

@@ -18,37 +18,23 @@ namespace TranslatorApp.Tests.Services
         #region Tests for TranslateAsync
 
         [TestMethod]
-        public async Task TranslateAsync_Should_CallChatClientForEachDefinition()
+        public async Task TranslateAsync_Should_CallChatClient()
         {
             // Input doesn't matter, but it must have 2 definitions, because we mock 2 responses
             var translationInput = new TranslationInput(
                 Version: "2",
                 SourceLanguage: "es",
                 DestinationLanguage: "ru",
-                Definitions: [
-                    new DefinitionInput(
-                        id: 1,
-                        Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech: "noun", Meaning: "meaning", Examples: ["example 1"]),
-                        Contexts:[
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "context 1",
-                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
-                            )
-                        ]
-                    ),
-                    new DefinitionInput(
-                        id: 2,
-                        Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech : "noun", Meaning: "meaning", Examples: ["example 1"]),
-                        Contexts: [
-                            new ContextInput(
-                                id: 1,
-                                ContextString: "context 1",
-                                Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
-                            )
-                        ]
-                    )
-                ]);
+                Definition: new DefinitionInput(
+                    Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech: "noun", Meaning: "meaning", Examples: ["example 1"]),
+                    Contexts: [
+                        new ContextInput(
+                            id: 1,
+                            ContextString: "context 1",
+                            Meanings: [ new MeaningInput(id : 1, Text : "meaning 1", PartOfSpeech: "noun", Examples: ["meaning 1, example 1"]) ]
+                        )
+                    ]
+            ));
 
             var openAIResponse = CreateChatCompletionFromJson("TranslationOutput_ES.json");
 
@@ -59,11 +45,9 @@ namespace TranslatorApp.Tests.Services
 
             var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ILogger<OpenAITranslationService>>().Object);
 
-            TranslationOutput result = await sut.TranslateAsync(translationInput, CancellationToken.None);
+            TranslationOutput? result = await sut.TranslateAsync(translationInput, CancellationToken.None);
 
             result.Should().NotBeNull();
-
-            result.Definitions.Should().HaveCount(2);
 
             DefinitionOutput definition;
             MeaningOutput meaning;
@@ -71,8 +55,7 @@ namespace TranslatorApp.Tests.Services
             /***********************************************************************/
             // Afeitar
             /***********************************************************************/
-            definition = result.Definitions[0];
-            definition.id.Should().Be(1);
+            definition = result.Definition;
 
             // Check translations for headword
             definition.HeadwordTranslation.Should().Be("брить, сбривать, подстригать");
@@ -85,24 +68,6 @@ namespace TranslatorApp.Tests.Services
             meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
             meaning.MeaningTranslation.Should().Be("брить, сбривать, подстригать");
-
-            /***********************************************************************/
-            // Afeitarse
-            /***********************************************************************/
-            definition = result.Definitions[1];
-            definition.id.Should().Be(2);
-
-            // Check translations for headword
-            definition.HeadwordTranslation.Should().Be("бриться, побриться, подстричься");
-            definition.HeadwordTranslationEnglish.Should().Be("to shave oneself, to be shaved, to trim oneself");
-
-            // Check translations for meanings
-            definition.Contexts.Should().HaveCount(1);
-            definition.Contexts[0].Meanings.Should().HaveCount(1);
-
-            meaning = definition.Contexts[0].Meanings[0];
-            meaning.id.Should().Be(1);
-            meaning.MeaningTranslation.Should().Be("бриться, побриться, подстричься");
         }
 
         #endregion

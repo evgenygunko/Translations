@@ -1,36 +1,17 @@
 {
-  "Definitions": [
-    {
-      "id": 1,
-      "HeadwordTranslation": "брить, сбривать, подстригать",
-      "HeadwordTranslationEnglish": "to shave, to trim, to barber",
-      "Contexts": [
-        {
-          "id": 1,
-          "Meanings": [
+    "Definition": {
+        "HeadwordTranslation": "брить, сбривать, подстригать",
+        "HeadwordTranslationEnglish": "to shave, to trim, to barber",
+        "Contexts": [
             {
-              "id": 1,
-              "MeaningTranslation": "брить, сбривать, подстригать"
+                "id": 1,
+                "Meanings": [
+                    {
+                        "id": 1,
+                        "MeaningTranslation": "брить, сбривать, подстригать"
+                    }
+                ]
             }
-          ]
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "HeadwordTranslation": "бриться, побриться, подстричься",
-      "HeadwordTranslationEnglish": "to shave oneself, to be shaved, to trim oneself",
-      "Contexts": [
-        {
-          "id": 1,
-          "Meanings": [
-            {
-              "id": 1,
-              "MeaningTranslation": "бриться, побриться, подстричься"
-            }
-          ]
-        }
-      ]
+        ]
     }
-  ]
 }

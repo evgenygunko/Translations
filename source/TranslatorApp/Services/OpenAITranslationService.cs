@@ -14,7 +14,7 @@ namespace TranslatorApp.Services
 {
     public interface IOpenAITranslationService
     {
-        Task<TranslationOutput> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
+        Task<TranslationOutput?> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
@@ -32,27 +32,42 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<TranslationOutput> TranslateAsync(TranslationInput input, CancellationToken cancellationToken)
+        public async Task<TranslationOutput?> TranslateAsync(TranslationInput input, CancellationToken cancellationToken)
         {
             StringBuilder prompt = new StringBuilder();
             prompt.AppendLine($@"
 Translate the following JSON data from {input.SourceLanguage} to {input.DestinationLanguage}.
 
-For each Definition in Definitions array translate the property Headword.Text:
-    - Maintain the same part of speech in the translation as defined in Headword.PartOfSpeech.
-    - Use the related Headword.Meaning to guide the translation.
-    - Review Headword.Examples to better understand the context.
+The input contains a single Definition object.
 
-For each Definition in Definitions array, iterate over Contexts and Meanings and translate the property Meaning.Text:
-    - Use the related PartOfSpeech and Context.ContextString to guide the translation.
-    - Review Examples to better understand the context.
-    - Maintain the same part of speech in the translation.
+1. Headword translation
+Translate Definition.Headword.Text:
+- Maintain the same part of speech as defined in Definition.Headword.PartOfSpeech.
+- Use Definition.Headword.Meaning to guide the translation.
+- Review Definition.Headword.Examples to understand usage and context.
 
-Output requirements:
-    - For each Headword.Text, provide 1 to 3 translation options in the field HeadwordTranslation, separated by commas.
-    - For each Headword.Text, provide 1 to 3 translation options to English in the field HeadwordTranslationEnglish, separated by commas.
-    - Maintain the same part of speech as defined in Definition.PartOfSpeech in HeadwordTranslation and HeadwordTranslationEnglish.
-    - If the part of speech is a verb, add an infinitive marker 'to' when returning a translation in the HeadwordTranslationEnglish.");
+2. Meaning translation
+For each Context in Definition.Contexts, and for each Meaning in Context.Meanings, translate Meaning.Text:
+- Use Meaning.PartOfSpeech as the authoritative part of speech.
+- Use Context.ContextString to guide the translation.
+- Review Meaning.Examples to better understand the context.
+- Maintain the same part of speech in the translation.
+
+3. Output requirements
+- Return valid JSON only.
+- Preserve the original JSON structure and all existing fields unless explicitly stated otherwise.
+- Do not modify IDs or non-text fields.
+
+Headword output fields:
+- Add HeadwordTranslation:
+  - Provide 1 to 3 translation options in {input.DestinationLanguage}, separated by commas.
+- Add HeadwordTranslationEnglish:
+  - Provide 1 to 3 translation options in English, separated by commas.
+- Maintain the same part of speech as Definition.Headword.PartOfSpeech in both fields.
+- If the part of speech is a verb, add the infinitive marker ""to"" in HeadwordTranslationEnglish.
+
+Meaning output fields:
+- Add MeaningTranslation to each Meaning object, containing the translated version of Meaning.Text.");
 
             // Serialize input object to JSON and append to the prompt
             string inputJson = JsonSerializer.Serialize(input, new JsonSerializerOptions { WriteIndented = true });
@@ -68,7 +83,7 @@ Output requirements:
                     "The call to OpenAPI Chat Completions API took {TotalSeconds} seconds.",
                     stopwatch.Elapsed.TotalSeconds);
 
-            return openAITranslations ?? new TranslationOutput([]);
+            return openAITranslations;
         }
 
         #endregion
