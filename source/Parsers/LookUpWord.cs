@@ -141,8 +141,8 @@ namespace CopyWords.Parsers
                 SourceLanguage: SourceLanguage.Danish,
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
-                Definitions: [definition],
-                Variations: _ddoPageParser.ParseVariants()
+                Definition: definition,
+                Variants: _ddoPageParser.ParseVariants()
             );
 
             return wordModel;
@@ -166,28 +166,24 @@ namespace CopyWords.Parsers
                 soundFileName = $"{headwordES}.mp4";
             }
 
-            Models.SpanishDict.SpanishDictDefinition? spanishDictDefinition = _spanishDictPageParser.ParseDefinition(wordObj, n, p);
+            Models.SpanishDict.SpanishDictDefinition spanishDictDefinition = _spanishDictPageParser.ParseDefinition(wordObj, n, p);
 
-            List<Definition> definitions = new();
             List<Context> contexts = new();
 
-            if (spanishDictDefinition != null)
+            foreach (var spanishDictContext in spanishDictDefinition.Contexts)
             {
-                foreach (var spanishDictContext in spanishDictDefinition.Contexts)
-                {
-                    // We don't want to translate meanings for Spanish words. They usually are very short and consist of one word.
-                    IEnumerable<Meaning> meanings = spanishDictContext.Meanings.Select(
-                        x => new Meaning(Original: x.Original, Translation: null, AlphabeticalPosition: x.AlphabeticalPosition, Tag: null, ImageUrl: x.ImageUrl, Examples: x.Examples));
-                    contexts.Add(new Context(spanishDictContext.ContextEN, spanishDictContext.Position.ToString(), meanings));
-                }
-
-                // Spanish words don't have endings, this property only makes sense for Danish
-                definitions.Add(new Definition(
-                    Headword: new Headword(Original: spanishDictDefinition.WordES, English: null, Russian: null),
-                    PartOfSpeech: spanishDictDefinition.PartOfSpeech,
-                    Endings: "",
-                    Contexts: contexts));
+                // We don't want to translate meanings for Spanish words. They usually are very short and consist of one word.
+                IEnumerable<Meaning> meanings = spanishDictContext.Meanings.Select(
+                    x => new Meaning(Original: x.Original, Translation: null, AlphabeticalPosition: x.AlphabeticalPosition, Tag: null, ImageUrl: x.ImageUrl, Examples: x.Examples));
+                contexts.Add(new Context(spanishDictContext.ContextEN, spanishDictContext.Position.ToString(), meanings));
             }
+
+            // Spanish words don't have endings, this property only makes sense for Danish
+            Definition definition = new Definition(
+                Headword: new Headword(Original: spanishDictDefinition.WordES, English: null, Russian: null),
+                PartOfSpeech: spanishDictDefinition.PartOfSpeech,
+                Endings: "",
+                Contexts: contexts);
 
             var variants = _spanishDictPageParser.ParseVariants(wordObj);
 
@@ -196,8 +192,8 @@ namespace CopyWords.Parsers
                 SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
-                Definitions: definitions,
-                Variations: variants
+                Definition: definition,
+                Variants: variants
             );
 
             return wordModel;

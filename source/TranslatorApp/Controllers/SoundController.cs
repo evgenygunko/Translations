@@ -29,7 +29,6 @@ namespace TranslatorApp.Controllers
 
         [HttpGet]
         [Route("api/v{version:apiVersion}/[controller]/DownloadSound")]
-        [Route("api/DownloadSound")] // Legacy route for backward compatibility
         [ResponseCache(Duration = 604800, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "soundUrl", "word" })] // cache for 1 week
         public async Task<IActionResult> DownloadSoundAsync(
             [FromQuery] string? soundUrl = null,

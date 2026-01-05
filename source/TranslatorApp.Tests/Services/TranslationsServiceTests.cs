@@ -326,41 +326,38 @@ namespace TranslatorApp.Tests.Services
             result.Version.Should().Be("2");
             result.SourceLanguage.Should().Be(sourceLanguage.ToString());
             result.DestinationLanguage.Should().Be(destinationLanguage);
+            result.Definitions.Should().HaveCount(1);
 
-            int definitionIndex = 1;
-            foreach (Definition definition in wordModel.Definitions)
+            Definition definition = wordModel.Definition;
+
+            // Headword is taken from the first meaning
+            Meaning firstMeaning = definition.Contexts.First().Meanings.First();
+
+            TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definitions.First();
+
+            inputDefinition.Headword.Text.Should().Be(definition.Headword.Original);
+            inputDefinition.Headword.PartOfSpeech.Should().Be(definition.PartOfSpeech);
+            inputDefinition.Headword.Meaning.Should().Be(firstMeaning.Original);
+            inputDefinition.Headword.Examples.Should().HaveCount(firstMeaning.Examples.Count());
+
+            inputDefinition.Contexts.Should().HaveCount(definition.Contexts.Count());
+
+            int contextIndex = 1;
+            foreach (Context context in definition.Contexts)
             {
-                // Headword is taken from the first meaning
-                Meaning firstMeaning = definition.Contexts.First().Meanings.First();
+                TranslatorApp.Models.Translation.ContextInput inputContext = inputDefinition.Contexts.First(x => x.id == contextIndex);
+                inputContext.Meanings.Should().HaveCount(context.Meanings.Count());
 
-                TranslatorApp.Models.Translation.DefinitionInput inputDefinition = result.Definitions.First(x => x.id == definitionIndex);
+                TranslatorApp.Models.Translation.MeaningInput firstInputMeaning = inputContext.Meanings.First();
+                Meaning firstMeaningInContext = context.Meanings.First();
 
-                inputDefinition.Headword.Text.Should().Be(definition.Headword.Original);
-                inputDefinition.Headword.PartOfSpeech.Should().Be(definition.PartOfSpeech);
-                inputDefinition.Headword.Meaning.Should().Be(firstMeaning.Original);
-                inputDefinition.Headword.Examples.Should().HaveCount(firstMeaning.Examples.Count());
+                firstInputMeaning.Text.Should().Be(firstMeaningInContext.Original);
+                firstInputMeaning.Examples.Should().HaveCount(firstMeaningInContext.Examples.Count());
+                firstInputMeaning.id.Should().Be(1);
 
-                inputDefinition.Contexts.Should().HaveCount(definition.Contexts.Count());
+                inputContext.Meanings.Last().id.Should().Be(inputContext.Meanings.Count());
 
-                int contextIndex = 1;
-                foreach (Context context in definition.Contexts)
-                {
-                    TranslatorApp.Models.Translation.ContextInput inputContext = inputDefinition.Contexts.First(x => x.id == contextIndex);
-                    inputContext.Meanings.Should().HaveCount(context.Meanings.Count());
-
-                    TranslatorApp.Models.Translation.MeaningInput firstInputMeaning = inputContext.Meanings.First();
-                    Meaning firstMeaningInContext = context.Meanings.First();
-
-                    firstInputMeaning.Text.Should().Be(firstMeaningInContext.Original);
-                    firstInputMeaning.Examples.Should().HaveCount(firstMeaningInContext.Examples.Count());
-                    firstInputMeaning.id.Should().Be(1);
-
-                    inputContext.Meanings.Last().id.Should().Be(inputContext.Meanings.Count());
-
-                    contextIndex++;
-                }
-
-                definitionIndex++;
+                contextIndex++;
             }
         }
 
@@ -399,7 +396,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public void CreateTranslationInputFromWordModel_ForAfeitar_Adds2DefinitionsToTranslationInput()
+        public void CreateTranslationInputFromWordModel_ForAfeitar_AddsDefinitionToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
             string destinationLanguage = "Russian";
@@ -413,7 +410,7 @@ namespace TranslatorApp.Tests.Services
             result.SourceLanguage.Should().Be(sourceLanguage.ToString());
             result.DestinationLanguage.Should().Be(destinationLanguage);
 
-            result.Definitions.Should().HaveCount(2);
+            result.Definitions.Should().HaveCount(1);
 
             TranslatorApp.Models.Translation.DefinitionInput inputDefinition;
             TranslatorApp.Models.Translation.ContextInput inputContext;
@@ -436,24 +433,6 @@ namespace TranslatorApp.Tests.Services
             inputMeaning.Text.Should().Be("to shave");
             inputMeaning.Examples.Should().HaveCount(1);
             inputMeaning.Examples.First().Should().Be("Para el verano, papá decidió afeitar al perro.");
-
-            /***********************************************************************/
-            // Afeitarse
-            /***********************************************************************/
-            inputDefinition = result.Definitions.Last();
-            inputDefinition.id.Should().Be(2);
-            inputDefinition.Headword.Text.Should().Be("afeitarse");
-            inputDefinition.Headword.PartOfSpeech.Should().Be("reflexive verb");
-            inputDefinition.Headword.Meaning.Should().Be("to shave");
-            inputDefinition.Headword.Examples.Should().HaveCount(1);
-
-            inputContext = inputDefinition.Contexts.First();
-            inputContext.Meanings.Should().HaveCount(1);
-            inputMeaning = inputContext.Meanings.First();
-            inputMeaning.id.Should().Be(1);
-            inputMeaning.Text.Should().Be("to shave");
-            inputMeaning.Examples.Should().HaveCount(1);
-            inputMeaning.Examples.First().Should().Be("¿Con qué frecuencia te afeitas la barba?");
         }
 
         [TestMethod]
@@ -560,8 +539,8 @@ namespace TranslatorApp.Tests.Services
             result.SourceLanguage.Should().Be(originalWordModel.SourceLanguage);
             result.Word.Should().Be(originalWordModel.Word);
 
-            Context originalContext = originalWordModel.Definitions.First().Contexts.First();
-            Context translatedContext = result.Definitions.First().Contexts.First();
+            Context originalContext = originalWordModel.Definition.Contexts.First();
+            Context translatedContext = result.Definition.Contexts.First();
             translatedContext.ContextEN.Should().Be(originalContext.ContextEN);
             translatedContext.Position.Should().Be(originalContext.Position);
             translatedContext.Meanings.Should().HaveCount(originalContext.Meanings.Count());
@@ -579,20 +558,20 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateWordModelFromTranslationOutput_Should_KeepWord()
         {
+            var definition = new Definition(
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                PartOfSpeech: _fixture.Create<string>(),
+                Endings: _fixture.Create<string>(),
+                Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
+            );
+
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
                 SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: [
-                    new Definition(
-                        Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
-                        PartOfSpeech: _fixture.Create<string>(),
-                        Endings: _fixture.Create<string>(),
-                        Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
-                    ),
-                ],
-                Variations: _fixture.CreateMany<Variant>().ToArray()
+                Definition: definition,
+                Variants: _fixture.CreateMany<Variant>().ToArray()
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -606,20 +585,20 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateWordModelFromTranslationOutput_Should_KeepSoundUrl()
         {
+            var definition = new Definition(
+                    Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                    PartOfSpeech: _fixture.Create<string>(),
+                    Endings: _fixture.Create<string>(),
+                    Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
+            );
+
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
                 SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: [
-                    new Definition(
-                        Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
-                        PartOfSpeech: _fixture.Create<string>(),
-                        Endings: _fixture.Create<string>(),
-                        Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
-                    ),
-                ],
-                Variations: _fixture.CreateMany<Variant>().ToArray()
+                Definition: definition,
+                Variants: _fixture.CreateMany<Variant>().ToArray()
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -633,20 +612,20 @@ namespace TranslatorApp.Tests.Services
         [TestMethod]
         public void CreateWordModelFromTranslationOutput_Should_KeepSoundFileName()
         {
+            var definition = new Definition(
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                PartOfSpeech: _fixture.Create<string>(),
+                Endings: _fixture.Create<string>(),
+                Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
+            );
+
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
                 SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: [
-                    new Definition(
-                        Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
-                        PartOfSpeech: _fixture.Create<string>(),
-                        Endings: _fixture.Create<string>(),
-                        Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
-                    ),
-                ],
-                Variations: _fixture.CreateMany<Variant>().ToArray()
+                Definition: definition,
+                Variants: _fixture.CreateMany<Variant>().ToArray()
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -658,22 +637,22 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public void CreateWordModelFromTranslationOutput_Should_KeepVariations()
+        public void CreateWordModelFromTranslationOutput_Should_KeepVariants()
         {
+            var definition = new Definition(
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                PartOfSpeech: _fixture.Create<string>(),
+                Endings: _fixture.Create<string>(),
+                Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
+            );
+
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
                 SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: [
-                    new Definition(
-                        Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
-                        PartOfSpeech: _fixture.Create<string>(),
-                        Endings: _fixture.Create<string>(),
-                        Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
-                    ),
-                ],
-                Variations: _fixture.CreateMany<Variant>().ToArray()
+                Definition: definition,
+                Variants: _fixture.CreateMany<Variant>().ToArray()
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -681,27 +660,27 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<TranslationsService>();
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
-            result.Variations.Should().BeEquivalentTo(originalWordModel.Variations);
+            result.Variants.Should().BeEquivalentTo(originalWordModel.Variants);
         }
 
         [TestMethod]
         public void CreateWordModelFromTranslationOutput_Should_SetTranslations()
         {
             // Arrange
+            var originalDefinition = new Definition(
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                PartOfSpeech: _fixture.Create<string>(),
+                Endings: _fixture.Create<string>(),
+                Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
+            );
+
             var originalWordModel = new WordModel(
                 Word: _fixture.Create<string>(),
                 SourceLanguage: _fixture.Create<SourceLanguage>(),
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: [
-                    new Definition(
-                        Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
-                        PartOfSpeech: _fixture.Create<string>(),
-                        Endings: _fixture.Create<string>(),
-                        Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
-                    ),
-                ],
-                Variations: _fixture.CreateMany<Variant>().ToArray()
+                Definition: originalDefinition,
+                Variants: _fixture.CreateMany<Variant>().ToArray()
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -710,11 +689,7 @@ namespace TranslatorApp.Tests.Services
             var sut = _fixture.Create<TranslationsService>();
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
-            // Assert
-            result.Definitions.Should().HaveCount(1);
-
-            Definition definition = result.Definitions.First();
-            Definition originalDefinition = originalWordModel.Definitions.First();
+            Definition definition = result.Definition;
 
             definition.PartOfSpeech.Should().Be(originalDefinition.PartOfSpeech);
             definition.Endings.Should().Be(originalDefinition.Endings);
@@ -767,7 +742,7 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public void CreateWordModelFromTranslationOutput_ForAfeitar_Returns2Definitions()
+        public void CreateWordModelFromTranslationOutput_ForAfeitar_SetsDefinition()
         {
             // Arrange
             WordModel originalWordModel = CreateWordModelForAefitar();
@@ -789,22 +764,6 @@ namespace TranslatorApp.Tests.Services
                                 ]
                             )
                         ]
-                    ),
-                    new TranslatorApp.Models.Translation.DefinitionOutput(
-                        id: 2,
-                        HeadwordTranslation: "брить себя",
-                        HeadwordTranslationEnglish: "to shave oneself, to shave",
-                        Contexts: [
-                            new TranslatorApp.Models.Translation.ContextOutput(
-                                id: 1,
-                                Meanings: [
-                                    new TranslatorApp.Models.Translation.MeaningOutput(
-                                        id: 1,
-                                        MeaningTranslation: "бриться (бриться самому)"
-                                    )
-                                ]
-                            )
-                        ]
                     )
                 ]
             );
@@ -814,14 +773,7 @@ namespace TranslatorApp.Tests.Services
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
             // Assert
-            result.Definitions.Should().HaveCount(2);
-
-            Definition definition;
-
-            /***********************************************************************/
-            // Afeitar
-            /***********************************************************************/
-            definition = result.Definitions.First();
+            Definition definition = result.Definition;
             definition.PartOfSpeech.Should().Be("transitive verb");
             definition.Endings.Should().BeEmpty();
 
@@ -846,36 +798,6 @@ namespace TranslatorApp.Tests.Services
             meaning.ImageUrl.Should().BeNull();
             meaning.Examples.Should().HaveCount(1);
             meaning.Examples.First().Original.Should().Be("Para el verano, papá decidió afeitar al perro.");
-            meaning.Examples.First().Translation.Should().BeNull();
-
-            /***********************************************************************/
-            // Afeitarse
-            /***********************************************************************/
-            definition = result.Definitions.Last();
-            definition.PartOfSpeech.Should().Be("reflexive verb");
-            definition.Endings.Should().BeEmpty();
-
-            // Check headword
-            definition.Headword.Original.Should().Be("afeitarse");
-            definition.Headword.Russian.Should().Be("брить себя");
-            definition.Headword.English.Should().Be("to shave oneself, to shave");
-
-            // Check contexts
-            definition.Contexts.Should().HaveCount(1);
-            context = definition.Contexts.First();
-            context.ContextEN.Should().Be("(to shave oneself)");
-            context.Position.Should().Be("1");
-
-            // Check meanings
-            context.Meanings.Should().HaveCount(1);
-            meaning = context.Meanings.First();
-            meaning.Original.Should().Be("to shave");
-            meaning.Translation.Should().Be("бриться (бриться самому)");
-            meaning.AlphabeticalPosition.Should().Be("a.");
-            meaning.Tag.Should().BeNull();
-            meaning.ImageUrl.Should().BeNull();
-            meaning.Examples.Should().HaveCount(1);
-            meaning.Examples.First().Original.Should().Be("¿Con qué frecuencia te afeitas la barba?");
             meaning.Examples.First().Translation.Should().BeNull();
         }
 
@@ -938,13 +860,7 @@ namespace TranslatorApp.Tests.Services
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
             // Assert
-            result.Definitions.Should().HaveCount(1);
-
-            Definition definition = result.Definitions.First();
-
-            /***********************************************************************/
-            // Afeitar
-            /***********************************************************************/
+            Definition definition = result.Definition;
             definition.PartOfSpeech.Should().Be("masculine noun");
             definition.Endings.Should().BeEmpty();
 
@@ -1023,157 +939,133 @@ namespace TranslatorApp.Tests.Services
 
         private WordModel CreateWordModelForSlå()
         {
+            var definition = new Definition(
+                Headword: new Headword(Original: "slå om-nederdel", English: null, Russian: null),
+                PartOfSpeech: "transitive verb",
+                Endings: "",
+                Contexts: new[]
+                {
+                    new Context(
+                        ContextEN: "",
+                        Position: "1",
+                        Meanings: Enumerable.Empty<Meaning>())
+                });
+
             WordModel wordModel = new WordModel(
                 Word: "afeitar",
                 SourceLanguage: SourceLanguage.Danish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: new[]
-                {
-                    new Definition(
-                        Headword: new Headword(Original: "slå om-nederdel", English: null, Russian: null),
-                        PartOfSpeech: "transitive verb",
-                        Endings: "",
-                        Contexts: new[]
-                        {
-                            new Context(
-                                ContextEN: "",
-                                Position: "1",
-                                Meanings: Enumerable.Empty<Meaning>())
-                        })
-                },
-                Variations: Enumerable.Empty<Variant>());
+                Definition: definition,
+                Variants: Enumerable.Empty<Variant>());
 
             return wordModel;
         }
 
         private WordModel CreateWordModelForAefitar()
         {
+            var definition = new Definition(
+                Headword: new Headword(Original: "afeitar", English: null, Russian: null),
+                PartOfSpeech: "transitive verb",
+                Endings: "",
+                Contexts: new[]
+                {
+                    new Context(
+                        ContextEN: "(to remove hair)",
+                        Position: "1",
+                        Meanings: new[]
+                        {
+                            new Meaning(
+                                Original: "to shave",
+                                Translation: null,
+                                AlphabeticalPosition: "a.",
+                                Tag: null,
+                                ImageUrl: null,
+                                Examples: [ new Example(Original: "Para el verano, papá decidió afeitar al perro.", Translation: null) ]
+                            )
+                        })
+                });
+
             WordModel wordModel = new WordModel(
                 Word: "afeitar",
                 SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: new[]
-                {
-                    new Definition(
-                        Headword: new Headword(Original: "afeitar", English: null, Russian: null),
-                        PartOfSpeech: "transitive verb",
-                        Endings: "",
-                        Contexts: new[]
-                        {
-                            new Context(
-                                ContextEN: "(to remove hair)",
-                                Position: "1",
-                                Meanings: new[]
-                                {
-                                    new Meaning(
-                                        Original: "to shave",
-                                        Translation: null,
-                                        AlphabeticalPosition: "a.",
-                                        Tag: null,
-                                        ImageUrl: null,
-                                        Examples: [ new Example(Original: "Para el verano, papá decidió afeitar al perro.", Translation: null) ]
-                                    )
-                                })
-                        }),
-                    new Definition(
-                        Headword: new Headword(Original: "afeitarse", English: null, Russian: null),
-                        PartOfSpeech: "reflexive verb",
-                        Endings: "",
-                        Contexts: new[]
-                        {
-                            new Context(
-                                ContextEN: "(to shave oneself)",
-                                Position: "1",
-                                Meanings: new[]
-                                {
-                                    new Meaning(
-                                        Original: "to shave",
-                                        Translation: null,
-                                        AlphabeticalPosition: "a.",
-                                        Tag: null,
-                                        ImageUrl: null,
-                                        Examples: [ new Example(Original: "¿Con qué frecuencia te afeitas la barba?", Translation: null) ]
-                                    )
-                                })
-                        })
-                },
-                Variations: Enumerable.Empty<Variant>());
+                Definition: definition,
+                Variants: Enumerable.Empty<Variant>());
 
             return wordModel;
         }
 
         private WordModel CreateWordModelForCoche()
         {
+            var definition = new Definition(
+                Headword: new Headword(Original: "el coche", English: null, Russian: null),
+                PartOfSpeech: "masculine noun",
+                Endings: "",
+                Contexts: [
+                    new Context(
+                        ContextEN: "(vehicle)",
+                        Position: "1",
+                        Meanings: [
+                            new Meaning(
+                                Original: "car",
+                                Translation: null,
+                                AlphabeticalPosition: "a.",
+                                Tag: null,
+                                ImageUrl: null,
+                                Examples: [ new Example(Original: "Mi coche no prende porque tiene una falla en el motor.", Translation: null) ]
+                            )
+                        ]),
+                    new Context(
+                        ContextEN: "(vehicle led by horses)",
+                        Position: "2",
+                        Meanings: [
+                            new Meaning(
+                                Original: "carriage",
+                                Translation: null,
+                                AlphabeticalPosition: "a.",
+                                Tag: null,
+                                ImageUrl: null,
+                                Examples: [ new Example(Original: "Los monarcas llegaron en un coche elegante.", Translation: null) ]
+                            )
+                        ]),
+                    new Context(
+                        ContextEN: "(train car)",
+                        Position: "3",
+                        Meanings: [
+                            new Meaning(
+                                Original: "car",
+                                Translation: null,
+                                AlphabeticalPosition: "a.",
+                                Tag: null,
+                                ImageUrl: null,
+                                Examples: [ new Example(Original: "Tu mamá y yo vamos a pasar al coche comedor para almorzar.", Translation: null) ]
+                            )
+                        ]),
+                    new Context(
+                        ContextEN: "(for babies)",
+                        Position: "4",
+                        Meanings: [
+                            new Meaning(
+                                Original: "stroller",
+                                Translation: null,
+                                AlphabeticalPosition: "a.",
+                                Tag: null,
+                                ImageUrl: null,
+                                Examples: [ new Example(Original: "La niñita no se quería subir al coche. Quería ir caminando.", Translation: null) ]
+                            )
+                        ])
+                ]
+            );
+
             WordModel wordModel = new WordModel(
                 Word: "el coche",
                 SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
-                Definitions: new[]
-                {
-                    new Definition(
-                        Headword: new Headword(Original: "el coche", English: null, Russian: null),
-                        PartOfSpeech: "masculine noun",
-                        Endings: "",
-                        Contexts: [
-                            new Context(
-                                ContextEN: "(vehicle)",
-                                Position: "1",
-                                Meanings: [
-                                    new Meaning(
-                                        Original: "car",
-                                        Translation: null,
-                                        AlphabeticalPosition: "a.",
-                                        Tag: null,
-                                        ImageUrl: null,
-                                        Examples: [ new Example(Original: "Mi coche no prende porque tiene una falla en el motor.", Translation: null) ]
-                                    )
-                                ]),
-                            new Context(
-                                ContextEN: "(vehicle led by horses)",
-                                Position: "2",
-                                Meanings: [
-                                    new Meaning(
-                                        Original: "carriage",
-                                        Translation: null,
-                                        AlphabeticalPosition: "a.",
-                                        Tag: null,
-                                        ImageUrl: null,
-                                        Examples: [ new Example(Original: "Los monarcas llegaron en un coche elegante.", Translation: null) ]
-                                    )
-                                ]),
-                            new Context(
-                                ContextEN: "(train car)",
-                                Position: "3",
-                                Meanings: [
-                                    new Meaning(
-                                        Original: "car",
-                                        Translation: null,
-                                        AlphabeticalPosition: "a.",
-                                        Tag: null,
-                                        ImageUrl: null,
-                                        Examples: [ new Example(Original: "Tu mamá y yo vamos a pasar al coche comedor para almorzar.", Translation: null) ]
-                                    )
-                                ]),
-                            new Context(
-                                ContextEN: "(for babies)",
-                                Position: "4",
-                                Meanings: [
-                                    new Meaning(
-                                        Original: "stroller",
-                                        Translation: null,
-                                        AlphabeticalPosition: "a.",
-                                        Tag: null,
-                                        ImageUrl: null,
-                                        Examples: [ new Example(Original: "La niñita no se quería subir al coche. Quería ir caminando.", Translation: null) ]
-                                    )
-                                ])
-                        ]
-                    )
-                },
-                Variations: Enumerable.Empty<Variant>());
+                Definition: definition,
+                Variants: Enumerable.Empty<Variant>());
 
             return wordModel;
         }

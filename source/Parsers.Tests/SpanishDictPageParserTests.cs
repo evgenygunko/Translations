@@ -510,23 +510,23 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public void ParseDefinition_ForMitologo_ReturnsEmptyTranslationsList()
+        public void ParseDefinition_ForMitologo_ThrowsSpanishDictPageParserException()
         {
             var parser = new SpanishDictPageParser();
 
-            SpanishDictDefinition? result = parser.ParseDefinition(LoadTestObject("mitologo"));
+            Action act = () => parser.ParseDefinition(LoadTestObject("mitologo"));
 
-            result.Should().BeNull();
+            act.Should().Throw<Exceptions.SpanishDictPageParserException>();
         }
 
         [TestMethod]
-        public void ParseDefinition_For123_ReturnsEmptyTranslationsList()
+        public void ParseDefinition_For123_ThrowsSpanishDictPageParserException()
         {
             var parser = new SpanishDictPageParser();
 
-            SpanishDictDefinition? result = parser.ParseDefinition(LoadTestObject("123"));
+            Action act = () => parser.ParseDefinition(LoadTestObject("123"));
 
-            result.Should().BeNull();
+            act.Should().Throw<Exceptions.SpanishDictPageParserException>();
         }
 
         [TestMethod]
@@ -889,15 +889,6 @@ namespace CopyWords.Parsers.Tests
 
             variants[0].Word.Should().Be("wasapear (transitive verb)");
             variants[0].Url.Should().Be("https://www.spanishdict.com/translate/wasapear?n=0&p=0");
-        }
-
-        [TestMethod]
-        public void ParseVariants_WhenWordJsonModelIsNull_ReturnsEmptyList()
-        {
-            var parser = new SpanishDictPageParser();
-            List<Models.Variant> variants = parser.ParseVariants(null);
-
-            variants.Should().BeEmpty();
         }
 
         #endregion

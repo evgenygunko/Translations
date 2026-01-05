@@ -14,11 +14,11 @@ namespace CopyWords.Parsers
 
         string ParseHeadword(WordJsonModel wordObj);
 
-        string? ParseSoundURL(WordJsonModel? wordObj);
+        string? ParseSoundURL(WordJsonModel wordObj);
 
-        SpanishDictDefinition? ParseDefinition(WordJsonModel? wordObj, string? n = null, string? p = null);
+        SpanishDictDefinition ParseDefinition(WordJsonModel wordObj, string? n = null, string? p = null);
 
-        List<Models.Variant> ParseVariants(WordJsonModel? wordObj);
+        List<Models.Variant> ParseVariants(WordJsonModel wordObj);
     }
 
     public class SpanishDictPageParser : ISpanishDictPageParser
@@ -71,11 +71,6 @@ namespace CopyWords.Parsers
         /// </summary>
         public string ParseHeadword(WordJsonModel wordObj)
         {
-            if (wordObj == null)
-            {
-                throw new ArgumentNullException(nameof(wordObj));
-            }
-
             return wordObj
                 .resultCardHeaderProps
                 .headwordAndQuickdefsProps
@@ -86,13 +81,8 @@ namespace CopyWords.Parsers
         /// <summary>
         /// Gets ID of the sound file (which would be part of URL).
         /// </summary>
-        public string? ParseSoundURL(WordJsonModel? wordObj)
+        public string? ParseSoundURL(WordJsonModel wordObj)
         {
-            if (wordObj == null)
-            {
-                return null;
-            }
-
             Models.SpanishDict.Pronunciation[] pronunciations = wordObj
                 .resultCardHeaderProps
                 .headwordAndQuickdefsProps
@@ -115,17 +105,12 @@ namespace CopyWords.Parsers
             return soundURL;
         }
 
-        public SpanishDictDefinition? ParseDefinition(WordJsonModel? wordObj, string? n = null, string? p = null)
+        public SpanishDictDefinition ParseDefinition(WordJsonModel wordObj, string? n = null, string? p = null)
         {
-            if (wordObj == null)
-            {
-                return null;
-            }
-
             Neodict[]? neodicts = wordObj.sdDictionaryResultsProps.entry?.neodict;
             if (neodicts == null)
             {
-                return null;
+                throw new SpanishDictPageParserException("No 'neodict' entries found in the provided WordJsonModel.");
             }
 
             int neodictIndex;
@@ -228,14 +213,9 @@ namespace CopyWords.Parsers
             return new SpanishDictDefinition(wordES, partOfSpeech, contexts);
         }
 
-        public List<Models.Variant> ParseVariants(WordJsonModel? wordObj)
+        public List<Models.Variant> ParseVariants(WordJsonModel wordObj)
         {
             var variants = new List<Models.Variant>();
-
-            if (wordObj == null)
-            {
-                return variants;
-            }
 
             Neodict[]? neodicts = wordObj.sdDictionaryResultsProps.entry?.neodict;
 

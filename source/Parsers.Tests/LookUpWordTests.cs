@@ -47,10 +47,14 @@ namespace CopyWords.Parsers.Tests
         {
             string searchTerm = "https://www.spanishdict.com/translate/coche?n=1&p1";
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
+            var spanishDictDefinition = new Models.SpanishDict.SpanishDictDefinition(
+                WordES: "coche",
+                PartOfSpeech: "noun",
+                new List<Models.SpanishDict.SpanishDictContext>());
 
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
             spanishDictPageParserMock.Setup(x => x.ParseDefinition(It.IsAny<Models.SpanishDict.WordJsonModel>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((Models.SpanishDict.SpanishDictDefinition?)null);
+                .Returns(spanishDictDefinition);
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("coche.html");
@@ -92,10 +96,14 @@ namespace CopyWords.Parsers.Tests
         {
             string searchTerm = "ser";
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
+            var spanishDictDefinition = new Models.SpanishDict.SpanishDictDefinition(
+                WordES: "ser",
+                PartOfSpeech: "verb",
+                new List<Models.SpanishDict.SpanishDictContext>());
 
             Mock<ISpanishDictPageParser> spanishDictPageParserMock = _fixture.Freeze<Mock<ISpanishDictPageParser>>();
             spanishDictPageParserMock.Setup(x => x.ParseDefinition(It.IsAny<Models.SpanishDict.WordJsonModel>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((Models.SpanishDict.SpanishDictDefinition?)null);
+                .Returns(spanishDictDefinition);
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("ser.html");
@@ -143,13 +151,13 @@ namespace CopyWords.Parsers.Tests
             result!.SoundFileName.Should().Be("haj.mp3");
 
             // For DDO, we create one Definition with one Context and several Meanings.
-            result!.Definitions.Should().HaveCount(1);
-            var definition = result.Definitions.First();
+            result!.Definition.Should().NotBeNull();
+            var definition = result.Definition;
             definition.Contexts.Should().HaveCount(1);
             var context = definition.Contexts.First();
             context.Meanings.Should().HaveCount(3);
 
-            result!.Variations.Should().HaveCount(1);
+            result!.Variants.Should().HaveCount(1);
 
             fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.EndsWith($"?query={headWord}")), Encoding.UTF8, It.IsAny<CancellationToken>()));
         }
@@ -242,13 +250,10 @@ namespace CopyWords.Parsers.Tests
 
             result.SourceLanguage.Should().Be(SourceLanguage.Danish);
 
-            IEnumerable<Definition> definitions = result!.Definitions;
-            definitions.Should().HaveCount(1);
-
             // For DDO, we create one Definition with one Context and several Meanings.
-            Definition definition1 = definitions.First();
-            definition1.Contexts.Should().HaveCount(1);
-            Context context1 = definition1.Contexts.First();
+            Definition definition = result!.Definition;
+            definition.Contexts.Should().HaveCount(1);
+            Context context1 = definition.Contexts.First();
             context1.Meanings.Should().HaveCount(3);
 
             Meaning meaning1 = context1.Meanings.First();
@@ -314,20 +319,17 @@ namespace CopyWords.Parsers.Tests
             result!.Word.Should().Be(headwordES);
             result.SourceLanguage.Should().Be(SourceLanguage.Spanish);
 
-            var variations = result!.Variations.ToList();
-            variations.Should().HaveCount(2);
-            variations[0].Word.Should().Be("afeitar");
-            variations[1].Word.Should().Be("afeitarse");
-
-            IEnumerable<Definition> definitions = result!.Definitions;
-            definitions.Should().HaveCount(1);
+            var variants = result!.Variants.ToList();
+            variants.Should().HaveCount(2);
+            variants[0].Word.Should().Be("afeitar");
+            variants[1].Word.Should().Be("afeitarse");
 
             // afeitar (transitive verb)
-            Definition definition1 = definitions.First();
-            definition1.Headword.Original.Should().Be("afeitar");
-            definition1.Contexts.Should().HaveCount(1);
-            definition1.PartOfSpeech.Should().Be("TRANSITIVE VERB");
-            Context context1 = definition1.Contexts.First();
+            Definition definition = result!.Definition;
+            definition.Headword.Original.Should().Be("afeitar");
+            definition.Contexts.Should().HaveCount(1);
+            definition.PartOfSpeech.Should().Be("TRANSITIVE VERB");
+            Context context1 = definition.Contexts.First();
             context1.ContextEN.Should().Be("(to remove hair)");
             context1.Position.Should().Be("1");
             context1.Meanings.Should().HaveCount(1);
