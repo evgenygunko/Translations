@@ -36,15 +36,15 @@ namespace TranslatorApp.Tests.Controllers
                 .ReturnsAsync(new ValidationResult());
         }
 
-        #region Tests for LookUpWord2Async
+        #region Tests for LookUpWordAsync
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenInputDataIsNull_ReturnsBadRequest()
+        public async Task LookUpWordAsync_WhenInputDataIsNull_ReturnsBadRequest()
         {
             LookUpWordRequest? lookUpWordRequest = null;
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWord2Async(lookUpWordRequest!, "test-code");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest!, "test-code");
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -54,7 +54,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenModelIsNotValid_ReturnsBadRequest()
+        public async Task LookUpWordAsync_WhenModelIsNotValid_ReturnsBadRequest()
         {
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
@@ -68,7 +68,7 @@ namespace TranslatorApp.Tests.Controllers
             _requestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWord2Async(lookUpWordRequest, "test-code");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             var result = actionResult.Result as BadRequestObjectResult;
             result.Should().NotBeNull();
@@ -78,7 +78,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenTranslateServiceThrowsException_LogsError()
+        public async Task LookUpWordAsync_WhenTranslateServiceThrowsException_LogsError()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -93,7 +93,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            await sut.Invoking(x => x.LookUpWord2Async(lookUpWordRequest, "test-code"))
+            await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest, "test-code"))
                 .Should().ThrowAsync<Exception>()
                 .WithMessage("exception from unit test");
 
@@ -108,7 +108,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenCannotFindWordInAnyOnlineDictionary_ReturnsNotFound()
+        public async Task LookUpWordAsync_WhenCannotFindWordInAnyOnlineDictionary_ReturnsNotFound()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -123,7 +123,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWord2Async(lookUpWordRequest, "test-code");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             var result = actionResult.Result as NotFoundObjectResult;
@@ -134,7 +134,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_Should_CallTranslationsService()
+        public async Task LookUpWordAsync_Should_CallTranslationsService()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -153,7 +153,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            ActionResult<WordModel?> actionResult = await sut.LookUpWord2Async(lookUpWordRequest, "test-code");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
@@ -170,7 +170,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenLookupTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -193,7 +193,7 @@ namespace TranslatorApp.Tests.Controllers
             sut.LookupRequestTimeout = TimeSpan.FromMilliseconds(10);
 
             // Act
-            ActionResult<WordModel?> actionResult = await sut.LookUpWord2Async(lookUpWordRequest, "test-code");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             var result = actionResult.Result as ObjectResult;
@@ -212,7 +212,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenTranslateTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        public async Task LookUpWordAsync_WhenTranslateTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -240,7 +240,7 @@ namespace TranslatorApp.Tests.Controllers
             sut.TranslateRequestTimeout = TimeSpan.FromMilliseconds(10);
 
             // Act
-            ActionResult<WordModel?> actionResult = await sut.LookUpWord2Async(lookUpWordRequest, "test-code");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
 
             // Assert
             var result = actionResult.Result as ObjectResult;
@@ -259,7 +259,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWord2Async_WhenClientCancelsRequest_RethrowsOperationCanceledException()
+        public async Task LookUpWordAsync_WhenClientCancelsRequest_RethrowsOperationCanceledException()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -278,7 +278,7 @@ namespace TranslatorApp.Tests.Controllers
             var sut = _fixture.Create<TranslationController>();
 
             // Act & Assert
-            await sut.Invoking(x => x.LookUpWord2Async(lookUpWordRequest, "test-code", cts.Token))
+            await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest, "test-code", cts.Token))
                 .Should().ThrowAsync<OperationCanceledException>();
         }
 

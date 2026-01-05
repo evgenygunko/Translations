@@ -41,7 +41,7 @@ namespace TranslatorApp.Controllers
         [HttpPost]
         [MapToApiVersion("2.0")]
         [Route("api/v{version:apiVersion}/[controller]/LookUpWord")]
-        public async Task<ActionResult<WordModel?>> LookUpWord2Async(
+        public async Task<ActionResult<WordModel?>> LookUpWordAsync(
             [FromBody] LookUpWordRequest lookUpWordRequest,
             [FromQuery] string? code = null,
             CancellationToken cancellationToken = default)
