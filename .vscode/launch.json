@@ -5,7 +5,7 @@
             "type": "coreclr",
             "request": "launch",
             "name": "Launch TranslatorApp",
-            "program": "${workspaceFolder}/source/TranslatorApp/bin/Debug/net9.0/TranslatorApp.dll",
+            "program": "${workspaceFolder}/source/TranslatorApp/bin/Debug/net10.0/TranslatorApp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/source/TranslatorApp",
             "stopAtEntry": false,
