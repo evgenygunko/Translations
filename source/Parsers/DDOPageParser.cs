@@ -21,6 +21,8 @@ namespace CopyWords.Parsers
         List<DDODefinition> ParseDefinitions();
 
         List<Variant> ParseVariants();
+
+        List<Variant> ParseFasteUdtryk();
     }
 
     public class DDOPageParser : PageParserBase, IDDOPageParser
@@ -293,9 +295,13 @@ namespace CopyWords.Parsers
         /// Gets urls for the words variants.
         /// </summary>
         /// <returns>The words count.</returns>
-        public List<Variant> ParseVariants()
+        public List<Variant> ParseVariants() => ParseVariantsFromBox("opslagsordBox_expanded");
+
+        public List<Variant> ParseFasteUdtryk() => ParseVariantsFromBox("fasteudtrykBox_expanded", maxItems: 4);
+
+        private List<Variant> ParseVariantsFromBox(string boxElementId, int? maxItems = null)
         {
-            var div = FindElementById("opslagsordBox_expanded");
+            var div = FindElementById(boxElementId);
 
             var searchResultBoxDiv = div?.SelectSingleNode("./div/div[contains(@class, 'searchResultBox')]");
             if (searchResultBoxDiv == null)
@@ -335,11 +341,15 @@ namespace CopyWords.Parsers
                         word = word.Replace("&nbsp;", " ->");
 
                         string variationUrl = DecodeText(ahref.Attributes["href"].Value);
-#pragma warning disable SYSLIB0013 // Type or member is obsolete
-                        string encodedVariationUrl = Uri.EscapeUriString(variationUrl);
-#pragma warning restore SYSLIB0013 // Type or member is obsolete
+                        string encodedVariationUrl = new Uri(variationUrl).AbsoluteUri;
 
                         variants.Add(new Variant(word, encodedVariationUrl));
+
+                        if (maxItems.HasValue && variants.Count >= maxItems.Value)
+                        {
+                            variants.Add(new Variant("...", string.Empty));
+                            break;
+                        }
                     }
                 }
             }

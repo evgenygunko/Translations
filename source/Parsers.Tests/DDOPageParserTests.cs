@@ -710,6 +710,40 @@ namespace CopyWords.Parsers.Tests
 
         #endregion
 
+        #region Tests for ParseFasteUdtryk
+
+        [TestMethod]
+        public void ParseFasteUdtryk_ForTage_ReturnsMax5Items()
+        {
+            string content = GetSimpleHTMLPage("tage.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            var result = parser.ParseFasteUdtryk();
+
+            result.Should().HaveCount(5);
+
+            Variant variant = result.Last();
+            variant.Word.Should().Be("...");
+            variant.Url.Should().Be(string.Empty);
+        }
+
+        [TestMethod]
+        public void ParseFasteUdtryk_ForDannebrog_ReturnsEmpty()
+        {
+            string content = GetSimpleHTMLPage("Dannebrog.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            var result = parser.ParseFasteUdtryk();
+
+            result.Should().BeEmpty();
+        }
+
+        #endregion
+
         #region Private Methods
 
         private static string GetSimpleHTMLPage(string fileName)

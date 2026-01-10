@@ -136,13 +136,17 @@ namespace CopyWords.Parsers
                 Endings: endings,
                 Contexts: [context]);
 
+            var variants = _ddoPageParser.ParseVariants();
+            var expressions = _ddoPageParser.ParseFasteUdtryk();
+
             var wordModel = new WordModel(
                 Word: headWordDA,
                 SourceLanguage: SourceLanguage.Danish,
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
                 Definition: definition,
-                Variants: _ddoPageParser.ParseVariants()
+                Variants: variants,
+                Expressions: expressions
             );
 
             return wordModel;
@@ -193,7 +197,8 @@ namespace CopyWords.Parsers
                 SoundUrl: soundUrl,
                 SoundFileName: soundFileName,
                 Definition: definition,
-                Variants: variants
+                Variants: variants,
+                Expressions: []
             );
 
             return wordModel;

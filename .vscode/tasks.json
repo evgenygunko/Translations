@@ -33,7 +33,7 @@
             "command": "dotnet",
             "args": [
                 "test",
-                "TranslatorApp.sln",
+                "TranslatorApp.slnx",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

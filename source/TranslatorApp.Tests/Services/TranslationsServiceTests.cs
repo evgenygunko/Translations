@@ -558,7 +558,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: _fixture.CreateMany<Variant>().ToArray()
+                Variants: _fixture.CreateMany<Variant>().ToArray(),
+                Expressions: []
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -585,7 +586,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: _fixture.CreateMany<Variant>().ToArray()
+                Variants: _fixture.CreateMany<Variant>().ToArray(),
+                Expressions: []
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -612,7 +614,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: _fixture.CreateMany<Variant>().ToArray()
+                Variants: _fixture.CreateMany<Variant>().ToArray(),
+                Expressions: []
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -639,7 +642,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: _fixture.CreateMany<Variant>().ToArray()
+                Variants: _fixture.CreateMany<Variant>().ToArray(),
+                Expressions: []
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -648,6 +652,34 @@ namespace TranslatorApp.Tests.Services
             WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
 
             result.Variants.Should().BeEquivalentTo(originalWordModel.Variants);
+        }
+
+        [TestMethod]
+        public void CreateWordModelFromTranslationOutput_Should_KeepExpression()
+        {
+            var definition = new Definition(
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                PartOfSpeech: _fixture.Create<string>(),
+                Endings: _fixture.Create<string>(),
+                Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
+            );
+
+            var originalWordModel = new WordModel(
+                Word: _fixture.Create<string>(),
+                SourceLanguage: _fixture.Create<SourceLanguage>(),
+                SoundUrl: _fixture.Create<Uri>().ToString(),
+                SoundFileName: _fixture.Create<string>(),
+                Definition: definition,
+                Variants: _fixture.CreateMany<Variant>().ToArray(),
+                Expressions: _fixture.CreateMany<Variant>().ToArray()
+            );
+
+            var translationOutput = CreateOutputWithOneDefinition();
+
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel result = sut.CreateWordModelFromTranslationOutput(originalWordModel, translationOutput);
+
+            result.Expressions.Should().BeEquivalentTo(originalWordModel.Expressions);
         }
 
         [TestMethod]
@@ -667,7 +699,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: originalDefinition,
-                Variants: _fixture.CreateMany<Variant>().ToArray()
+                Variants: _fixture.CreateMany<Variant>().ToArray(),
+                Expressions: []
             );
 
             var translationOutput = CreateOutputWithOneDefinition();
@@ -938,7 +971,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: Enumerable.Empty<Variant>());
+                Variants: Enumerable.Empty<Variant>(),
+                Expressions: []);
 
             return wordModel;
         }
@@ -973,7 +1007,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: Enumerable.Empty<Variant>());
+                Variants: Enumerable.Empty<Variant>(),
+                Expressions: []);
 
             return wordModel;
         }
@@ -1046,7 +1081,8 @@ namespace TranslatorApp.Tests.Services
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
                 Definition: definition,
-                Variants: Enumerable.Empty<Variant>());
+                Variants: Enumerable.Empty<Variant>(),
+                Expressions: []);
 
             return wordModel;
         }

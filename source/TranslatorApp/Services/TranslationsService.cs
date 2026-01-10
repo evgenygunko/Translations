@@ -244,7 +244,8 @@ namespace TranslatorApp.Services
                 SoundUrl: wordModel.SoundUrl,
                 SoundFileName: wordModel.SoundFileName,
                 Definition: definitionWithTranslations,
-                Variants: wordModel.Variants);
+                Variants: wordModel.Variants,
+                Expressions: wordModel.Expressions);
 
             return wordModelWithTranslations;
         }

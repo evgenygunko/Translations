@@ -121,6 +121,8 @@ Content-Type: application/json
     client.assert(response.body.variants[0]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
     client.assert(response.body.variants[1]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
     client.assert(response.body.variants[2]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
+
+    client.assert(response.body.expressions[0]["url"] === "https://ordnet.dk/ddo/ordbog?mselect=59006368&query=sl%C3%A5");
   });
 %}
 
