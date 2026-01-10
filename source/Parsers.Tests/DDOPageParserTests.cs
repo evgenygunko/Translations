@@ -713,23 +713,6 @@ namespace CopyWords.Parsers.Tests
         #region Tests for ParseFasteUdtryk
 
         [TestMethod]
-        public void ParseFasteUdtryk_ForTage_ReturnsMax5Items()
-        {
-            string content = GetSimpleHTMLPage("tage.html");
-
-            DDOPageParser parser = new DDOPageParser();
-            parser.LoadHtml(content);
-
-            var result = parser.ParseFasteUdtryk();
-
-            result.Should().HaveCount(5);
-
-            Variant variant = result.Last();
-            variant.Word.Should().Be("...");
-            variant.Url.Should().Be(string.Empty);
-        }
-
-        [TestMethod]
         public void ParseFasteUdtryk_ForDannebrog_ReturnsEmpty()
         {
             string content = GetSimpleHTMLPage("Dannebrog.html");
@@ -740,6 +723,41 @@ namespace CopyWords.Parsers.Tests
             var result = parser.ParseFasteUdtryk();
 
             result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ParseFasteUdtryk_ForSlå_AddsElementWithTotalNumberOfVariants()
+        {
+            string content = GetSimpleHTMLPage("Slå.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            var result = parser.ParseFasteUdtryk();
+
+            result.Should().HaveCountGreaterThan(5);
+
+            Variant variant = result.Last();
+            variant.Word.Should().Be($"... (166 total)");
+            variant.Url.Should().Be(string.Empty);
+        }
+
+        [TestMethod]
+        public void ParseFasteUdtryk_ForSkat_DoesNotAddsElementWithTotalNumberOfVariants()
+        {
+            // We have all faste udtryk listed on the page, so no need to add an element with total number of variants.
+            string content = GetSimpleHTMLPage("Skat.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            var result = parser.ParseFasteUdtryk();
+
+            result.Should().HaveCount(7);
+
+            Variant variant = result.Last();
+            variant.Word.Should().Be("personlig skat");
+            variant.Url.Should().Be("https://ordnet.dk/ddo/ordbog?mselect=59008979&query=skat");
         }
 
         #endregion

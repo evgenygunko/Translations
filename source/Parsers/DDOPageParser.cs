@@ -297,9 +297,9 @@ namespace CopyWords.Parsers
         /// <returns>The words count.</returns>
         public List<Variant> ParseVariants() => ParseVariantsFromBox("opslagsordBox_expanded");
 
-        public List<Variant> ParseFasteUdtryk() => ParseVariantsFromBox("fasteudtrykBox_expanded", maxItems: 4);
+        public List<Variant> ParseFasteUdtryk() => ParseVariantsFromBox("fasteudtrykBox_expanded");
 
-        private List<Variant> ParseVariantsFromBox(string boxElementId, int? maxItems = null)
+        private List<Variant> ParseVariantsFromBox(string boxElementId)
         {
             var div = FindElementById(boxElementId);
 
@@ -344,13 +344,33 @@ namespace CopyWords.Parsers
                         string encodedVariationUrl = new Uri(variationUrl).AbsoluteUri;
 
                         variants.Add(new Variant(word, encodedVariationUrl));
-
-                        if (maxItems.HasValue && variants.Count >= maxItems.Value)
-                        {
-                            variants.Add(new Variant("...", string.Empty));
-                            break;
-                        }
                     }
+                }
+            }
+
+            if (variants.Count > 0)
+            {
+                // Find the total count of variants and add a new fake element at the end with this info
+                var searchResultBoxHeaderDiv = div?.SelectSingleNode("./div[contains(@class, 'searchResultBoxHeader')]");
+                if (searchResultBoxHeaderDiv == null)
+                {
+                    throw new PageParserException("Cannot find a div element with CSS class 'searchResultBoxHeader'");
+                }
+
+                var countDiv = searchResultBoxHeaderDiv.SelectSingleNode("./div[@class='diskret']");
+                if (countDiv == null)
+                {
+                    throw new PageParserException("Cannot find a div element with CSS class 'diskret' inside 'searchResultBoxHeader'");
+                }
+
+                string totalCountString = DecodeText(countDiv.InnerText)
+                    .Replace("(", "")
+                    .Replace(")", "");
+                int totalCount = int.Parse(totalCountString);
+
+                if (totalCount > variants.Count)
+                {
+                    variants.Add(new Variant($"... ({totalCount} total)", string.Empty));
                 }
             }
 
