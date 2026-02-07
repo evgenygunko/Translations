@@ -14,6 +14,9 @@ namespace TranslatorApp.Models
                 .WithMessage($"'SourceLanguage' must be one of the following: {string.Join(", ", Enum.GetNames(typeof(SourceLanguage)))}");
 
             RuleFor(model => model.DestinationLanguage).NotEmpty();
+            RuleFor(model => model.DestinationLanguage)
+                .Must((model, destinationLanguage) => !string.Equals(destinationLanguage, model.SourceLanguage, StringComparison.OrdinalIgnoreCase))
+                .WithMessage("'DestinationLanguage' must not be equal to 'SourceLanguage'.");
             RuleFor(model => model.Text).NotEmpty();
         }
 

@@ -152,6 +152,7 @@ namespace TranslatorApp.Tests.Services
         public void TranslateAsync_WhenLDFlagUseOpenAIChatCompletionIsTrue_CallsOpenAITranslationService()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
+            string destinationLanguage = "German";
 
             var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
             launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(true);
@@ -159,7 +160,7 @@ namespace TranslatorApp.Tests.Services
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
 
             var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(wordModel);
+            _ = sut.TranslateAsync(wordModel, destinationLanguage);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
             launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-chat-completion"), Times.Once);
@@ -169,6 +170,7 @@ namespace TranslatorApp.Tests.Services
         public void TranslateAsync_WhenLDFlagUseOpenAIChatCompletionIsFalse_CallsOpenAITranslationService2()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
+            string destinationLanguage = "German";
 
             var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
             launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(false);
@@ -176,7 +178,7 @@ namespace TranslatorApp.Tests.Services
             var openAITranslationService2Mock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
 
             var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(wordModel);
+            _ = sut.TranslateAsync(wordModel, destinationLanguage);
 
             openAITranslationService2Mock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
             launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-chat-completion"), Times.Once);
@@ -316,11 +318,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_Should_ReturnTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
-            string destinationLanguage = "Russian";
+            string destinationLanguage = "German";
             WordModel wordModel = _fixture.Create<WordModel>() with { SourceLanguage = sourceLanguage };
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -364,11 +366,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_ForSlå_AddsDefinitionToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
-            string destinationLanguage = "Russian";
+            string destinationLanguage = "German";
             WordModel wordModel = CreateWordModelForSlå();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -395,11 +397,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_ForAfeitar_AddsDefinitionToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
-            string destinationLanguage = "Russian";
+            string destinationLanguage = "German";
             WordModel wordModel = CreateWordModelForAefitar();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -432,11 +434,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_ForCoche_Adds4ContextsToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
-            string destinationLanguage = "Russian";
+            string destinationLanguage = "German";
             WordModel wordModel = CreateWordModelForCoche();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -546,7 +548,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepWord()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -574,7 +576,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepSoundUrl()
         {
             var definition = new Definition(
-                    Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                    Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
                     PartOfSpeech: _fixture.Create<string>(),
                     Endings: _fixture.Create<string>(),
                     Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -602,7 +604,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepSoundFileName()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -630,7 +632,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepVariants()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -658,7 +660,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepExpression()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -687,7 +689,7 @@ namespace TranslatorApp.Tests.Services
         {
             // Arrange
             var originalDefinition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -716,7 +718,7 @@ namespace TranslatorApp.Tests.Services
 
             // Check headword
             definition.Headword.Original.Should().Be(originalDefinition.Headword.Original);
-            definition.Headword.Russian.Should().NotBeEmpty(); // <-- should be translated
+            definition.Headword.Translation.Should().NotBeEmpty(); // <-- should be translated
             definition.Headword.English.Should().NotBeEmpty(); // <-- should be translated
 
             // Check contexts
@@ -796,7 +798,7 @@ namespace TranslatorApp.Tests.Services
 
             // Check headword
             definition.Headword.Original.Should().Be("afeitar");
-            definition.Headword.Russian.Should().Be("брить");
+            definition.Headword.Translation.Should().Be("брить");
             definition.Headword.English.Should().Be("to shave");
 
             // Check contexts
@@ -880,7 +882,7 @@ namespace TranslatorApp.Tests.Services
 
             // Check headword
             definition.Headword.Original.Should().Be("el coche");
-            definition.Headword.Russian.Should().Be("автомобиль");
+            definition.Headword.Translation.Should().Be("автомобиль");
             definition.Headword.English.Should().Be("car");
 
             // Check contexts
@@ -954,7 +956,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForSlå()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "slå om-nederdel", English: null, Russian: null),
+                Headword: new Headword(Original: "slå om-nederdel", English: null, Translation: null, Russian: null),
                 PartOfSpeech: "transitive verb",
                 Endings: "",
                 Contexts: new[]
@@ -980,7 +982,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForAefitar()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "afeitar", English: null, Russian: null),
+                Headword: new Headword(Original: "afeitar", English: null, Translation: null, Russian: null),
                 PartOfSpeech: "transitive verb",
                 Endings: "",
                 Contexts: new[]
@@ -1016,7 +1018,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForCoche()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "el coche", English: null, Russian: null),
+                Headword: new Headword(Original: "el coche", English: null, Translation: null, Russian: null),
                 PartOfSpeech: "masculine noun",
                 Endings: "",
                 Contexts: [

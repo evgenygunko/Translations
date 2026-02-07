@@ -131,7 +131,7 @@ namespace CopyWords.Parsers
 
             Context context = new Context(ContextEN: "", Position: "", meanings);
             Definition definition = new Definition(
-                Headword: new Headword(Original: headWordDA, English: null, Russian: null),
+                Headword: new Headword(Original: headWordDA, English: null, Translation: null, Russian: null),
                 PartOfSpeech: partOfSpeech,
                 Endings: endings,
                 Contexts: [context]);
@@ -184,7 +184,7 @@ namespace CopyWords.Parsers
 
             // Spanish words don't have endings, this property only makes sense for Danish
             Definition definition = new Definition(
-                Headword: new Headword(Original: spanishDictDefinition.WordES, English: null, Russian: null),
+                Headword: new Headword(Original: spanishDictDefinition.WordES, English: null, Translation: null, Russian: null),
                 PartOfSpeech: spanishDictDefinition.PartOfSpeech,
                 Endings: "",
                 Contexts: contexts);

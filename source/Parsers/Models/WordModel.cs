@@ -18,6 +18,7 @@
     public record Headword(
         string Original,
         string? English,
+        string? Translation,
         string? Russian);
 
     public record Context(

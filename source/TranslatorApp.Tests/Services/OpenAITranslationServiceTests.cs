@@ -24,7 +24,7 @@ namespace TranslatorApp.Tests.Services
             var translationInput = new TranslationInput(
                 Version: "2",
                 SourceLanguage: "es",
-                DestinationLanguage: "ru",
+                DestinationLanguage: "de",
                 Definition: new DefinitionInput(
                     Headword: new HeadwordInput(Text: "word to translate", PartOfSpeech: "noun", Meaning: "meaning", Examples: ["example 1"]),
                     Contexts: [

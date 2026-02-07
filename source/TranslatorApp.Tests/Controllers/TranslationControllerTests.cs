@@ -59,7 +59,7 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: "",
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
@@ -84,12 +84,12 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
             var translateServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
-            translateServiceMock.Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("exception from unit test"));
+            translateServiceMock.Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("exception from unit test"));
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -114,7 +114,7 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
@@ -140,7 +140,7 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             WordModel wordModel = _fixture.Create<WordModel>();
 
@@ -176,7 +176,7 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -218,7 +218,7 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -229,8 +229,8 @@ namespace TranslatorApp.Tests.Controllers
                 .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
             translationsServiceMock
-                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<CancellationToken>()))
-                .Returns(async (WordModel wm, CancellationToken ct) =>
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(async (WordModel wm, string dest, CancellationToken ct) =>
                 {
                     await Task.Delay(200, ct);
                     return wm;
@@ -265,7 +265,7 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "ru");
+                DestinationLanguage: "de");
 
             var cts = new CancellationTokenSource();
             cts.Cancel();

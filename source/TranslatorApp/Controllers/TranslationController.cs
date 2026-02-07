@@ -95,7 +95,7 @@ namespace TranslatorApp.Controllers
                 translateRequestCt = new CancellationTokenSource(TranslateRequestTimeout).Token;
                 using var translateLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, translateRequestCt.Value);
 
-                wordModel = await _translationsService.TranslateAsync(wordModel, translateLinkedCts.Token);
+                wordModel = await _translationsService.TranslateAsync(wordModel, lookUpWordRequest.DestinationLanguage, translateLinkedCts.Token);
 
                 if (_environment.IsDevelopment())
                 {

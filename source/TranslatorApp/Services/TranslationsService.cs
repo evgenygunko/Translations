@@ -10,7 +10,7 @@ namespace TranslatorApp.Services
     {
         Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default);
 
-        Task<WordModel> TranslateAsync(WordModel wordModel, CancellationToken cancellationToken = default);
+        Task<WordModel> TranslateAsync(WordModel wordModel, string destinationLanguage, CancellationToken cancellationToken = default);
     }
 
     public class TranslationsService : ITranslationsService
@@ -91,9 +91,9 @@ namespace TranslatorApp.Services
             return wordModel;
         }
 
-        public async Task<WordModel> TranslateAsync(WordModel wordModel, CancellationToken cancellationToken = default)
+        public async Task<WordModel> TranslateAsync(WordModel wordModel, string destinationLanguage, CancellationToken cancellationToken = default)
         {
-            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel);
+            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
 
             Models.Translation.TranslationOutput? translationOutput;
 
@@ -142,7 +142,7 @@ namespace TranslatorApp.Services
             return (false, string.Empty);
         }
 
-        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel)
+        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel, string destinationLanguage)
         {
             var definition = wordModel.Definition;
             Meaning? firstMeaning = definition.Contexts.First().Meanings.FirstOrDefault();
@@ -180,7 +180,7 @@ namespace TranslatorApp.Services
             var translationInput = new Models.Translation.TranslationInput(
                 Version: "2",
                 SourceLanguage: wordModel.SourceLanguage.ToString(),
-                DestinationLanguage: "Russian",
+                DestinationLanguage: destinationLanguage,
                 Definition: inputDefinition);
 
             return translationInput;
@@ -259,6 +259,7 @@ namespace TranslatorApp.Services
             return new Headword(
                 Original: headwordOriginal.Original,
                 English: outputDefinition.HeadwordTranslationEnglish,
+                Translation: outputDefinition.HeadwordTranslation,
                 Russian: outputDefinition.HeadwordTranslation);
         }
 
