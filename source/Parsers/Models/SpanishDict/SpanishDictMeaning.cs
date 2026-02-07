@@ -6,5 +6,6 @@ namespace CopyWords.Parsers.Models.SpanishDict
         string Original,
         string AlphabeticalPosition,
         string? ImageUrl,
+        string? LookupUrl,
         IEnumerable<CopyWords.Parsers.Models.Example> Examples);
 }

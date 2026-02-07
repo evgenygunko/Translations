@@ -339,6 +339,7 @@ namespace CopyWords.Parsers.Tests
             meaning1.AlphabeticalPosition.Should().Be("a");
             meaning1.Tag.Should().BeNull();
             meaning1.ImageUrl.Should().BeNull();
+            meaning1.LookupUrl.Should().Be("https://www.spanishdict.com/translate/to%20shave?langFrom=en");
             meaning1.Examples.Should().HaveCount(1);
             Example example1 = meaning1!.Examples.First();
             example1.Original.Should().Be("Para el verano, papá decidió afeitar al perro.");
@@ -382,7 +383,11 @@ namespace CopyWords.Parsers.Tests
                     new Models.SpanishDict.SpanishDictContext(ContextEN: "(to remove hair)", Position: 1,
                         new List<Models.SpanishDict.Meaning>
                         {
-                            new Models.SpanishDict.Meaning(Original: "to shave", AlphabeticalPosition: "a", ImageUrl: null,
+                            new Models.SpanishDict.Meaning(
+                                Original: "to shave",
+                                AlphabeticalPosition: "a",
+                                ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/to%20shave?langFrom=en",
                                 new List<Example>() { new Example(Original: "Para el verano, papá decidió afeitar al perro.", Translation: "For the summer, dad decided to shave the dog.") }),
                         }),
                 });

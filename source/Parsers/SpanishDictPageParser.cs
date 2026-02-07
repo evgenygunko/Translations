@@ -187,7 +187,10 @@ namespace CopyWords.Parsers
                         imageUrl = ImageBaseUrl + encoded;
                     }
 
-                    meanings.Add(new Meaning(fullTranslation, alphabeticalPosition, imageUrl, examples));
+                    // https://www.spanishdict.com/translate/to%20shave?langFrom=en
+                    string lookupUrl = $"{SpanishDictBaseUrl}{HttpUtility.UrlEncode(tr.translation)}?langFrom={wordObj.langTo}";
+
+                    meanings.Add(new Meaning(Original: fullTranslation, AlphabeticalPosition: alphabeticalPosition, ImageUrl: imageUrl, LookupUrl: lookupUrl, Examples: examples));
                 }
 
                 // Add context, e.g. "(colloquial) (extremely good) (Spain)"

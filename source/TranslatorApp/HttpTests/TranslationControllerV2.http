@@ -215,6 +215,7 @@ Content-Type: application/json
     client.assert(response.body.definition["headword"]["english"].length > 0);
     client.assert(response.body.definition["headword"]["translation"].length > 0);
     client.assert(response.body.definition.contexts[0].meanings[0]["translation"].length > 0);
+    client.assert(response.body.definition.contexts[0].meanings[0]["lookupUrl"].length > 0);
   });
 %}
 
@@ -244,6 +245,8 @@ Content-Type: application/json
     client.assert(response.body.definition.contexts[1].meanings[0]["translation"].length > 0);
     client.assert(response.body.definition.contexts[2].meanings[0]["translation"].length > 0);
     client.assert(response.body.definition.contexts[3].meanings[0]["translation"].length > 0);
+
+    client.assert(response.body.definition.contexts[0].meanings[0]["lookupUrl"].length > 0);
   });
 %}
 

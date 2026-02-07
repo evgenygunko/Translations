@@ -126,7 +126,14 @@ namespace CopyWords.Parsers
             int pos = 1;
             foreach (var ddoDefinition in ddoDefinitions)
             {
-                meanings.Add(new Meaning(Original: ddoDefinition.Meaning, Translation: null, AlphabeticalPosition: (pos++).ToString(), ddoDefinition.Tag, ImageUrl: null, Examples: ddoDefinition.Examples));
+                meanings.Add(new Meaning(
+                    Original: ddoDefinition.Meaning,
+                    Translation: null,
+                    AlphabeticalPosition: (pos++).ToString(),
+                    Tag: ddoDefinition.Tag,
+                    ImageUrl: null,
+                    LookupUrl: null,
+                    Examples: ddoDefinition.Examples));
             }
 
             Context context = new Context(ContextEN: "", Position: "", meanings);
@@ -178,7 +185,14 @@ namespace CopyWords.Parsers
             {
                 // We don't want to translate meanings for Spanish words. They usually are very short and consist of one word.
                 IEnumerable<Meaning> meanings = spanishDictContext.Meanings.Select(
-                    x => new Meaning(Original: x.Original, Translation: null, AlphabeticalPosition: x.AlphabeticalPosition, Tag: null, ImageUrl: x.ImageUrl, Examples: x.Examples));
+                    x => new Meaning(
+                        Original: x.Original,
+                        Translation: null,
+                        AlphabeticalPosition: x.AlphabeticalPosition,
+                        Tag: null,
+                        ImageUrl: x.ImageUrl,
+                        LookupUrl: x.LookupUrl,
+                        Examples: x.Examples));
                 contexts.Add(new Context(spanishDictContext.ContextEN, spanishDictContext.Position.ToString(), meanings));
             }
 

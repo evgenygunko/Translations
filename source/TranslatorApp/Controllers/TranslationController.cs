@@ -86,16 +86,23 @@ namespace TranslatorApp.Controllers
                 }
 
                 // Call the OpenAI API to translate it
+                // hack: if the request URL contains a link to English word, set the source language to English.
+                string sourceLanguage = lookUpWordRequest.SourceLanguage;
+                if (wordModel.SourceLanguage == SourceLanguage.Spanish && lookUpWordRequest.Text.EndsWith("?langFrom=en"))
+                {
+                    sourceLanguage = "English";
+                }
+
                 _logger.LogInformation(new EventId((int)TranslatorAppEventId.WillTranslateWithOpenAI),
                     "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
                     wordModel.Word,
-                    wordModel.SourceLanguage,
+                    sourceLanguage,
                     lookUpWordRequest.DestinationLanguage);
 
                 translateRequestCt = new CancellationTokenSource(TranslateRequestTimeout).Token;
                 using var translateLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, translateRequestCt.Value);
 
-                wordModel = await _translationsService.TranslateAsync(wordModel, lookUpWordRequest.DestinationLanguage, translateLinkedCts.Token);
+                wordModel = await _translationsService.TranslateAsync(wordModel, sourceLanguage, lookUpWordRequest.DestinationLanguage, translateLinkedCts.Token);
 
                 if (_environment.IsDevelopment())
                 {

@@ -152,7 +152,8 @@ namespace TranslatorApp.Tests.Services
         public void TranslateAsync_WhenLDFlagUseOpenAIChatCompletionIsTrue_CallsOpenAITranslationService()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
-            string destinationLanguage = "German";
+            string sourceLanguage = _fixture.Create<string>();
+            string destinationLanguage = _fixture.Create<string>();
 
             var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
             launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(true);
@@ -160,7 +161,7 @@ namespace TranslatorApp.Tests.Services
             var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
 
             var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(wordModel, destinationLanguage);
+            _ = sut.TranslateAsync(wordModel, sourceLanguage, destinationLanguage);
 
             openAITranslationServiceMock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
             launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-chat-completion"), Times.Once);
@@ -170,7 +171,8 @@ namespace TranslatorApp.Tests.Services
         public void TranslateAsync_WhenLDFlagUseOpenAIChatCompletionIsFalse_CallsOpenAITranslationService2()
         {
             WordModel wordModel = _fixture.Create<WordModel>();
-            string destinationLanguage = "German";
+            string sourceLanguage = _fixture.Create<string>();
+            string destinationLanguage = _fixture.Create<string>();
 
             var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
             launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(false);
@@ -178,7 +180,7 @@ namespace TranslatorApp.Tests.Services
             var openAITranslationService2Mock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
 
             var sut = _fixture.Create<TranslationsService>();
-            _ = sut.TranslateAsync(wordModel, destinationLanguage);
+            _ = sut.TranslateAsync(wordModel, sourceLanguage, destinationLanguage);
 
             openAITranslationService2Mock.Verify(x => x.TranslateAsync(It.IsAny<TranslatorApp.Models.Translation.TranslationInput>(), It.IsAny<CancellationToken>()));
             launchDarklyServiceMock.Verify(x => x.GetBooleanFlag("use-open-ai-chat-completion"), Times.Once);
@@ -318,11 +320,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_Should_ReturnTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
-            string destinationLanguage = "German";
+            string destinationLanguage = _fixture.Create<string>();
             WordModel wordModel = _fixture.Create<WordModel>() with { SourceLanguage = sourceLanguage };
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, sourceLanguage.ToString(), destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -366,11 +368,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_ForSlå_AddsDefinitionToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
-            string destinationLanguage = "German";
+            string destinationLanguage = _fixture.Create<string>();
             WordModel wordModel = CreateWordModelForSlå();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, sourceLanguage.ToString(), destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -397,11 +399,11 @@ namespace TranslatorApp.Tests.Services
         public void CreateTranslationInputFromWordModel_ForAfeitar_AddsDefinitionToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
-            string destinationLanguage = "German";
+            string destinationLanguage = _fixture.Create<string>();
             WordModel wordModel = CreateWordModelForAefitar();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, sourceLanguage.ToString(), destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -431,14 +433,51 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
+        public void CreateTranslationInputFromWordModel_ForToShave_AddsDefinitionToTranslationInput()
+        {
+            const string sourceLanguage = "English";
+            string destinationLanguage = _fixture.Create<string>();
+            WordModel wordModel = CreateWordModelForToShave();
+
+            var sut = _fixture.Create<TranslationsService>();
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, sourceLanguage, destinationLanguage);
+
+            result.Should().NotBeNull();
+            result.Version.Should().Be("2");
+            result.SourceLanguage.Should().Be(sourceLanguage);
+            result.DestinationLanguage.Should().Be(destinationLanguage);
+
+            TranslatorApp.Models.Translation.DefinitionInput inputDefinition;
+            TranslatorApp.Models.Translation.ContextInput inputContext;
+            TranslatorApp.Models.Translation.MeaningInput inputMeaning;
+
+            /***********************************************************************/
+            // Shave
+            /***********************************************************************/
+            inputDefinition = result.Definition;
+            inputDefinition.Headword.Text.Should().Be("shave");
+            inputDefinition.Headword.PartOfSpeech.Should().Be("transitive verb");
+            inputDefinition.Headword.Meaning.Should().Be("afeitarse");
+            inputDefinition.Headword.Examples.Should().HaveCount(1);
+
+            inputContext = inputDefinition.Contexts.First();
+            inputContext.Meanings.Should().HaveCount(1);
+            inputMeaning = inputContext.Meanings.First();
+            inputMeaning.id.Should().Be(1);
+            inputMeaning.Text.Should().Be("afeitarse");
+            inputMeaning.Examples.Should().HaveCount(1);
+            inputMeaning.Examples.First().Should().Be("How often do you shave your beard?");
+        }
+
+        [TestMethod]
         public void CreateTranslationInputFromWordModel_ForCoche_Adds4ContextsToTranslationInput()
         {
             SourceLanguage sourceLanguage = SourceLanguage.Spanish;
-            string destinationLanguage = "German";
+            string destinationLanguage = _fixture.Create<string>();
             WordModel wordModel = CreateWordModelForCoche();
 
             var sut = _fixture.Create<TranslationsService>();
-            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
+            TranslatorApp.Models.Translation.TranslationInput result = sut.CreateTranslationInputFromWordModel(wordModel, sourceLanguage.ToString(), destinationLanguage);
 
             result.Should().NotBeNull();
             result.Version.Should().Be("2");
@@ -998,6 +1037,7 @@ namespace TranslatorApp.Tests.Services
                                 AlphabeticalPosition: "a.",
                                 Tag: null,
                                 ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/to%20shave?langFrom=en",
                                 Examples: [ new Example(Original: "Para el verano, papá decidió afeitar al perro.", Translation: null) ]
                             )
                         })
@@ -1005,6 +1045,43 @@ namespace TranslatorApp.Tests.Services
 
             WordModel wordModel = new WordModel(
                 Word: "afeitar",
+                SourceLanguage: SourceLanguage.Spanish,
+                SoundUrl: _fixture.Create<Uri>().ToString(),
+                SoundFileName: _fixture.Create<string>(),
+                Definition: definition,
+                Variants: Enumerable.Empty<Variant>(),
+                Expressions: []);
+
+            return wordModel;
+        }
+
+        private WordModel CreateWordModelForToShave()
+        {
+            var definition = new Definition(
+                Headword: new Headword(Original: "shave", English: null, Translation: null, Russian: null),
+                PartOfSpeech: "transitive verb",
+                Endings: "",
+                Contexts: new[]
+                {
+                    new Context(
+                        ContextEN: "(to remove the hair from)",
+                        Position: "1",
+                        Meanings: new[]
+                        {
+                            new Meaning(
+                                Original: "afeitarse",
+                                Translation: null,
+                                AlphabeticalPosition: "a.",
+                                Tag: null,
+                                ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/afeitarse?langFrom=es",
+                                Examples: [ new Example(Original: "How often do you shave your beard?", Translation: null) ]
+                            )
+                        })
+                });
+
+            WordModel wordModel = new WordModel(
+                Word: "shave",
                 SourceLanguage: SourceLanguage.Spanish,
                 SoundUrl: _fixture.Create<Uri>().ToString(),
                 SoundFileName: _fixture.Create<string>(),
@@ -1032,6 +1109,7 @@ namespace TranslatorApp.Tests.Services
                                 AlphabeticalPosition: "a.",
                                 Tag: null,
                                 ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/car?langFrom=en",
                                 Examples: [ new Example(Original: "Mi coche no prende porque tiene una falla en el motor.", Translation: null) ]
                             )
                         ]),
@@ -1045,6 +1123,7 @@ namespace TranslatorApp.Tests.Services
                                 AlphabeticalPosition: "a.",
                                 Tag: null,
                                 ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/carriage?langFrom=en",
                                 Examples: [ new Example(Original: "Los monarcas llegaron en un coche elegante.", Translation: null) ]
                             )
                         ]),
@@ -1058,6 +1137,7 @@ namespace TranslatorApp.Tests.Services
                                 AlphabeticalPosition: "a.",
                                 Tag: null,
                                 ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/car?langFrom=en",
                                 Examples: [ new Example(Original: "Tu mamá y yo vamos a pasar al coche comedor para almorzar.", Translation: null) ]
                             )
                         ]),
@@ -1071,6 +1151,7 @@ namespace TranslatorApp.Tests.Services
                                 AlphabeticalPosition: "a.",
                                 Tag: null,
                                 ImageUrl: null,
+                                LookupUrl: "https://www.spanishdict.com/translate/stroller?langFrom=en",
                                 Examples: [ new Example(Original: "La niñita no se quería subir al coche. Quería ir caminando.", Translation: null) ]
                             )
                         ])

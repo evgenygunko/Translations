@@ -10,7 +10,7 @@ namespace TranslatorApp.Services
     {
         Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default);
 
-        Task<WordModel> TranslateAsync(WordModel wordModel, string destinationLanguage, CancellationToken cancellationToken = default);
+        Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default);
     }
 
     public class TranslationsService : ITranslationsService
@@ -91,9 +91,9 @@ namespace TranslatorApp.Services
             return wordModel;
         }
 
-        public async Task<WordModel> TranslateAsync(WordModel wordModel, string destinationLanguage, CancellationToken cancellationToken = default)
+        public async Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default)
         {
-            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel, destinationLanguage);
+            Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel, sourceLanguage, destinationLanguage);
 
             Models.Translation.TranslationOutput? translationOutput;
 
@@ -142,7 +142,7 @@ namespace TranslatorApp.Services
             return (false, string.Empty);
         }
 
-        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel, string destinationLanguage)
+        internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel, string sourceLanguage, string destinationLanguage)
         {
             var definition = wordModel.Definition;
             Meaning? firstMeaning = definition.Contexts.First().Meanings.FirstOrDefault();
@@ -179,7 +179,7 @@ namespace TranslatorApp.Services
 
             var translationInput = new Models.Translation.TranslationInput(
                 Version: "2",
-                SourceLanguage: wordModel.SourceLanguage.ToString(),
+                SourceLanguage: sourceLanguage,
                 DestinationLanguage: destinationLanguage,
                 Definition: inputDefinition);
 
@@ -223,6 +223,7 @@ namespace TranslatorApp.Services
                         AlphabeticalPosition: originalMeaning.AlphabeticalPosition,
                         Tag: originalMeaning.Tag,
                         ImageUrl: originalMeaning.ImageUrl,
+                        LookupUrl: originalMeaning.LookupUrl,
                         Examples: originalMeaning.Examples));
                 }
 

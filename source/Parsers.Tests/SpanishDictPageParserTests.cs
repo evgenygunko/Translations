@@ -104,6 +104,7 @@ namespace CopyWords.Parsers.Tests
             Meaning meaning = context.Meanings.First();
             meaning.Original.Should().Be("to shave");
             meaning.Examples.Should().HaveCount(1);
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/to+shave?langFrom=en");
 
             Models.Example example = meaning.Examples.First();
             example.Original.Should().Be("Para el verano, papá decidió afeitar al perro.");
@@ -130,6 +131,7 @@ namespace CopyWords.Parsers.Tests
             context.Meanings.Should().HaveCount(1);
             Meaning meaning = context.Meanings.First();
             meaning.Original.Should().Be("to shave");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/to+shave?langFrom=en");
 
             Models.Example example = meaning.Examples.First();
             example.Original.Should().Be("¿Con qué frecuencia te afeitas la barba?");
@@ -159,6 +161,7 @@ namespace CopyWords.Parsers.Tests
             context.Meanings.Should().HaveCount(1);
             meaning = context.Meanings.First();
             meaning.Original.Should().Be("to jog");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/to+jog?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Salgo a trotar todas las mañanas.");
@@ -169,6 +172,7 @@ namespace CopyWords.Parsers.Tests
             context.Meanings.Should().HaveCount(1);
             meaning = context.Meanings.First();
             meaning.Original.Should().Be("to trot");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/to+trot?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Carolina se levanta temprano cada día a sacar el caballo a trotar.");
@@ -179,6 +183,7 @@ namespace CopyWords.Parsers.Tests
             context.Meanings.Should().HaveCount(1);
             meaning = context.Meanings.First();
             meaning.Original.Should().Be("to rush around");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/to+rush+around?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Ya me cansé de estar trotando todo el día.");
@@ -210,6 +215,7 @@ namespace CopyWords.Parsers.Tests
 
             meaning = context.Meanings.First();
             meaning.Original.Should().Be("car");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/car?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Mi coche no prende porque tiene una falla en el motor.");
@@ -217,6 +223,7 @@ namespace CopyWords.Parsers.Tests
 
             meaning = context.Meanings.Skip(1).First();
             meaning.Original.Should().Be("automobile");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/automobile?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Todos estos coches tienen bolsas de aire.");
@@ -229,6 +236,7 @@ namespace CopyWords.Parsers.Tests
 
             meaning = context.Meanings.First();
             meaning.Original.Should().Be("carriage");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/carriage?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Los monarcas llegaron en un coche elegante.");
@@ -236,6 +244,7 @@ namespace CopyWords.Parsers.Tests
 
             meaning = context.Meanings.Skip(1).First();
             meaning.Original.Should().Be("coach");
+            meaning.LookupUrl.Should().Be("https://www.spanishdict.com/translate/coach?langFrom=en");
             meaning.Examples.Should().HaveCount(1);
             example = meaning.Examples.First();
             example.Original.Should().Be("Los coches de caballos se utilizaban mucho más antes de que se inventara el automóvil.");

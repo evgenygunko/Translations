@@ -89,7 +89,9 @@ namespace TranslatorApp.Tests.Controllers
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
             var translateServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
-            translateServiceMock.Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("exception from unit test"));
+            translateServiceMock
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("exception from unit test"));
 
             // Act
             var sut = _fixture.Create<TranslationController>();
@@ -229,8 +231,8 @@ namespace TranslatorApp.Tests.Controllers
                 .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
             translationsServiceMock
-                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(async (WordModel wm, string dest, CancellationToken ct) =>
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(async (WordModel wm, string src, string dest, CancellationToken ct) =>
                 {
                     await Task.Delay(200, ct);
                     return wm;
@@ -280,6 +282,39 @@ namespace TranslatorApp.Tests.Controllers
             // Act & Assert
             await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest, "test-code", cts.Token))
                 .Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenMeaningLookupUrlForSpanishWord_ShouldTranslateFromEnglish()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "https://www.spanishdict.com/translate/hello?langFrom=en",
+                SourceLanguage: "Spanish",
+                DestinationLanguage: "Russian");
+
+            var wordModel = _fixture.Build<WordModel>()
+                .With(x => x.SourceLanguage, SourceLanguage.Spanish)
+                .Create();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(wordModel);
+
+            var sut = _fixture.Create<TranslationController>();
+
+            // Act
+            await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            // Assert - verify TranslateAsync was called with "English" as source language instead of "Spanish"
+            translationsServiceMock.Verify(
+                x => x.TranslateAsync(
+                    It.IsAny<WordModel>(),
+                    "English",
+                    lookUpWordRequest.DestinationLanguage,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         #endregion

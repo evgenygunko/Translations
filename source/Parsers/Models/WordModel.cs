@@ -32,6 +32,7 @@
         string AlphabeticalPosition,
         string? Tag,
         string? ImageUrl,
+        string? LookupUrl,
         IEnumerable<Example> Examples);
 
     public record Example(
