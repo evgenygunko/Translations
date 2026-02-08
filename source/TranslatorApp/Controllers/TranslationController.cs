@@ -142,9 +142,10 @@ namespace TranslatorApp.Controllers
             }
             catch (Exception ex)
             {
+                var correlationId = Guid.NewGuid().ToString();
                 _logger.LogError(new EventId((int)TranslatorAppEventId.ErrorDuringLookup),
-                    ex, "An error occurred while trying to look up the word.");
-                throw;
+                    ex, "An error occurred while trying to look up the word. CorrelationId: {CorrelationId}", correlationId);
+                return StatusCode(500, $"An internal error occurred. CorrelationId: {correlationId}");
             }
         }
     }

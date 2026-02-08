@@ -304,6 +304,46 @@ Content-Type: application/json
   });
 %}
 
+### Look up "xyz" in the Spanish dictionary - expect to get Not Found
+
+POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "xyz",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 404, "Response status is 404");
+  });
+%}
+
+### Look up "fine-tooth comb" in the Spanish dictionary - expect to get Not Found
+
+POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "https://www.spanishdict.com/translate/fine-tooth%20comb?langFrom=en",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When sending a word for translation, we expect to get json back', () => {
+    client.assert(response.status === 404, "Response status is 404");
+  });
+%}
+
 
 ### BadRequest - Several required fields are null
 

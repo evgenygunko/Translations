@@ -78,7 +78,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenTranslateServiceThrowsException_LogsError()
+        public async Task LookUpWordAsync_WhenTranslateServiceThrowsException_LogsErrorAndReturnsInternalServerError()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -95,15 +95,20 @@ namespace TranslatorApp.Tests.Controllers
 
             // Act
             var sut = _fixture.Create<TranslationController>();
-            await sut.Invoking(x => x.LookUpWordAsync(lookUpWordRequest, "test-code"))
-                .Should().ThrowAsync<Exception>()
-                .WithMessage("exception from unit test");
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            // Assert
+            var result = actionResult.Result as ObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be(500);
+            result.Value.Should().BeOfType<string>();
+            result.Value!.ToString().Should().Contain("An internal error occurred. CorrelationId:");
 
             loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("An error occurred while trying to look up the word.")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("An error occurred while trying to look up the word.") && v.ToString()!.Contains("CorrelationId:")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
                 Times.Once);

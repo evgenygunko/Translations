@@ -73,7 +73,9 @@ namespace TranslatorApp.Services
                 wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage, cancellationToken);
             }
 
-            if (wordModel == null)
+            if (wordModel == null
+                && !searchTerm.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase)
+                && !searchTerm.StartsWith(SpanishDictPageParser.SpanishDictBaseUrl, StringComparison.CurrentCultureIgnoreCase))
             {
                 // Try another parser - assuming that the user forgot to change the dictionary in the UI
                 string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)

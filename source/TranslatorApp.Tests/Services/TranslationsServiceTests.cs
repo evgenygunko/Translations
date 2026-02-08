@@ -144,6 +144,69 @@ namespace TranslatorApp.Tests.Services
             lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
         }
 
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenSearchTermIsDDOUrlAndWordNotFound_DoesNotTryAnotherDictionary()
+        {
+            // Arrange
+            string searchText = DDOPageParser.DDOBaseUrl + "?query=test";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeNull();
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Once);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenSearchTermIsSpanishDictUrlAndWordNotFound_DoesNotTryAnotherDictionary()
+        {
+            // Arrange
+            string searchText = SpanishDictPageParser.SpanishDictBaseUrl + "afeitar";
+            string sourceLanguage = SourceLanguage.Spanish.ToString();
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeNull();
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Once);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenSearchTermIsDDOUrlWithDifferentCase_DoesNotTryAnotherDictionary()
+        {
+            // Arrange
+            string searchText = DDOPageParser.DDOBaseUrl.ToUpperInvariant() + "?query=test";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+
+            // Act
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            // Assert
+            result.Should().BeNull();
+
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Once);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
         #endregion
 
         #region Tests for TranslateAsync
