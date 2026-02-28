@@ -262,8 +262,7 @@ namespace TranslatorApp.Services
             return new Headword(
                 Original: headwordOriginal.Original,
                 English: outputDefinition.HeadwordTranslationEnglish,
-                Translation: outputDefinition.HeadwordTranslation,
-                Russian: outputDefinition.HeadwordTranslation);
+                Translation: outputDefinition.HeadwordTranslation);
         }
 
         #endregion

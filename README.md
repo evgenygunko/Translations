@@ -190,7 +190,7 @@ Looks up word definitions and translations.
       "headword": {
         "original": "såsom",
         "english": "as, for example, such as",
-        "russian": "как, например, в качестве"
+        "translation": "как, например, в качестве"
       },
       "partOfSpeech": "konjunktion",
       "endings": "",

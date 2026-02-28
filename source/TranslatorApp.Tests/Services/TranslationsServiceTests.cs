@@ -650,7 +650,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepWord()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -678,7 +678,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepSoundUrl()
         {
             var definition = new Definition(
-                    Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
+                    Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null),
                     PartOfSpeech: _fixture.Create<string>(),
                     Endings: _fixture.Create<string>(),
                     Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -706,7 +706,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepSoundFileName()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -734,7 +734,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepVariants()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -762,7 +762,7 @@ namespace TranslatorApp.Tests.Services
         public void CreateWordModelFromTranslationOutput_Should_KeepExpression()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -791,7 +791,7 @@ namespace TranslatorApp.Tests.Services
         {
             // Arrange
             var originalDefinition = new Definition(
-                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: _fixture.Create<string>(), English: null, Translation: null),
                 PartOfSpeech: _fixture.Create<string>(),
                 Endings: _fixture.Create<string>(),
                 Contexts: [new Context(ContextEN: _fixture.Create<string>(), Position: _fixture.Create<string>(), Meanings: [_fixture.Create<Meaning>()])]
@@ -1058,7 +1058,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForSlå()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "slå om-nederdel", English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: "slå om-nederdel", English: null, Translation: null),
                 PartOfSpeech: "transitive verb",
                 Endings: "",
                 Contexts: new[]
@@ -1084,7 +1084,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForAefitar()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "afeitar", English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: "afeitar", English: null, Translation: null),
                 PartOfSpeech: "transitive verb",
                 Endings: "",
                 Contexts: new[]
@@ -1121,7 +1121,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForToShave()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "shave", English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: "shave", English: null, Translation: null),
                 PartOfSpeech: "transitive verb",
                 Endings: "",
                 Contexts: new[]
@@ -1158,7 +1158,7 @@ namespace TranslatorApp.Tests.Services
         private WordModel CreateWordModelForCoche()
         {
             var definition = new Definition(
-                Headword: new Headword(Original: "el coche", English: null, Translation: null, Russian: null),
+                Headword: new Headword(Original: "el coche", English: null, Translation: null),
                 PartOfSpeech: "masculine noun",
                 Endings: "",
                 Contexts: [
