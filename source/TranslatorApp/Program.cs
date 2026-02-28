@@ -101,7 +101,7 @@ public static class Program
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
             // For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
-            builder.Services.AddSingleton<ResponsesClient>(_ => new ResponsesClient(model: "gpt-4.1-mini", apiKey: globalSettings.OpenAIApiKey));
+            builder.Services.AddSingleton<ResponsesClient>(_ => new ResponsesClient(apiKey: globalSettings.OpenAIApiKey));
 
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
