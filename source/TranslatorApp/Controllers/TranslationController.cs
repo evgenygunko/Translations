@@ -1,7 +1,10 @@
 ﻿// Ignore Spelling: Validator req App
 
+using System.Net;
 using System.Text.Json;
 using Asp.Versioning;
+using CopyWords.Parsers;
+using CopyWords.Parsers.Exceptions;
 using CopyWords.Parsers.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -140,6 +143,21 @@ namespace TranslatorApp.Controllers
                 // Client cancelled the request - don't log as error
                 throw;
             }
+            catch (ServerErrorException ex) when (
+                ex.StatusCode == HttpStatusCode.ServiceUnavailable
+                || ex.StatusCode == HttpStatusCode.BadGateway
+                || ex.StatusCode == HttpStatusCode.GatewayTimeout)
+            {
+                string dictionaryName = ResolveDictionaryName(ex.RequestUrl);
+                string message = $"Online dictionary '{dictionaryName}' is temporarily unavailable. Original error: {ex.Message}";
+
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.OnlineDictionaryUnavailable),
+                    ex,
+                    "{Message}",
+                    message);
+
+                return StatusCode((int)HttpStatusCode.ServiceUnavailable, message);
+            }
             catch (Exception ex)
             {
                 var correlationId = Guid.NewGuid().ToString();
@@ -147,6 +165,26 @@ namespace TranslatorApp.Controllers
                     ex, "An error occurred while trying to look up the word. CorrelationId: {CorrelationId}", correlationId);
                 return StatusCode(500, $"An internal error occurred. CorrelationId: {correlationId}");
             }
+        }
+
+        private static string ResolveDictionaryName(string? requestUrl)
+        {
+            if (string.IsNullOrEmpty(requestUrl))
+            {
+                return "Unknown";
+            }
+
+            if (requestUrl.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "DDO";
+            }
+
+            if (requestUrl.StartsWith(SpanishDictPageParser.SpanishDictBaseUrl, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "SpanishDict";
+            }
+
+            return "Unknown";
         }
     }
 }

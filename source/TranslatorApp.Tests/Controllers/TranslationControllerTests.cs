@@ -2,6 +2,7 @@
 
 using System.Net;
 using AutoFixture;
+using CopyWords.Parsers.Exceptions;
 using CopyWords.Parsers.Models;
 using FluentAssertions;
 using FluentValidation;
@@ -75,6 +76,96 @@ namespace TranslatorApp.Tests.Controllers
             result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
 
             result.Value.Should().Be("Error: SourceLanguage cannot be null or empty.");
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenDdoDictionaryIsUnavailable_ReturnsServiceUnavailableWithDictionaryNameAndOriginalError()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "islygte",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de");
+
+            string originalError = "Server returned error code 'ServiceUnavailable' when requesting URL 'https://ordnet.dk/ddo/ordbog?query=islygte'.";
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ServerErrorException(
+                    originalError,
+                    HttpStatusCode.ServiceUnavailable,
+                    "https://ordnet.dk/ddo/ordbog?query=islygte"));
+
+            // Act
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            // Assert
+            var result = actionResult.Result as ObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
+            result.Value.Should().BeOfType<string>();
+            result.Value!.ToString().Should().Contain("Online dictionary 'DDO' is temporarily unavailable.");
+            result.Value!.ToString().Should().Contain(originalError);
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.Is<EventId>(e => e.Id == (int)TranslatorAppEventId.OnlineDictionaryUnavailable),
+                    It.Is<It.IsAnyType>((v, t) =>
+                        v.ToString()!.Contains("Online dictionary 'DDO' is temporarily unavailable.")
+                        && v.ToString()!.Contains(originalError)),
+                    It.IsAny<ServerErrorException>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenSpanishDictIsUnavailable_ReturnsServiceUnavailableWithDictionaryNameAndOriginalError()
+        {
+            // Arrange
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "afeitar",
+                SourceLanguage: SourceLanguage.Spanish.ToString(),
+                DestinationLanguage: "de");
+
+            string originalError = "Server returned error code 'ServiceUnavailable' when requesting URL 'https://www.spanishdict.com/translate/afeitar'.";
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ServerErrorException(
+                    originalError,
+                    HttpStatusCode.ServiceUnavailable,
+                    "https://www.spanishdict.com/translate/afeitar"));
+
+            // Act
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> actionResult = await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            // Assert
+            var result = actionResult.Result as ObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
+            result.Value.Should().BeOfType<string>();
+            result.Value!.ToString().Should().Contain("Online dictionary 'SpanishDict' is temporarily unavailable.");
+            result.Value!.ToString().Should().Contain(originalError);
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.Is<EventId>(e => e.Id == (int)TranslatorAppEventId.OnlineDictionaryUnavailable),
+                    It.Is<It.IsAnyType>((v, t) =>
+                        v.ToString()!.Contains("Online dictionary 'SpanishDict' is temporarily unavailable.")
+                        && v.ToString()!.Contains(originalError)),
+                    It.IsAny<ServerErrorException>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
         }
 
         [TestMethod]

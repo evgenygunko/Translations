@@ -38,7 +38,10 @@ namespace CopyWords.Parsers.Services
             {
                 if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
                 {
-                    throw new ServerErrorException($"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.");
+                    throw new ServerErrorException(
+                        $"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.",
+                        response.StatusCode,
+                        url);
                 }
             }
 

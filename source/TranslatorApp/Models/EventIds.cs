@@ -24,5 +24,6 @@ namespace TranslatorApp.Models
         CallingOpenAITimeoudOut = 52,
         DownloadingSoundTimedOut = 53,
         ReturningWordModel2 = 54,
+        OnlineDictionaryUnavailable = 55,
     }
 }
