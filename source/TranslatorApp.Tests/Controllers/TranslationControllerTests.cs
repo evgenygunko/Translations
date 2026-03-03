@@ -414,5 +414,82 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         #endregion
+
+        #region Tests for SuggestedWordsAsync
+
+        [TestMethod]
+        public async Task SuggestedWordsAsync_WhenInputDataIsNull_ReturnsBadRequest()
+        {
+            LookUpWordRequest? lookUpWordRequest = null;
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest!, "test-code");
+
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            result.Value.Should().Be("Input data is null");
+        }
+
+        [TestMethod]
+        public async Task SuggestedWordsAsync_WhenCodeIsInvalid_ReturnsUnauthorized()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "xyz",
+                SourceLanguage: "Spanish",
+                DestinationLanguage: "Russian");
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest, "invalid-code");
+
+            var result = actionResult.Result as UnauthorizedResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.Unauthorized);
+        }
+
+        [TestMethod]
+        public async Task SuggestedWordsAsync_WhenModelIsNotValid_ReturnsBadRequest()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "xyz",
+                SourceLanguage: "",
+                DestinationLanguage: "Russian");
+
+            var validationResult = _fixture.Create<ValidationResult>();
+            validationResult.Errors.Clear();
+            validationResult.Errors.Add(new ValidationFailure("SourceLanguage", "SourceLanguage cannot be null or empty"));
+            _requestValidatorMock.Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest, "test-code");
+
+            var result = actionResult.Result as BadRequestObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+            result.Value.Should().Be("Error: SourceLanguage cannot be null or empty.");
+        }
+
+        [TestMethod]
+        public async Task SuggestedWordsAsync_WhenRequestIsValid_ReturnsSuggestedWordsModel()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "xyz",
+                SourceLanguage: "Spanish",
+                DestinationLanguage: "Russian");
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest, "test-code");
+
+            var result = actionResult.Result as OkObjectResult;
+            result.Should().NotBeNull();
+            result!.StatusCode.Should().Be((int)HttpStatusCode.OK);
+
+            result.Value.Should().BeOfType<SuggestedWordsModel>();
+            var model = (SuggestedWordsModel)result.Value!;
+            model.Words.Should().HaveCount(10);
+            model.Words.First().Should().Be("xyz 1");
+        }
+
+        #endregion
     }
 }

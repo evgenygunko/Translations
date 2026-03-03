@@ -365,3 +365,62 @@ Content-Type: application/json
     client.assert(response.body.title === "One or more validation errors occurred.")
   });
 %}
+
+### Suggested words for "xyz"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "xyz",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting suggested words, we expect a list in words property', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.words.length === 10);
+    client.assert(response.body.words[0] === "xyz 1");
+  });
+%}
+
+### Suggested words - Unauthorized when code is invalid
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code=invalid-code
+Content-Type: application/json
+
+{
+    "Text": "xyz",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When code is invalid, we expect unauthorized', () => {
+    client.assert(response.status === 401, "Response status is 401");
+  });
+%}
+
+### Suggested words - BadRequest for invalid payload
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "xyz",
+    "SourceLanguage": null,
+    "DestinationLanguage": null,
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When required fields are null, we expect bad request', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}

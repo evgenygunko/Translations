@@ -167,6 +167,35 @@ namespace TranslatorApp.Controllers
             }
         }
 
+        [HttpPost]
+        [MapToApiVersion("2.0")]
+        [Route("api/v{version:apiVersion}/[controller]/SuggestedWords")]
+        public async Task<ActionResult<SuggestedWordsModel>> SuggestedWordsAsync(
+            [FromBody] LookUpWordRequest lookUpWordRequest,
+            [FromQuery] string? code = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (lookUpWordRequest == null)
+            {
+                return BadRequest("Input data is null");
+            }
+
+            if (code != _globalSettings.RequestSecretCode)
+            {
+                return Unauthorized();
+            }
+
+            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest, cancellationToken);
+            if (!validation.IsValid)
+            {
+                string errorMessage = validation.FormatErrorMessage();
+                return BadRequest(errorMessage);
+            }
+
+            IEnumerable<string> suggestions = Enumerable.Range(1, 10).Select(i => $"{lookUpWordRequest.Text} {i}");
+            return Ok(new SuggestedWordsModel(suggestions));
+        }
+
         private static string ResolveDictionaryName(string? requestUrl)
         {
             if (string.IsNullOrEmpty(requestUrl))
