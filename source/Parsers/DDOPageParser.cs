@@ -23,6 +23,8 @@ namespace CopyWords.Parsers
         List<Variant> ParseVariants();
 
         List<Variant> ParseFasteUdtryk();
+
+        List<Variant> ParseMenteDuSuggestions();
     }
 
     public class DDOPageParser : PageParserBase, IDDOPageParser
@@ -298,6 +300,44 @@ namespace CopyWords.Parsers
         public List<Variant> ParseVariants() => ParseVariantsFromBox("opslagsordBox_expanded");
 
         public List<Variant> ParseFasteUdtryk() => ParseVariantsFromBox("fasteudtrykBox_expanded");
+
+        /// <summary>
+        /// Gets suggestions from "Mente du" / "Måske mente du" section on DDO miss pages.
+        /// </summary>
+        public List<Variant> ParseMenteDuSuggestions()
+        {
+            var suggestionsContainer =
+                FindElementById("more-alike-list-long")
+                ?? FindElementById("alikebox-show-all");
+
+            if (suggestionsContainer == null)
+            {
+                return new List<Variant>();
+            }
+
+            var ahrefNodes = suggestionsContainer.SelectNodes(".//a[@href]");
+            if (ahrefNodes == null)
+            {
+                return new List<Variant>();
+            }
+
+            var variants = new List<Variant>();
+            foreach (var ahref in ahrefNodes)
+            {
+                string variationUrl = DecodeText(ahref.Attributes["href"].Value);
+                if (variationUrl.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string word = DecodeText(ahref.InnerText);
+                string encodedVariationUrl = new Uri(variationUrl).AbsoluteUri;
+
+                variants.Add(new Variant(word, encodedVariationUrl));
+            }
+
+            return variants;
+        }
 
         private List<Variant> ParseVariantsFromBox(string boxElementId)
         {

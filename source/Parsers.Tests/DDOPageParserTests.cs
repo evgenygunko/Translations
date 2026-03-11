@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Underholdning Tiltale Højtryk Substantiv På Grillspyd Høj Kigge Stødtand Såsom Stiktosset Påtage Konjunktion Haj Frabede Fladtang Dannebrog Slå Bestemt Øge
+﻿// Ignore Spelling: Underholdning Tiltale Højtryk Substantiv På Grillspyd Høj Kigge Stødtand Såsom Stiktosset Påtage Konjunktion Haj Frabede Fladtang Dannebrog Slå Bestemt Øge Islygte Billygte Gaslygte Islægge Apfel Appel Ampel Kapel Padel Adel Baffel Gaffel Kapsel Taffel Vaffel
 
 using System.Reflection;
 using CopyWords.Parsers.Models;
@@ -758,6 +758,104 @@ namespace CopyWords.Parsers.Tests
             Variant variant = result.Last();
             variant.Word.Should().Be("personlig skat");
             variant.Url.Should().Be("https://ordnet.dk/ddo/ordbog?mselect=59008979&query=skat");
+        }
+
+        #endregion
+
+        #region Tests for ParseMenteDuSuggestions
+
+        [TestMethod]
+        public void ParseMenteDuSuggestions_ForIslygte_ReturnsSuggestions()
+        {
+            string content = GetSimpleHTMLPage("islygte.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            List<Variant> suggestions = parser.ParseMenteDuSuggestions();
+
+            suggestions.Should().HaveCount(7);
+            suggestions[0].Word.Should().Be("lygte");
+            suggestions[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=lygte");
+
+            suggestions[1].Word.Should().Be("flygte");
+            suggestions[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=flygte");
+
+            suggestions[2].Word.Should().Be("slagte");
+            suggestions[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=slagte");
+
+            suggestions[3].Word.Should().Be("slægte");
+            suggestions[3].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=sl%C3%A6gte");
+
+            suggestions[4].Word.Should().Be("billygte");
+            suggestions[4].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=billygte");
+
+            suggestions[5].Word.Should().Be("gaslygte");
+            suggestions[5].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=gaslygte");
+
+            suggestions[6].Word.Should().Be("islægge");
+            suggestions[6].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=isl%C3%A6gge");
+        }
+
+        [TestMethod]
+        public void ParseMenteDuSuggestions_ForApfel_ReturnsSuggestions()
+        {
+            string content = GetSimpleHTMLPage("apfel.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            List<Variant> suggestions = parser.ParseMenteDuSuggestions();
+
+            suggestions.Should().HaveCount(12);
+            suggestions[0].Word.Should().Be("appel");
+            suggestions[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=appel");
+
+            suggestions[1].Word.Should().Be("ampel");
+            suggestions[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=ampel");
+
+            suggestions[2].Word.Should().Be("kapel");
+            suggestions[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=kapel");
+
+            suggestions[3].Word.Should().Be("padel");
+            suggestions[3].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=padel");
+
+            suggestions[4].Word.Should().Be("adel");
+            suggestions[4].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=adel");
+
+            suggestions[5].Word.Should().Be("panel");
+            suggestions[5].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=panel");
+
+            suggestions[6].Word.Should().Be("appeal");
+            suggestions[6].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=appeal");
+
+            suggestions[7].Word.Should().Be("baffel");
+            suggestions[7].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=baffel");
+
+            suggestions[8].Word.Should().Be("gaffel");
+            suggestions[8].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=gaffel");
+
+            suggestions[9].Word.Should().Be("kapsel");
+            suggestions[9].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=kapsel");
+
+            suggestions[10].Word.Should().Be("taffel");
+            suggestions[10].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=taffel");
+
+            suggestions[11].Word.Should().Be("vaffel");
+            suggestions[11].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=vaffel");
+        }
+
+        [TestMethod]
+        public void ParseMenteDuSuggestions_ForPageWithoutMenteDuSection_ReturnsEmpty()
+        {
+            string content = GetSimpleHTMLPage("SimplePage.html");
+
+            DDOPageParser parser = new DDOPageParser();
+            parser.LoadHtml(content);
+
+            List<Variant> suggestions = parser.ParseMenteDuSuggestions();
+
+            suggestions.Should().BeEmpty();
         }
 
         #endregion
