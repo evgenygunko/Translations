@@ -11,6 +11,8 @@ namespace CopyWords.Parsers
     public interface ILookUpWord
     {
         Task<WordModel?> LookUpWordAsync(string searchTerm, string language, CancellationToken cancellationToken);
+
+        Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string language, CancellationToken cancellationToken);
     }
 
     public class LookUpWord : ILookUpWord
@@ -33,26 +35,27 @@ namespace CopyWords.Parsers
 
         public async Task<WordModel?> LookUpWordAsync(string searchTerm, string language, CancellationToken cancellationToken)
         {
-            string url;
-
-            if (searchTerm.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase)
-                || searchTerm.StartsWith(SpanishDictPageParser.SpanishDictBaseUrl, StringComparison.CurrentCultureIgnoreCase))
-            {
-                url = searchTerm;
-            }
-            else if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
-            {
-                string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
-                url = DDOPageParser.DDOBaseUrl + $"?query={encodedSearchTerm}";
-            }
-            else
-            {
-                string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
-                url = SpanishDictPageParser.SpanishDictBaseUrl + encodedSearchTerm;
-            }
-
+            string url = BuildLookupUrl(searchTerm, language);
             var wordModel = await GetWordByUrlAsync(url, language, cancellationToken);
             return wordModel;
+        }
+
+        public async Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string language, CancellationToken cancellationToken)
+        {
+            string url = BuildLookupUrl(searchTerm, language);
+            string? html = await _fileDownloader.DownloadPageAsync(url, Encoding.UTF8, cancellationToken);
+            if (string.IsNullOrEmpty(html))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(language);
+            return sourceLanguage switch
+            {
+                SourceLanguage.Danish => ParseDanishSuggestions(html),
+                SourceLanguage.Spanish => throw new NotImplementedException("Suggested words for Spanish are not implemented yet."),
+                _ => throw new ArgumentException($"Source language '{sourceLanguage}' is not supported")
+            };
         }
 
         #endregion
@@ -159,6 +162,14 @@ namespace CopyWords.Parsers
             return wordModel;
         }
 
+        internal IEnumerable<string> ParseDanishSuggestions(string html)
+        {
+            _ddoPageParser.LoadHtml(html);
+            return _ddoPageParser
+                .ParseMenteDuSuggestions()
+                .Select(x => x.Word);
+        }
+
         internal WordModel? ParseSpanishWord(string html, string? n, string? p)
         {
             Models.SpanishDict.WordJsonModel? wordObj = _spanishDictPageParser.ParseWordJson(html);
@@ -216,6 +227,23 @@ namespace CopyWords.Parsers
             );
 
             return wordModel;
+        }
+
+        private static string BuildLookupUrl(string searchTerm, string language)
+        {
+            if (searchTerm.StartsWith(DDOPageParser.DDOBaseUrl, StringComparison.CurrentCultureIgnoreCase)
+                || searchTerm.StartsWith(SpanishDictPageParser.SpanishDictBaseUrl, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return searchTerm;
+            }
+
+            string encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
+            if (string.Equals(language, SourceLanguage.Danish.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return DDOPageParser.DDOBaseUrl + $"?query={encodedSearchTerm}";
+            }
+
+            return SpanishDictPageParser.SpanishDictBaseUrl + encodedSearchTerm;
         }
 
         #endregion

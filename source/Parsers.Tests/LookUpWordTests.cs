@@ -2,6 +2,7 @@
 
 using System.Text;
 using AutoFixture;
+using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Services;
 using FluentAssertions;
@@ -225,6 +226,82 @@ namespace CopyWords.Parsers.Tests
             fileDownloaderMock.Verify(x => x.DownloadPageAsync(url, Encoding.UTF8, It.IsAny<CancellationToken>()));
 
             ddoPageParserMock.Verify(x => x.ParseSound());
+        }
+
+        #endregion
+
+        #region Tests for GetSuggestedWordsAsync
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenLanguageIsDanish_ReturnsWordsOnly()
+        {
+            const string searchTerm = "islygte";
+            var suggestions = new List<Variant>
+            {
+                new("lygte", "https://ordnet.dk/ddo/ordbog?query=lygte"),
+                new("flygte", "https://ordnet.dk/ddo/ordbog?query=flygte")
+            };
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
+                .ReturnsAsync("islygte.html");
+
+            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+            ddoPageParserMock.Setup(x => x.ParseMenteDuSuggestions()).Returns(suggestions);
+
+            var sut = _fixture.Create<LookUpWord>();
+
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchTerm, SourceLanguage.Danish.ToString(), CancellationToken.None);
+
+            result.Should().Equal("lygte", "flygte");
+            fileDownloaderMock.Verify(
+                x => x.DownloadPageAsync(
+                    $"{DDOPageParser.DDOBaseUrl}?query={searchTerm}",
+                    Encoding.UTF8,
+                    It.IsAny<CancellationToken>()));
+            ddoPageParserMock.Verify(x => x.LoadHtml("islygte.html"));
+            ddoPageParserMock.Verify(x => x.ParseMenteDuSuggestions());
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenPageDownloadReturnsEmpty_ReturnsEmpty()
+        {
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(string.Empty);
+
+            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+
+            var sut = _fixture.Create<LookUpWord>();
+
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync("missing", SourceLanguage.Danish.ToString(), CancellationToken.None);
+
+            result.Should().BeEmpty();
+            ddoPageParserMock.Verify(x => x.LoadHtml(It.IsAny<string>()), Times.Never);
+            ddoPageParserMock.Verify(x => x.ParseMenteDuSuggestions(), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenLanguageIsSpanish_ThrowsNotImplementedException()
+        {
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
+                .ReturnsAsync("ser.html");
+
+            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+
+            var sut = _fixture.Create<LookUpWord>();
+
+            await sut.Invoking(x => x.GetSuggestedWordsAsync("ser", SourceLanguage.Spanish.ToString(), CancellationToken.None))
+                .Should().ThrowAsync<NotImplementedException>();
+
+            fileDownloaderMock.Verify(
+                x => x.DownloadPageAsync(
+                    $"{SpanishDictPageParser.SpanishDictBaseUrl}ser",
+                    Encoding.UTF8,
+                    It.IsAny<CancellationToken>()));
+            ddoPageParserMock.Verify(x => x.LoadHtml(It.IsAny<string>()), Times.Never);
+            ddoPageParserMock.Verify(x => x.ParseMenteDuSuggestions(), Times.Never);
         }
 
         #endregion
