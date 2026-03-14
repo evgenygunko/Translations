@@ -243,7 +243,7 @@ namespace CopyWords.Parsers.Tests
             };
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
+            fileDownloaderMock.Setup(x => x.DownloadPageAllowNotFoundAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
                 .ReturnsAsync("islygte.html");
 
             Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
@@ -255,7 +255,7 @@ namespace CopyWords.Parsers.Tests
 
             result.Should().Equal("lygte", "flygte");
             fileDownloaderMock.Verify(
-                x => x.DownloadPageAsync(
+                x => x.DownloadPageAllowNotFoundAsync(
                     $"{DDOPageParser.DDOBaseUrl}?query={searchTerm}",
                     Encoding.UTF8,
                     It.IsAny<CancellationToken>()));
@@ -267,7 +267,7 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSuggestedWordsAsync_WhenPageDownloadReturnsEmpty_ReturnsEmpty()
         {
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
+            fileDownloaderMock.Setup(x => x.DownloadPageAllowNotFoundAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(string.Empty);
 
             Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
@@ -285,7 +285,7 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSuggestedWordsAsync_WhenLanguageIsSpanish_ThrowsNotImplementedException()
         {
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
+            fileDownloaderMock.Setup(x => x.DownloadPageAllowNotFoundAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
                 .ReturnsAsync("ser.html");
 
             Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
@@ -296,7 +296,7 @@ namespace CopyWords.Parsers.Tests
                 .Should().ThrowAsync<NotImplementedException>();
 
             fileDownloaderMock.Verify(
-                x => x.DownloadPageAsync(
+                x => x.DownloadPageAllowNotFoundAsync(
                     $"{SpanishDictPageParser.SpanishDictBaseUrl}ser",
                     Encoding.UTF8,
                     It.IsAny<CancellationToken>()));

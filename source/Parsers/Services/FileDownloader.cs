@@ -1,5 +1,6 @@
 ﻿// Ignore Spelling: Downloader
 
+using System.Net;
 using System.Text;
 using CopyWords.Parsers.Exceptions;
 
@@ -8,6 +9,8 @@ namespace CopyWords.Parsers.Services
     public interface IFileDownloader
     {
         Task<string?> DownloadPageAsync(string url, Encoding encoding, CancellationToken cancellationToken);
+
+        Task<string?> DownloadPageAllowNotFoundAsync(string url, Encoding encoding, CancellationToken cancellationToken);
 
         Task<byte[]> DownloadSoundFileAsync(string url, CancellationToken cancellationToken);
     }
@@ -24,28 +27,12 @@ namespace CopyWords.Parsers.Services
 
         public async Task<string?> DownloadPageAsync(string url, Encoding encoding, CancellationToken cancellationToken)
         {
-            string? content = null;
-            HttpResponseMessage response;
+            return await DownloadPageInternalAsync(url, encoding, returnContentOnNotFound: false, cancellationToken);
+        }
 
-            response = await _httpClient.GetAsync(url, cancellationToken);
-
-            if (response.IsSuccessStatusCode)
-            {
-                byte[] bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                content = encoding.GetString(bytes, 0, bytes.Length - 1);
-            }
-            else
-            {
-                if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
-                {
-                    throw new ServerErrorException(
-                        $"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.",
-                        response.StatusCode,
-                        url);
-                }
-            }
-
-            return content;
+        public async Task<string?> DownloadPageAllowNotFoundAsync(string url, Encoding encoding, CancellationToken cancellationToken)
+        {
+            return await DownloadPageInternalAsync(url, encoding, returnContentOnNotFound: true, cancellationToken);
         }
 
         public async Task<byte[]> DownloadSoundFileAsync(string url, CancellationToken cancellationToken)
@@ -66,6 +53,27 @@ namespace CopyWords.Parsers.Services
             }
 
             return content;
+        }
+
+        private async Task<string?> DownloadPageInternalAsync(string url, Encoding encoding, bool returnContentOnNotFound, CancellationToken cancellationToken)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+
+            if (response.IsSuccessStatusCode || (returnContentOnNotFound && response.StatusCode == HttpStatusCode.NotFound))
+            {
+                byte[] bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+                return encoding.GetString(bytes, 0, bytes.Length - 1);
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            throw new ServerErrorException(
+                $"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.",
+                response.StatusCode,
+                url);
         }
     }
 }

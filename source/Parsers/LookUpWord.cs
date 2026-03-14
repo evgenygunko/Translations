@@ -43,7 +43,7 @@ namespace CopyWords.Parsers
         public async Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string language, CancellationToken cancellationToken)
         {
             string url = BuildLookupUrl(searchTerm, language);
-            string? html = await _fileDownloader.DownloadPageAsync(url, Encoding.UTF8, cancellationToken);
+            string? html = await _fileDownloader.DownloadPageAllowNotFoundAsync(url, Encoding.UTF8, cancellationToken);
             if (string.IsNullOrEmpty(html))
             {
                 return Enumerable.Empty<string>();
