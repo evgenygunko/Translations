@@ -162,7 +162,6 @@ namespace CopyWords.Parsers.Tests
 
             fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.EndsWith($"?query={headWord}")), Encoding.UTF8, It.IsAny<CancellationToken>()));
         }
-
         #endregion
 
         #region Tests for GetWordByUrlAsync
@@ -239,7 +238,8 @@ namespace CopyWords.Parsers.Tests
             var suggestions = new List<Variant>
             {
                 new("lygte", "https://ordnet.dk/ddo/ordbog?query=lygte"),
-                new("flygte", "https://ordnet.dk/ddo/ordbog?query=flygte")
+                new("flygte", "https://ordnet.dk/ddo/ordbog?query=flygte"),
+                new("lygte", "https://ordnet.dk/ddo/ordbog?query=lygte")
             };
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();

@@ -167,7 +167,8 @@ namespace CopyWords.Parsers
             _ddoPageParser.LoadHtml(html);
             return _ddoPageParser
                 .ParseMenteDuSuggestions()
-                .Select(x => x.Word);
+                .Select(x => x.Word)
+                .Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
         internal WordModel? ParseSpanishWord(string html, string? n, string? p)

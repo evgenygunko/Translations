@@ -11,6 +11,8 @@ namespace TranslatorApp.Services
         Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default);
 
         Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string sourceLanguage, CancellationToken cancellationToken = default);
     }
 
     public class TranslationsService : ITranslationsService
@@ -91,6 +93,39 @@ namespace TranslatorApp.Services
             }
 
             return wordModel;
+        }
+
+        public async Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string sourceLanguage, CancellationToken cancellationToken = default)
+        {
+            if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
+            {
+                sourceLanguage = lang;
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
+                    "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
+                    searchTerm,
+                    sourceLanguage);
+            }
+
+            if (searchTerm.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
+            {
+                string textWithoutAt = searchTerm[3..];
+
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
+                    "The text '{Text}' starts with 'at ' and the source language is '{SourceLanguage}', so it is most likely a verb. " +
+                    "Will get suggested words for '{TextWithoutAt}' instead.",
+                    searchTerm,
+                    sourceLanguage,
+                    textWithoutAt);
+
+                searchTerm = textWithoutAt;
+            }
+
+            _logger.LogInformation(new EventId((int)TranslatorAppEventId.SuggestedWordsRequestReceived),
+                "Will get suggested words for '{Text}' in the '{SourceLanguage}' dictionary.",
+                searchTerm,
+                sourceLanguage);
+
+            return await _lookUpWord.GetSuggestedWordsAsync(searchTerm, sourceLanguage, cancellationToken);
         }
 
         public async Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default)

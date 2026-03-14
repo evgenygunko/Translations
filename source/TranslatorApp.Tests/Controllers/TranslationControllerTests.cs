@@ -477,6 +477,11 @@ namespace TranslatorApp.Tests.Controllers
                 SourceLanguage: "Spanish",
                 DestinationLanguage: "Russian");
 
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.GetSuggestedWordsAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["uno", "dos"]);
+
             var sut = _fixture.Create<TranslationController>();
             ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest, "test-code");
 
@@ -486,8 +491,37 @@ namespace TranslatorApp.Tests.Controllers
 
             result.Value.Should().BeOfType<SuggestedWordsModel>();
             var model = (SuggestedWordsModel)result.Value!;
-            model.Words.Should().HaveCount(10);
-            model.Words.First().Should().Be("xyz 1");
+            model.Words.Should().Equal("uno", "dos");
+        }
+
+        [TestMethod]
+        public async Task SuggestedWordsAsync_WhenSourceLanguageIsDanish_UsesTranslationsServiceSuggestions()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "islygte",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "Russian");
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.GetSuggestedWordsAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["lygte", "flygte"]);
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest, "test-code");
+
+            var result = actionResult.Result as OkObjectResult;
+            result.Should().NotBeNull();
+
+            var model = (SuggestedWordsModel)result!.Value!;
+            model.Words.Should().Equal("lygte", "flygte");
+
+            translationsServiceMock.Verify(
+                x => x.GetSuggestedWordsAsync(
+                    lookUpWordRequest.Text,
+                    lookUpWordRequest.SourceLanguage,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         #endregion

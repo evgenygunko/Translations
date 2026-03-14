@@ -192,7 +192,11 @@ namespace TranslatorApp.Controllers
                 return BadRequest(errorMessage);
             }
 
-            IEnumerable<string> suggestions = Enumerable.Range(1, 10).Select(i => $"{lookUpWordRequest.Text} {i}");
+            IEnumerable<string> suggestions = await _translationsService.GetSuggestedWordsAsync(
+                lookUpWordRequest.Text,
+                lookUpWordRequest.SourceLanguage,
+                cancellationToken);
+
             return Ok(new SuggestedWordsModel(suggestions));
         }
 

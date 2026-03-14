@@ -209,6 +209,69 @@ namespace TranslatorApp.Tests.Services
 
         #endregion
 
+        #region Tests for GetSuggestedWordsAsync
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenWordHasDanishSymbols_CallsLookupWithDanishLanguage()
+        {
+            const string searchText = "Løb";
+            string sourceLanguage = SourceLanguage.Spanish.ToString();
+            string[] suggestions = ["løbe", "løbende"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenSearchTermStartsWithAt_RemovesPrefixBeforeLookup()
+        {
+            const string searchText = "at ligge";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["ligge", "ligger"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync("ligge", sourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()), Times.Never);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync("ligge", sourceLanguage, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenSearchTermDoesNotStartWithAt_CallsLookupOnceWithOriginalText()
+        {
+            const string searchText = "ser";
+            string sourceLanguage = SourceLanguage.Spanish.ToString();
+            string[] suggestions = ["ser", "sera"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        #endregion
+
         #region Tests for TranslateAsync
 
         [TestMethod]
