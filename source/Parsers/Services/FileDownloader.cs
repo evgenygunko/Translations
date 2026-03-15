@@ -2,6 +2,7 @@
 
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using CopyWords.Parsers.Exceptions;
 
 namespace CopyWords.Parsers.Services
@@ -12,12 +13,16 @@ namespace CopyWords.Parsers.Services
 
         Task<string?> DownloadPageAllowNotFoundAsync(string url, Encoding encoding, CancellationToken cancellationToken);
 
+        Task<IEnumerable<string>> GetSpanishWordsSuggestionsAsync(string inputText, CancellationToken cancellationToken);
+
         Task<byte[]> DownloadSoundFileAsync(string url, CancellationToken cancellationToken);
     }
 
     public class FileDownloader : IFileDownloader
     {
         private readonly HttpClient _httpClient;
+
+        private const string SpanishSuggestionsApiUrl = "https://suggest1.spanishdict.com/dictionary/translate_es_suggest?q=";
 
         public FileDownloader(HttpClient httpClient)
         {
@@ -33,6 +38,47 @@ namespace CopyWords.Parsers.Services
         public async Task<string?> DownloadPageAllowNotFoundAsync(string url, Encoding encoding, CancellationToken cancellationToken)
         {
             return await DownloadPageInternalAsync(url, encoding, returnContentOnNotFound: true, cancellationToken);
+        }
+
+        public async Task<IEnumerable<string>> GetSpanishWordsSuggestionsAsync(string inputText, CancellationToken cancellationToken)
+        {
+            string url = SpanishSuggestionsApiUrl + Uri.EscapeDataString(inputText) + "&v=0";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("Accept", "application/json");
+
+            using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ServerErrorException(
+                    $"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.",
+                    response.StatusCode,
+                    url);
+            }
+
+            try
+            {
+                await using Stream contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                using JsonDocument jsonDoc = await JsonDocument.ParseAsync(contentStream, cancellationToken: cancellationToken);
+
+                if (!jsonDoc.RootElement.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
+                {
+                    throw new ServerErrorException($"The server returned a successful status code but the response content was invalid or missing 'results'.");
+                }
+
+                return results
+                    .EnumerateArray()
+                    .Where(item => item.ValueKind == JsonValueKind.String)
+                    .Select(item => item.GetString())
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x!)
+                    .ToList();
+            }
+            catch (JsonException ex)
+            {
+                throw new ServerErrorException("The server returned invalid JSON content.", ex);
+            }
         }
 
         public async Task<byte[]> DownloadSoundFileAsync(string url, CancellationToken cancellationToken)

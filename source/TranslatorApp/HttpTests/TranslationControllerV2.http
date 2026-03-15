@@ -410,6 +410,28 @@ Content-Type: application/json
   });
 %}
 
+### Suggested words for Spanish "hacer estiramientos"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "hacer estiramientos",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Spanish suggested words for hacer estiramientos, we expect SpanishDict suggestions', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.includes("hacer esto"), "contains 'hacer esto'");
+  });
+%}
+
 ### Suggested words - Unauthorized when code is invalid
 
 POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code=invalid-code

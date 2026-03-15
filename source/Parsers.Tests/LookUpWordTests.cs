@@ -2,7 +2,6 @@
 
 using System.Text;
 using AutoFixture;
-using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Services;
 using FluentAssertions;
@@ -282,26 +281,87 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
-        public async Task GetSuggestedWordsAsync_WhenLanguageIsSpanish_ThrowsNotImplementedException()
+        public async Task GetSuggestedWordsAsync_WhenLanguageIsSpanishAndFirstRequestReturnsFiveOrMoreSuggestions_ReturnsImmediately()
         {
-            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadPageAllowNotFoundAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>()))
-                .ReturnsAsync("ser.html");
+            const string searchTerm = "ser";
 
-            Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync(searchTerm, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["ser", "sera", "sera", "seres", "serio"]);
 
             var sut = _fixture.Create<LookUpWord>();
 
-            await sut.Invoking(x => x.GetSuggestedWordsAsync("ser", SourceLanguage.Spanish.ToString(), CancellationToken.None))
-                .Should().ThrowAsync<NotImplementedException>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchTerm, SourceLanguage.Spanish.ToString(), CancellationToken.None);
 
-            fileDownloaderMock.Verify(
-                x => x.DownloadPageAllowNotFoundAsync(
-                    $"{SpanishDictPageParser.SpanishDictBaseUrl}ser",
-                    Encoding.UTF8,
-                    It.IsAny<CancellationToken>()));
-            ddoPageParserMock.Verify(x => x.LoadHtml(It.IsAny<string>()), Times.Never);
-            ddoPageParserMock.Verify(x => x.ParseMenteDuSuggestions(), Times.Never);
+            result.Should().Equal("ser", "sera", "sera", "seres", "serio");
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync(searchTerm, It.IsAny<CancellationToken>()), Times.Once);
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("se", It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenLanguageIsSpanishAndFirstRequestReturnsLessThanFive_RequeriesWithTrimmedText()
+        {
+            const string searchTerm = "ser";
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync("ser", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["ser", "sera"]);
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync("se", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["se", "sed", "sea", "seno", "sello"]);
+
+            var sut = _fixture.Create<LookUpWord>();
+
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchTerm, SourceLanguage.Spanish.ToString(), CancellationToken.None);
+
+            result.Should().Equal("se", "sed", "sea", "seno", "sello");
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("ser", It.IsAny<CancellationToken>()), Times.Once);
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("se", It.IsAny<CancellationToken>()), Times.Once);
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("s", It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenLanguageIsSpanishAndNoRequestReturnsFiveOrMore_ReturnsMostRecentNonEmptyResult()
+        {
+            const string searchTerm = "ser";
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync("ser", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["ser"]);
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync("se", It.IsAny<CancellationToken>()))
+                .ReturnsAsync([]);
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync("s", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["si", "sí"]);
+
+            var sut = _fixture.Create<LookUpWord>();
+
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchTerm, SourceLanguage.Spanish.ToString(), CancellationToken.None);
+
+            result.Should().Equal("si", "sí");
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("ser", It.IsAny<CancellationToken>()), Times.Once);
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("se", It.IsAny<CancellationToken>()), Times.Once);
+            fileDownloaderMock.Verify(x => x.GetSpanishWordsSuggestionsAsync("s", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenSpanishLiveSearchThrows_RethrowsException()
+        {
+            const string searchTerm = "ser";
+
+            Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
+            fileDownloaderMock
+                .Setup(x => x.GetSpanishWordsSuggestionsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+
+            var sut = _fixture.Create<LookUpWord>();
+
+            await sut.Invoking(x => x.GetSuggestedWordsAsync(searchTerm, SourceLanguage.Spanish.ToString(), CancellationToken.None))
+                .Should().ThrowAsync<Exception>();
         }
 
         #endregion

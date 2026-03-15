@@ -21,6 +21,8 @@ namespace CopyWords.Parsers
         private readonly ISpanishDictPageParser _spanishDictPageParser;
         private readonly IFileDownloader _fileDownloader;
 
+        private const int SpanishSuggestionsThreshold = 5;
+
         public LookUpWord(
             IDDOPageParser ddoPageParser,
             ISpanishDictPageParser spanishDictPageParser,
@@ -42,18 +44,12 @@ namespace CopyWords.Parsers
 
         public async Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string language, CancellationToken cancellationToken)
         {
-            string url = BuildLookupUrl(searchTerm, language);
-            string? html = await _fileDownloader.DownloadPageAllowNotFoundAsync(url, Encoding.UTF8, cancellationToken);
-            if (string.IsNullOrEmpty(html))
-            {
-                return Enumerable.Empty<string>();
-            }
-
             SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(language);
+
             return sourceLanguage switch
             {
-                SourceLanguage.Danish => ParseDanishSuggestions(html),
-                SourceLanguage.Spanish => throw new NotImplementedException("Suggested words for Spanish are not implemented yet."),
+                SourceLanguage.Danish => await GetDanishSuggestionsAsync(searchTerm, cancellationToken),
+                SourceLanguage.Spanish => await GetSpanishSuggestionsAsync(searchTerm, cancellationToken),
                 _ => throw new ArgumentException($"Source language '{sourceLanguage}' is not supported")
             };
         }
@@ -228,6 +224,43 @@ namespace CopyWords.Parsers
             );
 
             return wordModel;
+        }
+
+        private async Task<IEnumerable<string>> GetDanishSuggestionsAsync(string searchTerm, CancellationToken cancellationToken)
+        {
+            string url = BuildLookupUrl(searchTerm, SourceLanguage.Danish.ToString());
+            string? html = await _fileDownloader.DownloadPageAllowNotFoundAsync(url, Encoding.UTF8, cancellationToken);
+            if (string.IsNullOrEmpty(html))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return ParseDanishSuggestions(html);
+        }
+
+        private async Task<IEnumerable<string>> GetSpanishSuggestionsAsync(string searchTerm, CancellationToken cancellationToken)
+        {
+            var mostRecentNonEmptySuggestions = Enumerable.Empty<string>();
+            string currentSearchTerm = searchTerm;
+
+            while (!string.IsNullOrEmpty(currentSearchTerm))
+            {
+                List<string> suggestions = (await _fileDownloader.GetSpanishWordsSuggestionsAsync(currentSearchTerm, cancellationToken)).ToList();
+
+                if (suggestions.Count != 0)
+                {
+                    mostRecentNonEmptySuggestions = suggestions;
+                }
+
+                if (suggestions.Count >= SpanishSuggestionsThreshold)
+                {
+                    return suggestions;
+                }
+
+                currentSearchTerm = currentSearchTerm[..^1];
+            }
+
+            return mostRecentNonEmptySuggestions;
         }
 
         private static string BuildLookupUrl(string searchTerm, string language)
