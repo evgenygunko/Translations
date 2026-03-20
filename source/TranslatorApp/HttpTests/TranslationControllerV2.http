@@ -432,6 +432,29 @@ Content-Type: application/json
   });
 %}
 
+### Suggested words for Russian "привет"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "привет",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian suggested words, we expect stub Russian suggestions', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length === 10, "words has 10 suggestions");
+    client.assert(response.body.words[0] === "привет1");
+    client.assert(response.body.words[9] === "привет10");
+  });
+%}
+
 ### Suggested words - Unauthorized when code is invalid
 
 POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code=invalid-code

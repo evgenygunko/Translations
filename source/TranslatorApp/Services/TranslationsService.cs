@@ -176,6 +176,11 @@ namespace TranslatorApp.Services
                 return (true, SourceLanguage.Spanish.ToString());
             }
 
+            if (text.Any(character => character is >= '\u0400' and <= '\u04FF'))
+            {
+                return (true, "Russian");
+            }
+
             return (false, string.Empty);
         }
 

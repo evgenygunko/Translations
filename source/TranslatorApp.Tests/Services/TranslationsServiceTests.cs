@@ -270,6 +270,48 @@ namespace TranslatorApp.Tests.Services
             lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenWordHasRussianSymbols_CallsRussianSuggestionsLookup()
+        {
+            const string searchText = "привет";
+            const string russianLanguage = "Russian";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["привет1", "привет2"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync(searchText, russianLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, russianLanguage, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenRussianWordStartsWithAt_RemovesPrefixBeforeRussianLookup()
+        {
+            const string searchText = "at привет";
+            const string trimmedSearchText = "привет";
+            const string russianLanguage = "Russian";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["привет1", "привет2"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync(trimmedSearchText, russianLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(trimmedSearchText, russianLanguage, It.IsAny<CancellationToken>()), Times.Once);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, russianLanguage, It.IsAny<CancellationToken>()), Times.Never);
+        }
+
         #endregion
 
         #region Tests for TranslateAsync
@@ -394,6 +436,21 @@ namespace TranslatorApp.Tests.Services
             // Assert
             result.hasLanguageSpecificCharacters.Should().BeFalse();
             result.language.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow("привет")]
+        [DataRow("Привет")]
+        [DataRow("ёж")]
+        [DataRow("Москва")]
+        public void CheckLanguageSpecificCharacters_WhenTextContainsRussianCharacters_ReturnsTrueAndRussian(string text)
+        {
+            var sut = _fixture.Create<TranslationsService>();
+
+            var result = sut.CheckLanguageSpecificCharacters(text);
+
+            result.hasLanguageSpecificCharacters.Should().BeTrue();
+            result.language.Should().Be("Russian");
         }
 
         [TestMethod]

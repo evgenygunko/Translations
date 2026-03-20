@@ -44,6 +44,13 @@ namespace CopyWords.Parsers
 
         public async Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string language, CancellationToken cancellationToken)
         {
+            if (string.Equals(language, "Russian", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Enumerable
+                    .Range(1, 10)
+                    .Select(index => $"{searchTerm}{index}");
+            }
+
             SourceLanguage sourceLanguage = Enum.Parse<SourceLanguage>(language);
 
             return sourceLanguage switch
