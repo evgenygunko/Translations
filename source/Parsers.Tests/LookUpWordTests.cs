@@ -364,28 +364,6 @@ namespace CopyWords.Parsers.Tests
                 .Should().ThrowAsync<Exception>();
         }
 
-        [TestMethod]
-        public async Task GetSuggestedWordsAsync_WhenLanguageIsRussian_ReturnsTenStubSuggestions()
-        {
-            const string searchTerm = "привет";
-
-            var sut = _fixture.Create<LookUpWord>();
-
-            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchTerm, "Russian", CancellationToken.None);
-
-            result.Should().Equal(
-                "привет1",
-                "привет2",
-                "привет3",
-                "привет4",
-                "привет5",
-                "привет6",
-                "привет7",
-                "привет8",
-                "привет9",
-                "привет10");
-        }
-
         #endregion
 
         #region Tests for ParseDanishWord

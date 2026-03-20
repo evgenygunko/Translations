@@ -366,6 +366,25 @@ Content-Type: application/json
   });
 %}
 
+### LookUpWord with Russian text returns not found
+
+POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "привет",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When Russian text is sent to LookUpWord, we expect not found instead of parser failure', () => {
+    client.assert(response.status === 404, "Response status is 404");
+  });
+%}
+
 ### Suggested words for "xyz"
 
 POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
