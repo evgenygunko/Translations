@@ -70,6 +70,54 @@ namespace TranslatorApp.Tests.Services
             meaning.MeaningTranslation.Should().Be("брить, сбривать, подстригать");
         }
 
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_ReturnResultsFromResponse()
+        {
+            const string jsonResponse = """
+                {
+                  "results": [
+                    " at spise ",
+                    "et måltid",
+                    "at spise",
+                    "",
+                    "en ret",
+                    "et måltid",
+                    "at indtage",
+                    "at fortære",
+                    "en portion",
+                    "et indtag",
+                    "en middag",
+                    "at æde"
+                  ]
+                }
+                """;
+
+            var openAIResponse = CreateChatCompletionFromString(jsonResponse);
+
+            var chatClientMock = new Mock<ChatClient>();
+            chatClientMock
+                .Setup(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(openAIResponse);
+
+            var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ILogger<OpenAITranslationService>>().Object);
+
+            IReadOnlyList<string> result = await sut.GetTranslationSuggestionsAsync("есть", "Russian", "Danish", CancellationToken.None);
+
+            result.Should().Equal(
+                " at spise ",
+                "et måltid",
+                "at spise",
+                "",
+                "en ret",
+                "et måltid",
+                "at indtage",
+                "at fortære",
+                "en portion",
+                "et indtag",
+                "en middag",
+                "at æde");
+        }
+
         #endregion
 
         #region Private methods
@@ -80,6 +128,11 @@ namespace TranslatorApp.Tests.Services
             string testDataFolderPath = Path.Combine(currentDir, "TestData");
             string jsonResponse = File.ReadAllText(Path.Combine(testDataFolderPath, jsonFileName));
 
+            return CreateChatCompletionFromString(jsonResponse);
+        }
+
+        private static ClientResult<ChatCompletion> CreateChatCompletionFromString(string jsonResponse)
+        {
             ChatMessageContent content = [
                 ChatMessageContentPart.CreateTextPart(jsonResponse)
             ];

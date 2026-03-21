@@ -108,11 +108,22 @@ namespace TranslatorApp.Services
         {
             if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
             {
-                sourceLanguage = lang;
                 _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
                     "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
                     searchTerm,
-                    sourceLanguage);
+                    lang);
+
+                if (string.Equals(lang, "Russian", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // We want to translate Russian words to the language which user has selected in the UI,
+                    // so we use sourceLanguage as the language to which we want to translate.
+                    return await _openAITranslationService.GetTranslationSuggestionsAsync(searchTerm,
+                        sourceLanguage: lang,
+                        destinationLanguage: sourceLanguage,
+                        cancellationToken);
+                }
+
+                sourceLanguage = lang;
             }
 
             if (searchTerm.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
@@ -133,11 +144,6 @@ namespace TranslatorApp.Services
                 "Will get suggested words for '{Text}' in the '{SourceLanguage}' dictionary.",
                 searchTerm,
                 sourceLanguage);
-
-            if (string.Equals(sourceLanguage, "Russian", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return GetRussianSuggestedWords(searchTerm);
-            }
 
             return await _lookUpWord.GetSuggestedWordsAsync(searchTerm, sourceLanguage, cancellationToken);
         }
@@ -196,13 +202,6 @@ namespace TranslatorApp.Services
             }
 
             return (false, string.Empty);
-        }
-
-        internal IEnumerable<string> GetRussianSuggestedWords(string searchTerm)
-        {
-            return Enumerable
-                .Range(1, 10)
-                .Select(index => $"{searchTerm}{index}");
         }
 
         internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel, string sourceLanguage, string destinationLanguage)

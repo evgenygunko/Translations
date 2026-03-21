@@ -1,0 +1,22 @@
+### Suggested words for Danish "islygte"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "islygte",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Danish suggested words for islygte, we expect DDO suggestions', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.includes("lygte"), "contains 'lygte'");
+    client.assert(response.body.words.includes("flygte"), "contains 'flygte'");
+  });
+%}

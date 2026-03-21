@@ -15,6 +15,8 @@ namespace TranslatorApp.Services
     public interface IOpenAITranslationService
     {
         Task<TranslationOutput?> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
+
+        Task<IReadOnlyList<string>> GetTranslationSuggestionsAsync(string inputText, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken);
     }
 
     public class OpenAITranslationService : IOpenAITranslationService
@@ -84,6 +86,37 @@ Meaning output fields:
                     stopwatch.Elapsed.TotalSeconds);
 
             return openAITranslations;
+        }
+
+        public async Task<IReadOnlyList<string>> GetTranslationSuggestionsAsync(
+            string inputText,
+            string sourceLanguage,
+            string destinationLanguage,
+            CancellationToken cancellationToken)
+        {
+            string prompt = $@"
+Translate the input text from {sourceLanguage} to {destinationLanguage}.
+
+Provide up to 10 valid translation results.
+Include plausible synonymous senses or homonyms when relevant, but do not invent unlikely meanings.
+
+Formatting rules:
+- Return a JSON object only.
+- The object must contain a single property named ""results"".
+- ""results"" must be an array of strings.
+- Each string must contain exactly one translation candidate in {destinationLanguage}.
+- Do not include explanations, numbering, usage notes, or duplicate items.
+- If the destination language is Danish:
+  - Prefix verbs with ""at "".
+  - For nouns, include the correct indefinite article: ""en "" or ""et "".
+- If the destination language is Spanish:
+  - For nouns, include the correct indefinite article: ""un "" or ""una"".
+
+            Input text: {inputText}";
+
+            TranslationSuggestionsResponse? response = await CallOpenAIAsync<TranslationSuggestionsResponse>(prompt, cancellationToken);
+
+            return response?.Results ?? [];
         }
 
         #endregion

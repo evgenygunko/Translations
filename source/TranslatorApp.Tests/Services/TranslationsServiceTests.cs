@@ -286,50 +286,42 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task GetSuggestedWordsAsync_WhenWordHasRussianSymbols_CallsRussianSuggestionsLookup()
+        public async Task GetSuggestedWordsAsync_WhenWordHasRussianSymbols_CallsOpenAITranslationService()
         {
             const string searchText = "привет";
-            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string destinationLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["hej", "goddag"];
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
+            openAITranslationServiceMock
+                .Setup(x => x.GetTranslationSuggestionsAsync(searchText, "Russian", destinationLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
 
             var sut = _fixture.Create<TranslationsService>();
-            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, destinationLanguage);
 
-            result.Should().Equal(
-                "привет1",
-                "привет2",
-                "привет3",
-                "привет4",
-                "привет5",
-                "привет6",
-                "привет7",
-                "привет8",
-                "привет9",
-                "привет10");
+            result.Should().Equal(suggestions);
+            openAITranslationServiceMock.Verify(x => x.GetTranslationSuggestionsAsync(searchText, "Russian", destinationLanguage, It.IsAny<CancellationToken>()), Times.Once);
             lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
-        public async Task GetSuggestedWordsAsync_WhenRussianWordStartsWithAt_RemovesPrefixBeforeRussianLookup()
+        public async Task GetSuggestedWordsAsync_WhenRussianWordStartsWithAt_DoesNotRemovePrefixBeforeOpenAILookup()
         {
             const string searchText = "at привет";
-            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string destinationLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["hej", "goddag"];
             var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
+            openAITranslationServiceMock
+                .Setup(x => x.GetTranslationSuggestionsAsync(searchText, "Russian", destinationLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
 
             var sut = _fixture.Create<TranslationsService>();
-            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, destinationLanguage);
 
-            result.Should().Equal(
-                "привет1",
-                "привет2",
-                "привет3",
-                "привет4",
-                "привет5",
-                "привет6",
-                "привет7",
-                "привет8",
-                "привет9",
-                "привет10");
+            result.Should().Equal(suggestions);
+            openAITranslationServiceMock.Verify(x => x.GetTranslationSuggestionsAsync(searchText, "Russian", destinationLanguage, It.IsAny<CancellationToken>()), Times.Once);
             lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -472,26 +464,6 @@ namespace TranslatorApp.Tests.Services
 
             result.hasLanguageSpecificCharacters.Should().BeTrue();
             result.language.Should().Be("Russian");
-        }
-
-        [TestMethod]
-        public void GetRussianSuggestedWords_ReturnsTenStubSuggestions()
-        {
-            var sut = _fixture.Create<TranslationsService>();
-
-            IEnumerable<string> result = sut.GetRussianSuggestedWords("привет");
-
-            result.Should().Equal(
-                "привет1",
-                "привет2",
-                "привет3",
-                "привет4",
-                "привет5",
-                "привет6",
-                "привет7",
-                "привет8",
-                "привет9",
-                "привет10");
         }
 
         [TestMethod]

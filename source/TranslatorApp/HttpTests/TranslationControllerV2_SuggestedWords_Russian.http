@@ -1,0 +1,130 @@
+### Suggested words for Russian "привет" translated to Danish
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "привет",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian suggested words translated to Danish, we expect translated suggestions', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+  });
+%}
+
+### Suggested words for Russian verb translated to Danish should use "at"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "лежать",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian verb suggestions translated to Danish, we expect at least one verb prefixed with at', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.some(word => word.startsWith("at ")), "contains a Danish infinitive prefixed with 'at '");
+  });
+%}
+
+### Suggested words for Russian noun translated to Danish should use "en"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "собака",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian noun suggestions translated to Danish, we expect at least one common-gender noun with en', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.some(word => word.startsWith("en ")), "contains a Danish noun prefixed with 'en '");
+  });
+%}
+
+### Suggested words for Russian noun translated to Danish should use "et"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "яблоко",
+    "SourceLanguage": "Danish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian noun suggestions translated to Danish, we expect at least one neuter noun with et', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.some(word => word.startsWith("et ")), "contains a Danish noun prefixed with 'et '");
+  });
+%}
+
+### Suggested words for Russian noun translated to Spanish should use "un"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "собака",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian noun suggestions translated to Spanish, we expect at least one masculine noun with un', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.some(word => word.startsWith("un ")), "contains a Spanish noun prefixed with 'un '");
+  });
+%}
+
+### Suggested words for Russian noun translated to Spanish should use "una"
+
+POST {{HostAddress}}/api/v2/Translation/SuggestedWords?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "дом",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "Version": "2"
+}
+
+> {%
+
+  client.test('When requesting Russian noun suggestions translated to Spanish, we expect at least one feminine noun with una', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(Array.isArray(response.body.words), "words is an array");
+    client.assert(response.body.words.length > 0, "words has at least one suggestion");
+    client.assert(response.body.words.some(word => word.startsWith("una ")), "contains a Spanish noun prefixed with 'una '");
+  });
+%}
