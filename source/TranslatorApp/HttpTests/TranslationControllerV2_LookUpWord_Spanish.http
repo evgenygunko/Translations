@@ -146,6 +146,27 @@ Content-Type: application/json
   });
 %}
 
+### Look up Danish text with only Spanish active dictionary - expect to get Not Found
+
+POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "stå af",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
+    "Version": "2"
+}
+
+> {%
+
+  // Assert status code
+  client.test('When Danish text is sent with only Spanish active dictionary, we expect not found', () => {
+    client.assert(response.status === 404, "Response status is 404");
+  });
+%}
+
 ### BadRequest - Several required fields are null
 
 POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}

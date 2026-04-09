@@ -8,7 +8,7 @@ namespace TranslatorApp.Services
 {
     public interface ITranslationsService
     {
-        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default);
+        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, IReadOnlyList<string>? activeDictionaries = null, CancellationToken cancellationToken = default);
 
         Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default);
 
@@ -39,7 +39,7 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, CancellationToken cancellationToken = default)
+        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, IReadOnlyList<string>? activeDictionaries = null, CancellationToken cancellationToken = default)
         {
             // First check if the text has language specific characters - then use that language as source language
             if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
@@ -53,11 +53,14 @@ namespace TranslatorApp.Services
                     return null;
                 }
 
-                sourceLanguage = lang;
-                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
-                    "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
-                    searchTerm,
-                    sourceLanguage);
+                if (IsLanguageEnabled(activeDictionaries, lang))
+                {
+                    sourceLanguage = lang;
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
+                        "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
+                        searchTerm,
+                        sourceLanguage);
+                }
             }
 
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
@@ -92,13 +95,16 @@ namespace TranslatorApp.Services
                 string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
                     ? SourceLanguage.Spanish.ToString() : SourceLanguage.Danish.ToString();
 
-                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
-                    "Word '{Text}' not found in the '{Dictionary}' dictionary. Will look it up in the '{AnotherDictionary}' dictionary.",
-                    searchTerm,
-                    sourceLanguage,
-                    anotherLanguage);
+                if (IsLanguageEnabled(activeDictionaries, anotherLanguage))
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
+                        "Word '{Text}' not found in the '{Dictionary}' dictionary. Will look it up in the '{AnotherDictionary}' dictionary.",
+                        searchTerm,
+                        sourceLanguage,
+                        anotherLanguage);
 
-                wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, anotherLanguage, cancellationToken);
+                    wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, anotherLanguage, cancellationToken);
+                }
             }
 
             return wordModel;
@@ -202,6 +208,13 @@ namespace TranslatorApp.Services
             }
 
             return (false, string.Empty);
+        }
+
+        internal static bool IsLanguageEnabled(IReadOnlyList<string>? activeDictionaries, string language)
+        {
+            return activeDictionaries == null
+                || activeDictionaries.Count == 0
+                || activeDictionaries.Any(dictionary => string.Equals(dictionary, language, StringComparison.InvariantCultureIgnoreCase));
         }
 
         internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel, string sourceLanguage, string destinationLanguage)

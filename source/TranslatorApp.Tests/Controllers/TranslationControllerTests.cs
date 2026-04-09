@@ -93,7 +93,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ServerErrorException(
                     originalError,
                     HttpStatusCode.ServiceUnavailable,
@@ -138,7 +138,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ServerErrorException(
                     originalError,
                     HttpStatusCode.ServiceUnavailable,
@@ -216,7 +216,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((WordModel?)null);
 
             // Act
@@ -244,7 +244,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
@@ -255,7 +255,7 @@ namespace TranslatorApp.Tests.Controllers
 
             // Assert
             actionResult.Value.Should().BeOfType<WordModel>();
-            translationsServiceMock.Verify(x => x.LookUpWordInDictionaryAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, lookUpWordRequest.DestinationLanguage, It.IsAny<CancellationToken>()));
+            translationsServiceMock.Verify(x => x.LookUpWordInDictionaryAsync(lookUpWordRequest.Text, lookUpWordRequest.SourceLanguage, lookUpWordRequest.DestinationLanguage, lookUpWordRequest.ActiveDictionaries, It.IsAny<CancellationToken>()));
 
             loggerMock.Verify(
                 x => x.Log(
@@ -280,8 +280,8 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(async (string text, string source, string dest, CancellationToken ct) =>
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Returns(async (string text, string source, string dest, IReadOnlyList<string>? activeDictionaries, CancellationToken ct) =>
                 {
                     await Task.Delay(200, ct);
                     return _fixture.Create<WordModel>();
@@ -324,7 +324,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
             translationsServiceMock
                 .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -370,7 +370,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
             var sut = _fixture.Create<TranslationController>();
@@ -395,7 +395,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
 
             var sut = _fixture.Create<TranslationController>();
@@ -409,6 +409,35 @@ namespace TranslatorApp.Tests.Controllers
                     It.IsAny<WordModel>(),
                     "English",
                     lookUpWordRequest.DestinationLanguage,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordAsync_WhenActiveDictionariesProvided_ForwardsThemToTranslationsService()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de",
+                ActiveDictionaries: [SourceLanguage.Danish.ToString()]);
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(wordModel);
+
+            var sut = _fixture.Create<TranslationController>();
+            await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            translationsServiceMock.Verify(
+                x => x.LookUpWordInDictionaryAsync(
+                    lookUpWordRequest.Text,
+                    lookUpWordRequest.SourceLanguage,
+                    lookUpWordRequest.DestinationLanguage,
+                    lookUpWordRequest.ActiveDictionaries,
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }

@@ -78,6 +78,7 @@ namespace TranslatorApp.Controllers
                     lookUpWordRequest.Text,
                     lookUpWordRequest.SourceLanguage,
                     lookUpWordRequest.DestinationLanguage,
+                    lookUpWordRequest.ActiveDictionaries,
                     lookupLinkedCts.Token);
 
                 if (wordModel == null)

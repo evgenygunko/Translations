@@ -3,5 +3,6 @@
     public record LookUpWordRequest(
         string Text,
         string SourceLanguage,
-        string DestinationLanguage);
+        string DestinationLanguage,
+        IReadOnlyList<string>? ActiveDictionaries = null);
 }
