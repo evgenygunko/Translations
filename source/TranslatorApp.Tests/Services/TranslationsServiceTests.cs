@@ -95,6 +95,48 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenSourceLanguageIsDanishAndWordsStartsWithEn_RemovesEnAndLooksUpAgain()
+        {
+            const string searchText = "en bolig";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("en bolig", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("bolig", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            result.Should().BeEquivalentTo(wordModel);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordInDictionaryAsync_WhenSourceLanguageIsDanishAndWordsStartsWithEt_RemovesEtAndLooksUpAgain()
+        {
+            const string searchText = "et hus";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+            wordModel = wordModel with { SourceLanguage = SourceLanguage.Danish };
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("et hus", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
+            lookUpWordMock.Setup(x => x.LookUpWordAsync("hus", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
+
+            var sut = _fixture.Create<TranslationsService>();
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+
+            result.Should().BeEquivalentTo(wordModel);
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task LookUpWordInDictionaryAsync_WhenCannotFindWordInDanishDictionary_TriesSpanishParser()
         {
             // Arrange
@@ -366,6 +408,66 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenSearchTermStartsWithEnAndSourceLanguageIsDanish_RemovesPrefixBeforeLookup()
+        {
+            const string searchText = "en bolig";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["bolig", "boliger"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync("bolig", sourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()), Times.Never);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync("bolig", sourceLanguage, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenSearchTermStartsWithEtAndSourceLanguageIsDanish_RemovesPrefixBeforeLookup()
+        {
+            const string searchText = "et hus";
+            string sourceLanguage = SourceLanguage.Danish.ToString();
+            string[] suggestions = ["hus", "huse"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync("hus", sourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()), Times.Never);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync("hus", sourceLanguage, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetSuggestedWordsAsync_WhenSearchTermStartsWithAtAndSourceLanguageIsNotDanish_DoesNotRemovePrefixBeforeLookup()
+        {
+            const string searchText = "at ser";
+            string sourceLanguage = SourceLanguage.Spanish.ToString();
+            string[] suggestions = ["at ser"];
+
+            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
+            lookUpWordMock
+                .Setup(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(suggestions);
+
+            var sut = _fixture.Create<TranslationsService>();
+            IEnumerable<string> result = await sut.GetSuggestedWordsAsync(searchText, sourceLanguage);
+
+            result.Should().Equal(suggestions);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(searchText, sourceLanguage, It.IsAny<CancellationToken>()), Times.Once);
+            lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync("ser", sourceLanguage, It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task GetSuggestedWordsAsync_WhenSearchTermDoesNotStartWithAt_CallsLookupOnceWithOriginalText()
         {
             const string searchText = "ser";
@@ -422,6 +524,39 @@ namespace TranslatorApp.Tests.Services
             result.Should().Equal(suggestions);
             openAITranslationServiceMock.Verify(x => x.GetTranslationSuggestionsAsync(searchText, "Russian", destinationLanguage, It.IsAny<CancellationToken>()), Times.Once);
             lookUpWordMock.Verify(x => x.GetSuggestedWordsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        #endregion
+
+        #region Tests for TryRemoveDanishLookupPrefix
+
+        [TestMethod]
+        [DataRow("at ligge", "ligge")]
+        [DataRow("en bolig", "bolig")]
+        [DataRow("et hus", "hus")]
+        [DataRow("At ligge", "ligge")]
+        [DataRow("EN bolig", "bolig")]
+        [DataRow("ET hus", "hus")]
+        public void TryRemoveDanishLookupPrefix_WhenSearchTermStartsWithSupportedPrefix_ReturnsTrueAndNormalizedText(string searchTerm, string expectedNormalizedText)
+        {
+            bool result = TranslationsService.TryRemoveDanishLookupPrefix(searchTerm, out string normalizedSearchTerm);
+
+            result.Should().BeTrue();
+            normalizedSearchTerm.Should().Be(expectedNormalizedText);
+        }
+
+        [TestMethod]
+        [DataRow("ligge")]
+        [DataRow("bolig")]
+        [DataRow("hus")]
+        [DataRow(" en bolig")]
+        [DataRow("")]
+        public void TryRemoveDanishLookupPrefix_WhenSearchTermDoesNotStartWithSupportedPrefix_ReturnsFalse(string searchTerm)
+        {
+            bool result = TranslationsService.TryRemoveDanishLookupPrefix(searchTerm, out string normalizedSearchTerm);
+
+            result.Should().BeFalse();
+            normalizedSearchTerm.Should().BeEmpty();
         }
 
         #endregion

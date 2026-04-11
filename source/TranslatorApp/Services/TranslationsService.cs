@@ -17,6 +17,8 @@ namespace TranslatorApp.Services
 
     public class TranslationsService : ITranslationsService
     {
+        private static readonly string[] DanishLookupPrefixes = ["at ", "en ", "et "];
+
         private readonly IOpenAITranslationService _openAITranslationService;
         private readonly IOpenAITranslationService2 _openAITranslationService2;
         private readonly ILogger<TranslationsService> _logger;
@@ -70,21 +72,18 @@ namespace TranslatorApp.Services
 
             WordModel? wordModel = await _lookUpWord.LookUpWordAsync(searchTerm, sourceLanguage, cancellationToken);
 
-            // If the source language is Danish and the word starts with "at ", remove "at " and search again.
             if (wordModel == null
                 && string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                && searchTerm.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
+                && TryRemoveDanishLookupPrefix(searchTerm, out string normalizedSearchTerm))
             {
-                string textWithoutAt = searchTerm[3..];
-
                 _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
-                    "The text '{Text}' starts with 'at ' and the destination language is '{SourceLanguage}', so it is most likely a verb. " +
-                    "DDO returns 'not found' when search with 'at ', will try again searching for '{TextWithoutAt}'.",
+                    "DDO may return 'not found' when the Danish lookup text '{Text}' starts with 'at ', 'en ', or 'et '. " +
+                    "Will try again searching for '{NormalizedText}' in the '{SourceLanguage}' dictionary.",
                     searchTerm,
-                    sourceLanguage,
-                    textWithoutAt);
+                    normalizedSearchTerm,
+                    sourceLanguage);
 
-                wordModel = await _lookUpWord.LookUpWordAsync(textWithoutAt, sourceLanguage, cancellationToken);
+                wordModel = await _lookUpWord.LookUpWordAsync(normalizedSearchTerm, sourceLanguage, cancellationToken);
             }
 
             if (wordModel == null
@@ -132,18 +131,15 @@ namespace TranslatorApp.Services
                 sourceLanguage = lang;
             }
 
-            if (searchTerm.StartsWith("at ", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                && TryRemoveDanishLookupPrefix(searchTerm, out string normalizedSearchTerm))
             {
-                string textWithoutAt = searchTerm[3..];
-
                 _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
-                    "The text '{Text}' starts with 'at ' and the source language is '{SourceLanguage}', so it is most likely a verb. " +
-                    "Will get suggested words for '{TextWithoutAt}' instead.",
+                    "Will get suggested words for '{NormalizedText}' instead of the Danish lookup text '{Text}', because DDO may not return suggestions when the text starts with 'at ', 'en ', or 'et '.",
                     searchTerm,
-                    sourceLanguage,
-                    textWithoutAt);
+                    normalizedSearchTerm);
 
-                searchTerm = textWithoutAt;
+                searchTerm = normalizedSearchTerm;
             }
 
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.SuggestedWordsRequestReceived),
@@ -215,6 +211,21 @@ namespace TranslatorApp.Services
             return activeDictionaries == null
                 || activeDictionaries.Count == 0
                 || activeDictionaries.Any(dictionary => string.Equals(dictionary, language, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        internal static bool TryRemoveDanishLookupPrefix(string searchTerm, out string normalizedSearchTerm)
+        {
+            foreach (string prefix in DanishLookupPrefixes)
+            {
+                if (searchTerm.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    normalizedSearchTerm = searchTerm[prefix.Length..];
+                    return true;
+                }
+            }
+
+            normalizedSearchTerm = string.Empty;
+            return false;
         }
 
         internal Models.Translation.TranslationInput CreateTranslationInputFromWordModel(WordModel wordModel, string sourceLanguage, string destinationLanguage)
