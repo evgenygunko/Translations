@@ -122,7 +122,15 @@ namespace TranslatorApp.Services
                 {
                     // We want to translate Russian words to the language which user has selected in the UI,
                     // so we use sourceLanguage as the language to which we want to translate.
-                    return await _openAITranslationService.GetTranslationSuggestionsAsync(searchTerm,
+                    if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
+                    {
+                        return await _openAITranslationService.GetTranslationSuggestionsAsync(searchTerm,
+                            sourceLanguage: lang,
+                            destinationLanguage: sourceLanguage,
+                            cancellationToken);
+                    }
+
+                    return await _openAITranslationService2.GetTranslationSuggestionsAsync(searchTerm,
                         sourceLanguage: lang,
                         destinationLanguage: sourceLanguage,
                         cancellationToken);

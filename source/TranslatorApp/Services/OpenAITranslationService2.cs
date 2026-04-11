@@ -16,6 +16,8 @@ namespace TranslatorApp.Services
     public interface IOpenAITranslationService2
     {
         Task<TranslationOutput?> TranslateAsync(TranslationInput translationInput, CancellationToken cancellationToken);
+
+        Task<IReadOnlyList<string>> GetTranslationSuggestionsAsync(string inputText, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken);
     }
 
     public class OpenAITranslationService2 : IOpenAITranslationService2
@@ -51,6 +53,28 @@ namespace TranslatorApp.Services
                     stopwatch.Elapsed.TotalSeconds);
 
             return openAITranslations;
+        }
+
+        public async Task<IReadOnlyList<string>> GetTranslationSuggestionsAsync(
+            string inputText,
+            string sourceLanguage,
+            string destinationLanguage,
+            CancellationToken cancellationToken)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            TranslationSuggestionsOutput? output = await CallTranslationSuggestionsResponseAPIAsync(
+                inputText,
+                sourceLanguage,
+                destinationLanguage,
+                cancellationToken);
+
+            stopwatch.Stop();
+            _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationSuggestionsReceived),
+                    "The call to OpenAPI Response API for translation suggestions took {TotalSeconds} seconds.",
+                    stopwatch.Elapsed.TotalSeconds);
+
+            return output?.results ?? [];
         }
 
         #endregion
@@ -92,6 +116,18 @@ namespace TranslatorApp.Services
             return message;
         }
 
+        internal string GetTranslationSuggestionsPromptMessage(string inputText, string sourceLanguage, string destinationLanguage)
+        {
+            return CreatePromptMessage(
+                _openAIConfiguration.SuggestionsPromptId,
+                new Dictionary<string, string?>
+                {
+                    ["input_text"] = inputText,
+                    ["source_language"] = sourceLanguage,
+                    ["destination_language"] = destinationLanguage,
+                });
+        }
+
         #endregion
 
         #region Private Methods
@@ -105,35 +141,7 @@ namespace TranslatorApp.Services
             BinaryData input = BinaryData.FromString(promptMessage);
             using BinaryContent content = BinaryContent.Create(input);
 
-            // Create RequestOptions with the cancellation token
-            var requestOptions = new RequestOptions
-            {
-                CancellationToken = cancellationToken
-            };
-
-            ClientResult clientResult = await _openAIResponseClient.CreateResponseAsync(content, requestOptions);
-
-            BinaryData binaryData = clientResult.GetRawResponse().Content;
-            using JsonDocument structuredJson = JsonDocument.Parse(binaryData);
-
-            // Extract the text from output[0].content[0].text path
-            string? extractedText = null;
-            if (structuredJson.RootElement.TryGetProperty("output", out JsonElement outputArray) &&
-                outputArray.ValueKind == JsonValueKind.Array &&
-                outputArray.GetArrayLength() > 0)
-            {
-                JsonElement firstOutput = outputArray[0];
-                if (firstOutput.TryGetProperty("content", out JsonElement contentArray) &&
-                    contentArray.ValueKind == JsonValueKind.Array &&
-                    contentArray.GetArrayLength() > 0)
-                {
-                    JsonElement firstContent = contentArray[0];
-                    if (firstContent.TryGetProperty("text", out JsonElement textElement))
-                    {
-                        extractedText = textElement.GetString();
-                    }
-                }
-            }
+            string? extractedText = await CreateResponseAndExtractTextAsync(content, cancellationToken);
 
             if (string.IsNullOrEmpty(extractedText))
             {
@@ -145,6 +153,91 @@ namespace TranslatorApp.Services
             // Now deserialize the extracted text as TranslationOutput
             var translations = JsonSerializer.Deserialize<T>(extractedText, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
             return translations;
+        }
+
+        private async Task<TranslationSuggestionsOutput?> CallTranslationSuggestionsResponseAPIAsync(
+            string inputText,
+            string sourceLanguage,
+            string destinationLanguage,
+            CancellationToken cancellationToken)
+        {
+            string promptMessage = GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            BinaryData input = BinaryData.FromString(promptMessage);
+            using BinaryContent content = BinaryContent.Create(input);
+
+            string? extractedText = await CreateResponseAndExtractTextAsync(content, cancellationToken);
+
+            if (string.IsNullOrEmpty(extractedText))
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.NoTextFromOpenAI),
+                    "No text found in the response from OpenAI.");
+                return null;
+            }
+
+            return JsonSerializer.Deserialize<TranslationSuggestionsOutput>(
+                extractedText,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        private async Task<string?> CreateResponseAndExtractTextAsync(BinaryContent content, CancellationToken cancellationToken)
+        {
+            var requestOptions = new RequestOptions
+            {
+                CancellationToken = cancellationToken
+            };
+
+            ClientResult clientResult = await _openAIResponseClient.CreateResponseAsync(content, requestOptions);
+
+            BinaryData binaryData = clientResult.GetRawResponse().Content;
+            using JsonDocument structuredJson = JsonDocument.Parse(binaryData);
+
+            return ExtractText(structuredJson.RootElement);
+        }
+
+        private static string? ExtractText(JsonElement rootElement)
+        {
+            if (rootElement.TryGetProperty("output", out JsonElement outputArray) &&
+                outputArray.ValueKind == JsonValueKind.Array &&
+                outputArray.GetArrayLength() > 0)
+            {
+                JsonElement firstOutput = outputArray[0];
+                if (firstOutput.TryGetProperty("content", out JsonElement contentArray) &&
+                    contentArray.ValueKind == JsonValueKind.Array &&
+                    contentArray.GetArrayLength() > 0)
+                {
+                    JsonElement firstContent = contentArray[0];
+                    if (firstContent.TryGetProperty("text", out JsonElement textElement))
+                    {
+                        return textElement.GetString();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private string CreatePromptMessage(string promptId, IReadOnlyDictionary<string, string?> variables)
+        {
+            string promptVersion = _launchDarklyService.GetStringFlag("open-ai-prompt-version", "");
+            bool shouldAddVersion = !string.IsNullOrEmpty(promptVersion) && promptVersion != "current";
+            string versionProperty = shouldAddVersion ? $@"
+                        ""version"": ""{promptVersion}""," : "";
+
+            string variablesJson = string.Join("," + Environment.NewLine, variables.Select(variable =>
+                $@"                            ""{variable.Key}"": {JsonSerializer.Serialize(variable.Value ?? string.Empty)}"));
+
+            string message = $@"
+                {{
+                   ""prompt"": {{
+                        ""id"": ""{promptId}"",{versionProperty}
+                        ""variables"": {{
+{variablesJson}
+                        }}
+                    }}
+                }}";
+
+            return message;
         }
 
         #endregion

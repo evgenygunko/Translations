@@ -52,9 +52,11 @@ namespace TranslatorApp.Tests.Services
                 PromptId = "prompt_123"
             });
 
+            var loggerMock = new Mock<ILogger<OpenAITranslationService2>>();
+
             var sut = new OpenAITranslationService2(
                 openAIResponseClientMock.Object,
-                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                loggerMock.Object,
                 openAIConfigurationMock.Object,
                 new Mock<ILaunchDarklyService>().Object);
 
@@ -81,6 +83,15 @@ namespace TranslatorApp.Tests.Services
             meaning = definition.Contexts[0].Meanings[0];
             meaning.id.Should().Be(1);
             meaning.MeaningTranslation.Should().Be("брить, сбривать, подстригать");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    new EventId((int)TranslatorAppEventId.TranslationReceived),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("The call to OpenAPI Response API took")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
         }
 
         #endregion
@@ -462,6 +473,761 @@ namespace TranslatorApp.Tests.Services
 
         #endregion
 
+        #region Tests for GetTranslationSuggestionsPromptMessage
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_ReturnValidJsonStructure()
+        {
+            // Arrange
+            var inputText = "Hello, how are you?";
+            var sourceLanguage = "en";
+            var destinationLanguage = "fr";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            result.Should().NotBeNullOrEmpty();
+
+            // Validate that the result is valid JSON
+            using var document = JsonDocument.Parse(result);
+            var root = document.RootElement;
+
+            root.TryGetProperty("prompt", out var promptElement).Should().BeTrue();
+            promptElement.TryGetProperty("id", out var idElement).Should().BeTrue();
+            promptElement.TryGetProperty("variables", out var variablesElement).Should().BeTrue();
+
+            idElement.GetString().Should().Be("suggestions_prompt_123");
+
+            variablesElement.TryGetProperty("input_text", out var inputTextElement).Should().BeTrue();
+            variablesElement.TryGetProperty("source_language", out var sourceLangElement).Should().BeTrue();
+            variablesElement.TryGetProperty("destination_language", out var destLangElement).Should().BeTrue();
+
+            inputTextElement.GetString().Should().Be(inputText);
+            sourceLangElement.GetString().Should().Be(sourceLanguage);
+            destLangElement.GetString().Should().Be(destinationLanguage);
+        }
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_ProperlyEscapeSpecialCharactersInInputText()
+        {
+            // Arrange
+            var inputText = "What is \"hello\" and 'world'? \\ test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "es";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            result.Should().NotBeNullOrEmpty();
+
+            // Should be valid JSON despite special characters in the input
+            Action parseAction = () => JsonDocument.Parse(result);
+            parseAction.Should().NotThrow("the result should be valid JSON");
+
+            using var document = JsonDocument.Parse(result);
+            var retrievedInputText = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("variables")
+                .GetProperty("input_text")
+                .GetString();
+
+            retrievedInputText.Should().Be(inputText);
+        }
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_HandleEmptyInputText()
+        {
+            // Arrange
+            var inputText = string.Empty;
+            var sourceLanguage = "en";
+            var destinationLanguage = "de";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            result.Should().NotBeNullOrEmpty();
+
+            using var document = JsonDocument.Parse(result);
+            var retrievedInputText = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("variables")
+                .GetProperty("input_text")
+                .GetString();
+
+            retrievedInputText.Should().Be(string.Empty);
+        }
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_HandleMultilineInputText()
+        {
+            // Arrange
+            var inputText = "Line 1\nLine 2\nLine 3";
+            var sourceLanguage = "en";
+            var destinationLanguage = "ja";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            result.Should().NotBeNullOrEmpty();
+
+            using var document = JsonDocument.Parse(result);
+            var retrievedInputText = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("variables")
+                .GetProperty("input_text")
+                .GetString();
+
+            retrievedInputText.Should().Be(inputText);
+        }
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_PreserveSuggestionsPromptId()
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "fr";
+            var promptId = "custom_suggestions_prompt_789";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = promptId
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            using var document = JsonDocument.Parse(result);
+            var retrievedPromptId = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("id")
+                .GetString();
+
+            retrievedPromptId.Should().Be(promptId);
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("current")]
+        public void GetTranslationSuggestionsPromptMessage_WhenLDFlagIsEmptyOrCurrent_DoesNotAddPromptVersion(string ldFlagValue)
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "fr";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var launchDarklyServiceMock = new Mock<ILaunchDarklyService>();
+            launchDarklyServiceMock
+                .Setup(x => x.GetStringFlag("open-ai-prompt-version", ""))
+                .Returns(ldFlagValue);
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                launchDarklyServiceMock.Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            using var document = JsonDocument.Parse(result);
+            var promptElement = document.RootElement.GetProperty("prompt");
+
+            bool hasVersionProperty = promptElement.TryGetProperty("version", out _);
+            hasVersionProperty.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_AddPromptVersionProperty()
+        {
+            // Arrange
+            const string ldFlagValue = "v2.5";
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "es";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var launchDarklyServiceMock = new Mock<ILaunchDarklyService>();
+            launchDarklyServiceMock
+                .Setup(x => x.GetStringFlag("open-ai-prompt-version", ""))
+                .Returns(ldFlagValue);
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                launchDarklyServiceMock.Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            using var document = JsonDocument.Parse(result);
+            var promptVersion = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("version")
+                .GetString();
+
+            promptVersion.Should().Be(ldFlagValue);
+        }
+
+        [TestMethod]
+        public void GetTranslationSuggestionsPromptMessage_Should_HandleUnicodeCharacters()
+        {
+            // Arrange
+            var inputText = "你好世界 🌍 مرحبا";
+            var sourceLanguage = "zh";
+            var destinationLanguage = "ar";
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            string result = sut.GetTranslationSuggestionsPromptMessage(inputText, sourceLanguage, destinationLanguage);
+
+            // Assert
+            result.Should().NotBeNullOrEmpty();
+
+            using var document = JsonDocument.Parse(result);
+            var retrievedInputText = document.RootElement
+                .GetProperty("prompt")
+                .GetProperty("variables")
+                .GetProperty("input_text")
+                .GetString();
+
+            retrievedInputText.Should().Be(inputText);
+        }
+
+        #endregion
+
+        #region Tests for GetTranslationSuggestionsAsync
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_ReturnTranslationSuggestions()
+        {
+            // Arrange
+            var inputText = "hello";
+            var sourceLanguage = "en";
+            var destinationLanguage = "es";
+            var suggestions = new[] { "hola", "buenos días", "saludos" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(3);
+            result.Should().ContainInOrder("hola", "buenos días", "saludos");
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleEmptyResults()
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "de";
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: Array.Empty<string>());
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleSingleSuggestion()
+        {
+            // Arrange
+            var inputText = "bonjour";
+            var sourceLanguage = "fr";
+            var destinationLanguage = "en";
+            var suggestions = new[] { "hello" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(1);
+            result.First().Should().Be("hello");
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleMultipleSuggestions()
+        {
+            // Arrange
+            var inputText = "gato";
+            var sourceLanguage = "es";
+            var destinationLanguage = "en";
+            var suggestions = new[] { "cat", "feline", "tomcat", "mouser", "pussy" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(5);
+            result.Should().ContainInOrder("cat", "feline", "tomcat", "mouser", "pussy");
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleNullResponse()
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "fr";
+
+            // Mock a response that returns null
+            var openAIResponse = CreateResponseFromTranslationSuggestions(null);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var loggerMock = new Mock<ILogger<OpenAITranslationService2>>();
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                loggerMock.Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No text found")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleSuggestionsWithSpecialCharacters()
+        {
+            // Arrange
+            var inputText = "café";
+            var sourceLanguage = "fr";
+            var destinationLanguage = "en";
+            var suggestions = new[] { "coffee", "café", "caf'e" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(3);
+            result.Should().Contain("café");
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleUnicodeCharacters()
+        {
+            // Arrange
+            var inputText = "你好";
+            var sourceLanguage = "zh";
+            var destinationLanguage = "en";
+            var suggestions = new[] { "hello", "hi", "good day" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(3);
+            result.Should().ContainInOrder("hello", "hi", "good day");
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_PassCorrectParametersToPromptMessage()
+        {
+            // Arrange
+            var inputText = "test input";
+            var sourceLanguage = "en";
+            var destinationLanguage = "de";
+            var suggestions = new[] { "test" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            BinaryContent? capturedContent = null;
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .Callback<BinaryContent, RequestOptions>((content, options) => capturedContent = content)
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            openAIResponseClientMock.Verify(
+                x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()),
+                Times.Once);
+            capturedContent.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_ReturnReadOnlyList()
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "es";
+            var suggestions = new[] { "prueba", "examen" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            var result = await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            result.Should().BeAssignableTo<IReadOnlyList<string>>();
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_LogInformationAboutExecutionTime()
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "fr";
+            var suggestions = new[] { "test" };
+
+            var translationSuggestionsOutput = new TranslationSuggestionsOutput(results: suggestions);
+            var openAIResponse = CreateResponseFromTranslationSuggestions(translationSuggestionsOutput);
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ReturnsAsync(openAIResponse);
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var loggerMock = new Mock<ILogger<OpenAITranslationService2>>();
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                loggerMock.Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act
+            await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, CancellationToken.None);
+
+            // Assert
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    new EventId((int)TranslatorAppEventId.TranslationSuggestionsReceived),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("translation suggestions")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetTranslationSuggestionsAsync_Should_HandleCancellationToken()
+        {
+            // Arrange
+            var inputText = "test";
+            var sourceLanguage = "en";
+            var destinationLanguage = "es";
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.Cancel();
+
+            var openAIResponseClientMock = new Mock<ResponsesClient>();
+            openAIResponseClientMock
+                .Setup(x => x.CreateResponseAsync(It.IsAny<BinaryContent>(), It.IsAny<RequestOptions>()))
+                .ThrowsAsync(new OperationCanceledException());
+
+            var openAIConfigurationMock = new Mock<IOptions<OpenAIConfiguration>>();
+            openAIConfigurationMock.Setup(x => x.Value).Returns(new OpenAIConfiguration
+            {
+                SuggestionsPromptId = "suggestions_prompt_123"
+            });
+
+            var sut = new OpenAITranslationService2(
+                openAIResponseClientMock.Object,
+                new Mock<ILogger<OpenAITranslationService2>>().Object,
+                openAIConfigurationMock.Object,
+                new Mock<ILaunchDarklyService>().Object);
+
+            // Act & Assert
+            Func<Task> act = async () => await sut.GetTranslationSuggestionsAsync(inputText, sourceLanguage, destinationLanguage, cancellationTokenSource.Token);
+            await act.Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        #endregion
+
         #region Private methods
 
         private static ClientResult CreateReponseFromJson(string jsonFileName)
@@ -496,6 +1262,43 @@ namespace TranslatorApp.Tests.Services
             };
 
             string responseDataJson = JsonSerializer.Serialize(responseData, new JsonSerializerOptions { WriteIndented = true });
+
+            Mock<PipelineResponse> pipelineResponse = new Mock<PipelineResponse>();
+            pipelineResponse.SetupGet(x => x.Content).Returns(BinaryData.FromString(responseDataJson));
+
+            ClientResult<string> clientResult = ClientResult.FromValue("A response from unit test", pipelineResponse.Object);
+            return clientResult;
+        }
+
+        private static ClientResult CreateResponseFromTranslationSuggestions(TranslationSuggestionsOutput? output)
+        {
+            string? suggestionJson = output == null ? null : JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = false });
+
+            var responseData = new
+            {
+                id = "resp_123",
+                model = "gpt-4.1-mini-2025-04-14",
+                output = new[]
+                {
+                    new
+                    {
+                        id = "msg_689f781876a481a298eb40963aedb4ad0b76e9c7b0aa83ca",
+                        type = "message",
+                        status = "completed",
+                        content = new[]
+                        {
+                            new
+                            {
+                                type = "output_text",
+                                text = suggestionJson ?? ""
+                            }
+                        },
+                        role = "assistant"
+                    }
+                }
+            };
+
+            string responseDataJson = JsonSerializer.Serialize(responseData, new JsonSerializerOptions { WriteIndented = false });
 
             Mock<PipelineResponse> pipelineResponse = new Mock<PipelineResponse>();
             pipelineResponse.SetupGet(x => x.Content).Returns(BinaryData.FromString(responseDataJson));
