@@ -95,28 +95,39 @@ Meaning output fields:
             CancellationToken cancellationToken)
         {
             string prompt = $@"
-Translate the input text from {sourceLanguage} to {destinationLanguage}.
+Translate the input text from source language to destination language. Find the values below.
 
 Provide up to 10 valid translation results.
 Include plausible synonymous senses or homonyms when relevant, but do not invent unlikely meanings.
+Order results by commonness and relevance, with the most common or likely translation first.
 
 Formatting rules:
 - Return a JSON object only.
-- The object must contain a single property named ""results"".
+- The object must contain exactly one required property named ""results"".
 - ""results"" must be an array of strings.
-- Each string must contain exactly one translation candidate in {destinationLanguage}.
+- Each string must contain exactly one translation candidate in destination_language.
 - Do not include explanations, numbering, usage notes, or duplicate items.
 - If the destination language is Danish:
   - Prefix verbs with ""at "".
   - For nouns, include the correct indefinite article: ""en "" or ""et "".
 - If the destination language is Spanish:
   - For nouns, include the correct indefinite article: ""un "" or ""una"".
+- If source_language or destination_language is unknown or unsupported, if input_text is empty, or if no valid translation candidates exist, return {"results":[]}.
 
-            Input text: {inputText}";
+input text: ""{inputText}""
+source language: ""{sourceLanguage}""
+destination language: ""{destinationLanguage}""";
 
-            TranslationSuggestionsResponse? response = await CallOpenAIAsync<TranslationSuggestionsResponse>(prompt, cancellationToken);
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-            return response?.Results ?? [];
+            TranslationSuggestionsOutput? response = await CallOpenAIAsync<TranslationSuggestionsOutput>(prompt, cancellationToken);
+
+            stopwatch.Stop();
+            _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationSuggestionsReceived),
+                    "The call to OpenAPI Chat Completions API took {TotalSeconds} seconds.",
+                    stopwatch.Elapsed.TotalSeconds);
+
+            return response?.results ?? [];
         }
 
         #endregion
