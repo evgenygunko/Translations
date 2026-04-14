@@ -26,6 +26,7 @@ namespace TranslatorApp.Models
         ReturningWordModel2 = 54,
         OnlineDictionaryUnavailable = 55,
         SuggestedWordsRequestReceived = 56,
-        TranslationSuggestionsReceived = 57
+        TranslationSuggestionsReceived = 57,
+        LookupControllerRequestReceived = 58
     }
 }

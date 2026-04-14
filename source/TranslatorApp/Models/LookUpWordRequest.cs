@@ -4,5 +4,5 @@
         string Text,
         string SourceLanguage,
         string DestinationLanguage,
-        IReadOnlyList<string>? ActiveDictionaries = null);
+        IReadOnlyList<string> ActiveDictionaries);
 }

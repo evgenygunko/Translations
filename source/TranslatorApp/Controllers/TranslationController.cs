@@ -74,6 +74,13 @@ namespace TranslatorApp.Controllers
                 lookupRequestCt = new CancellationTokenSource(LookupRequestTimeout).Token;
                 using var lookupLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, lookupRequestCt.Value);
 
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupControllerRequestReceived),
+                    "TranslationController received lookup request. Text: '{Text}', SourceLanguage: '{SourceLanguage}', DestinationLanguage: '{DestinationLanguage}', ActiveDictionaries: {@ActiveDictionaries}.",
+                    lookUpWordRequest.Text,
+                    lookUpWordRequest.SourceLanguage,
+                    lookUpWordRequest.DestinationLanguage,
+                    lookUpWordRequest.ActiveDictionaries);
+
                 WordModel? wordModel = await _translationsService.LookUpWordInDictionaryAsync(
                     lookUpWordRequest.Text,
                     lookUpWordRequest.SourceLanguage,

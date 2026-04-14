@@ -12,6 +12,7 @@ namespace TranslatorApp.Tests.Models
     public class LookUpWordRequestValidatorTests
     {
         private readonly IFixture _fixture = FixtureFactory.Create();
+        private static IReadOnlyList<string> ActiveDictionaries(params string[] values) => values;
 
         [TestMethod]
         public void Validate_WhenAllRequiredFieldsHaveValues_ReturnsTrue()
@@ -19,7 +20,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -35,7 +37,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -53,7 +56,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: text,
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -67,7 +71,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: "",
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -85,7 +90,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(sourceLanguage.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -103,7 +109,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage,
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -118,7 +125,8 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: null!);
+                DestinationLanguage: null!,
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
@@ -138,13 +146,77 @@ namespace TranslatorApp.Tests.Models
             var translationInput = new LookUpWordRequest(
                 Text: "word to look up",
                 SourceLanguage: sourceLanguage,
-                DestinationLanguage: destinationLanguage);
+                DestinationLanguage: destinationLanguage,
+                ActiveDictionaries: ActiveDictionaries(sourceLanguage));
 
             var sut = _fixture.Create<LookUpWordRequestValidator>();
             ValidationResult result = sut.Validate(translationInput);
 
             result.IsValid.Should().BeFalse();
             result.Errors.Should().Contain(e => e.ErrorMessage == "'DestinationLanguage' must not be equal to 'SourceLanguage'.");
+        }
+
+        [TestMethod]
+        public void Validate_WhenActiveDictionariesIsNull_ReturnsFalse()
+        {
+            var translationInput = new LookUpWordRequest(
+                Text: "word to look up",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de",
+                ActiveDictionaries: null!);
+
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.ErrorMessage == "'ActiveDictionaries' must not be null.");
+        }
+
+        [TestMethod]
+        public void Validate_WhenActiveDictionariesIsEmpty_ReturnsFalse()
+        {
+            var translationInput = new LookUpWordRequest(
+                Text: "word to look up",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de",
+                ActiveDictionaries: []);
+
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.ErrorMessage == "'ActiveDictionaries' must not be empty.");
+        }
+
+        [TestMethod]
+        public void Validate_WhenActiveDictionariesDoesNotContainSourceLanguage_ReturnsFalse()
+        {
+            var translationInput = new LookUpWordRequest(
+                Text: "word to look up",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Spanish.ToString()));
+
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.ErrorMessage == "'ActiveDictionaries' must contain the value from 'SourceLanguage'.");
+        }
+
+        [TestMethod]
+        public void Validate_WhenActiveDictionariesContainsSourceLanguageWithDifferentCase_ReturnsTrue()
+        {
+            var translationInput = new LookUpWordRequest(
+                Text: "word to look up",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries("danish"));
+
+            var sut = _fixture.Create<LookUpWordRequestValidator>();
+            ValidationResult result = sut.Validate(translationInput);
+
+            result.IsValid.Should().BeTrue();
         }
     }
 }

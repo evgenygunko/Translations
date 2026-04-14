@@ -22,6 +22,7 @@ namespace TranslatorApp.Tests.Controllers
         private IFixture _fixture = default!;
         private Mock<IGlobalSettings> _globalSettingsMock = default!;
         private Mock<IValidator<LookUpWordRequest>> _requestValidatorMock = default!;
+        private static IReadOnlyList<string> ActiveDictionaries(params string[] values) => values;
 
         [TestInitialize]
         public void TestInitialize()
@@ -60,7 +61,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: "",
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
@@ -85,7 +87,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "islygte",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             string originalError = "Server returned error code 'ServiceUnavailable' when requesting URL 'https://ordnet.dk/ddo/ordbog?query=islygte'.";
 
@@ -93,7 +96,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ServerErrorException(
                     originalError,
                     HttpStatusCode.ServiceUnavailable,
@@ -130,7 +133,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "afeitar",
                 SourceLanguage: SourceLanguage.Spanish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Spanish.ToString()));
 
             string originalError = "Server returned error code 'ServiceUnavailable' when requesting URL 'https://www.spanishdict.com/translate/afeitar'.";
 
@@ -138,7 +142,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ServerErrorException(
                     originalError,
                     HttpStatusCode.ServiceUnavailable,
@@ -175,7 +179,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -212,11 +217,12 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((WordModel?)null);
 
             // Act
@@ -238,13 +244,14 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             WordModel wordModel = _fixture.Create<WordModel>();
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
@@ -268,20 +275,57 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
+        public async Task LookUpWordAsync_WhenRequestIsValid_LogsLookupRequestParameters()
+        {
+            var lookUpWordRequest = new LookUpWordRequest(
+                Text: "word to translate",
+                SourceLanguage: SourceLanguage.Danish.ToString(),
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
+
+            WordModel wordModel = _fixture.Create<WordModel>();
+
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(wordModel);
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
+
+            var sut = _fixture.Create<TranslationController>();
+            await sut.LookUpWordAsync(lookUpWordRequest, "test-code");
+
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    It.Is<EventId>(e => e.Id == (int)TranslatorAppEventId.LookupControllerRequestReceived),
+                    It.Is<It.IsAnyType>((v, t) =>
+                        v.ToString()!.Contains("TranslationController received lookup request.")
+                        && v.ToString()!.Contains(lookUpWordRequest.Text)
+                        && v.ToString()!.Contains(lookUpWordRequest.SourceLanguage)
+                        && v.ToString()!.Contains(lookUpWordRequest.DestinationLanguage)
+                        && v.ToString()!.Contains(SourceLanguage.Danish.ToString())),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
+                Times.Once);
+        }
+
+        [TestMethod]
         public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
-                .Returns(async (string text, string source, string dest, IReadOnlyList<string>? activeDictionaries, CancellationToken ct) =>
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+                .Returns(async (string text, string source, string dest, IReadOnlyList<string> activeDictionaries, CancellationToken ct) =>
                 {
                     await Task.Delay(200, ct);
                     return _fixture.Create<WordModel>();
@@ -316,7 +360,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -324,7 +369,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
             translationsServiceMock
                 .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -363,14 +408,15 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "word to translate",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "de");
+                DestinationLanguage: "de",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());
 
             var sut = _fixture.Create<TranslationController>();
@@ -387,7 +433,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "https://www.spanishdict.com/translate/hello?langFrom=en",
                 SourceLanguage: "Spanish",
-                DestinationLanguage: "Russian");
+                DestinationLanguage: "Russian",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Spanish.ToString()));
 
             var wordModel = _fixture.Build<WordModel>()
                 .With(x => x.SourceLanguage, SourceLanguage.Spanish)
@@ -395,7 +442,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
 
             var sut = _fixture.Create<TranslationController>();
@@ -426,7 +473,7 @@ namespace TranslatorApp.Tests.Controllers
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
-                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>?>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.LookUpWordInDictionaryAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(wordModel);
 
             var sut = _fixture.Create<TranslationController>();
@@ -466,7 +513,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "xyz",
                 SourceLanguage: "Spanish",
-                DestinationLanguage: "Russian");
+                DestinationLanguage: "Russian",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Spanish.ToString()));
 
             var sut = _fixture.Create<TranslationController>();
             ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsAsync(lookUpWordRequest, "invalid-code");
@@ -482,7 +530,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "xyz",
                 SourceLanguage: "",
-                DestinationLanguage: "Russian");
+                DestinationLanguage: "Russian",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var validationResult = _fixture.Create<ValidationResult>();
             validationResult.Errors.Clear();
@@ -504,7 +553,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "xyz",
                 SourceLanguage: "Spanish",
-                DestinationLanguage: "Russian");
+                DestinationLanguage: "Russian",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Spanish.ToString()));
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock
@@ -529,7 +579,8 @@ namespace TranslatorApp.Tests.Controllers
             var lookUpWordRequest = new LookUpWordRequest(
                 Text: "islygte",
                 SourceLanguage: SourceLanguage.Danish.ToString(),
-                DestinationLanguage: "Russian");
+                DestinationLanguage: "Russian",
+                ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
             var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
             translationsServiceMock

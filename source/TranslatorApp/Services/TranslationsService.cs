@@ -8,7 +8,7 @@ namespace TranslatorApp.Services
 {
     public interface ITranslationsService
     {
-        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, IReadOnlyList<string>? activeDictionaries = null, CancellationToken cancellationToken = default);
+        Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, IReadOnlyList<string> activeDictionaries, CancellationToken cancellationToken = default);
 
         Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default);
 
@@ -41,7 +41,7 @@ namespace TranslatorApp.Services
 
         #region Public Methods
 
-        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, IReadOnlyList<string>? activeDictionaries = null, CancellationToken cancellationToken = default)
+        public async Task<WordModel?> LookUpWordInDictionaryAsync(string searchTerm, string sourceLanguage, string targetLanguage, IReadOnlyList<string> activeDictionaries, CancellationToken cancellationToken = default)
         {
             // First check if the text has language specific characters - then use that language as source language
             if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
@@ -55,7 +55,7 @@ namespace TranslatorApp.Services
                     return null;
                 }
 
-                if (IsLanguageEnabled(activeDictionaries, lang))
+                if (activeDictionaries.Any(dictionary => string.Equals(dictionary, lang, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     sourceLanguage = lang;
                     _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
@@ -94,7 +94,7 @@ namespace TranslatorApp.Services
                 string anotherLanguage = string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
                     ? SourceLanguage.Spanish.ToString() : SourceLanguage.Danish.ToString();
 
-                if (IsLanguageEnabled(activeDictionaries, anotherLanguage))
+                if (activeDictionaries.Any(dictionary => string.Equals(dictionary, anotherLanguage, StringComparison.InvariantCultureIgnoreCase)))
                 {
                     _logger.LogInformation(new EventId((int)TranslatorAppEventId.LookupRequestReceived),
                         "Word '{Text}' not found in the '{Dictionary}' dictionary. Will look it up in the '{AnotherDictionary}' dictionary.",
@@ -212,13 +212,6 @@ namespace TranslatorApp.Services
             }
 
             return (false, string.Empty);
-        }
-
-        internal static bool IsLanguageEnabled(IReadOnlyList<string>? activeDictionaries, string language)
-        {
-            return activeDictionaries == null
-                || activeDictionaries.Count == 0
-                || activeDictionaries.Any(dictionary => string.Equals(dictionary, language, StringComparison.InvariantCultureIgnoreCase));
         }
 
         internal static bool TryRemoveDanishLookupPrefix(string searchTerm, out string normalizedSearchTerm)

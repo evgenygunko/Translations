@@ -7,6 +7,7 @@ Content-Type: application/json
     "Text": "såsom",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -32,6 +33,7 @@ Content-Type: application/json
     "Text": "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -57,6 +59,7 @@ Content-Type: application/json
     "Text": "https://ordnet.dk/ddo/ordbog?select=ramme,3&query=rammer",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -83,6 +86,7 @@ Content-Type: application/json
     "Text": "skyldes",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -107,6 +111,7 @@ Content-Type: application/json
     "Text": "slå",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -135,6 +140,7 @@ Content-Type: application/json
     "Text": "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -158,6 +164,7 @@ Content-Type: application/json
     "Text": "at ligge",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -180,6 +187,7 @@ Content-Type: application/json
     "Text": "snabel-a",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -202,6 +210,7 @@ Content-Type: application/json
     "Text": "привет",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 

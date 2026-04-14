@@ -7,6 +7,7 @@ Content-Type: application/json
     "Text": "xyz",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -33,6 +34,7 @@ Content-Type: application/json
     "Text": "hacer estiramientos",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -55,6 +57,7 @@ Content-Type: application/json
     "Text": "xyz",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -74,6 +77,7 @@ Content-Type: application/json
     "Text": "xyz",
     "SourceLanguage": null,
     "DestinationLanguage": null,
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 

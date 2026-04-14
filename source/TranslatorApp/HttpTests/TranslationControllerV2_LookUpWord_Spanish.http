@@ -7,6 +7,7 @@ Content-Type: application/json
     "Text": "afeitar",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -32,6 +33,7 @@ Content-Type: application/json
     "Text": "coche",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -62,6 +64,7 @@ Content-Type: application/json
     "Text": "coche",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Danish",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -90,6 +93,7 @@ Content-Type: application/json
     "Text": "wasapear",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -115,6 +119,7 @@ Content-Type: application/json
     "Text": "xyz",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -135,6 +140,7 @@ Content-Type: application/json
     "Text": "https://www.spanishdict.com/translate/fine-tooth%20comb?langFrom=en",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -176,6 +182,7 @@ Content-Type: application/json
     "Text": "coche",
     "SourceLanguage": null,
     "DestinationLanguage": null,
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 

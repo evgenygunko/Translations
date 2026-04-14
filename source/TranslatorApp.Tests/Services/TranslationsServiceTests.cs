@@ -15,6 +15,7 @@ namespace TranslatorApp.Tests.Services
     public class TranslationsServiceTests
     {
         private readonly IFixture _fixture = FixtureFactory.Create();
+        private static IReadOnlyList<string> ActiveDictionaries(params SourceLanguage[] languages) => languages.Select(language => language.ToString()).ToArray();
 
         #region Tests for LookUpWordInDictionaryAsync
 
@@ -34,7 +35,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Spanish, SourceLanguage.Danish));
 
             // Assert
             result.Should().BeEquivalentTo(wordModel);
@@ -59,7 +60,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish, SourceLanguage.Spanish));
 
             // Assert
             result.Should().BeEquivalentTo(wordModel);
@@ -85,7 +86,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish));
 
             // Assert
             result.Should().BeEquivalentTo(wordModel);
@@ -108,7 +109,7 @@ namespace TranslatorApp.Tests.Services
             lookUpWordMock.Setup(x => x.LookUpWordAsync("bolig", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
 
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish));
 
             result.Should().BeEquivalentTo(wordModel);
             lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Exactly(2));
@@ -129,7 +130,7 @@ namespace TranslatorApp.Tests.Services
             lookUpWordMock.Setup(x => x.LookUpWordAsync("hus", SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
 
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish));
 
             result.Should().BeEquivalentTo(wordModel);
             lookUpWordMock.Verify(x => x.LookUpWordAsync(It.IsAny<string>(), SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()), Times.Exactly(2));
@@ -152,7 +153,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish, SourceLanguage.Spanish));
 
             // Assert
             result.Should().BeEquivalentTo(wordModel);
@@ -177,33 +178,13 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Spanish, SourceLanguage.Danish));
 
             // Assert
             result.Should().BeEquivalentTo(wordModel);
 
             lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>()));
             lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()));
-        }
-
-        [TestMethod]
-        public async Task LookUpWordInDictionaryAsync_WhenActiveDictionariesIsEmpty_KeepsCurrentFallbackBehavior()
-        {
-            const string searchText = "word to translate";
-            string sourceLanguage = SourceLanguage.Danish.ToString();
-            IReadOnlyList<string> activeDictionaries = [];
-
-            WordModel wordModel = _fixture.Create<WordModel>() with { SourceLanguage = SourceLanguage.Spanish };
-
-            var lookUpWordMock = _fixture.Freeze<Mock<ILookUpWord>>();
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(searchText, SourceLanguage.Danish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync((WordModel?)null);
-            lookUpWordMock.Setup(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>())).ReturnsAsync(wordModel);
-
-            var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), activeDictionaries);
-
-            result.Should().BeEquivalentTo(wordModel);
-            lookUpWordMock.Verify(x => x.LookUpWordAsync(searchText, SourceLanguage.Spanish.ToString(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
@@ -269,7 +250,7 @@ namespace TranslatorApp.Tests.Services
         {
             const string searchText = "word to translate";
             string sourceLanguage = SourceLanguage.Danish.ToString();
-            IReadOnlyList<string> activeDictionaries = ["spanish"];
+            IReadOnlyList<string> activeDictionaries = [SourceLanguage.Danish.ToString(), "spanish"];
 
             WordModel wordModel = _fixture.Create<WordModel>() with { SourceLanguage = SourceLanguage.Spanish };
 
@@ -296,7 +277,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish));
 
             // Assert
             result.Should().BeNull();
@@ -317,7 +298,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Spanish));
 
             // Assert
             result.Should().BeNull();
@@ -338,7 +319,7 @@ namespace TranslatorApp.Tests.Services
 
             // Act
             var sut = _fixture.Create<TranslationsService>();
-            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>());
+            WordModel? result = await sut.LookUpWordInDictionaryAsync(searchText, sourceLanguage, _fixture.Create<string>(), ActiveDictionaries(SourceLanguage.Danish));
 
             // Assert
             result.Should().BeNull();

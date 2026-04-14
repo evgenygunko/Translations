@@ -7,6 +7,7 @@ Content-Type: application/json
     "Text": "привет",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -28,6 +29,7 @@ Content-Type: application/json
     "Text": "лежать",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -50,6 +52,7 @@ Content-Type: application/json
     "Text": "собака",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -72,6 +75,7 @@ Content-Type: application/json
     "Text": "яблоко",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Danish"],
     "Version": "2"
 }
 
@@ -94,6 +98,7 @@ Content-Type: application/json
     "Text": "собака",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
@@ -116,6 +121,7 @@ Content-Type: application/json
     "Text": "дом",
     "SourceLanguage": "Spanish",
     "DestinationLanguage": "Russian",
+    "ActiveDictionaries": ["Spanish"],
     "Version": "2"
 }
 
