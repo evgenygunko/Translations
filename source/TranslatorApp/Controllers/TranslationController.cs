@@ -138,13 +138,13 @@ namespace TranslatorApp.Controllers
             {
                 _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOnlineDictionaryTimedOut),
                     "Calling online dictionary timed out after {Timeout} seconds", LookupRequestTimeout.TotalSeconds);
-                return StatusCode(504, "Translation timed out");
+                return StatusCode(500, "Translation timed out");
             }
             catch (OperationCanceledException) when (translateRequestCt?.IsCancellationRequested == true)
             {
                 _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOpenAITimeoudOut),
                     "Calling OpenAI API timed out after {Timeout} seconds", TranslateRequestTimeout.TotalSeconds);
-                return StatusCode(504, "Translation timed out");
+                return StatusCode(500, "Translation timed out");
             }
             catch (OperationCanceledException)
             {

@@ -311,7 +311,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsInternalServerErrorAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -340,7 +340,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             var result = actionResult.Result as ObjectResult;
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be(504);
+            result!.StatusCode.Should().Be(500);
             result.Value.Should().Be("Translation timed out");
 
             loggerMock.Verify(
@@ -354,7 +354,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenTranslateTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        public async Task LookUpWordAsync_WhenTranslateTimesOut_ReturnsInternalServerErrorAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -388,7 +388,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             var result = actionResult.Result as ObjectResult;
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be(504);
+            result!.StatusCode.Should().Be(500);
             result.Value.Should().Be("Translation timed out");
 
             loggerMock.Verify(
