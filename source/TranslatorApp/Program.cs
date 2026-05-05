@@ -93,7 +93,12 @@ public static class Program
             builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
             builder.Services.AddSingleton<IFileIOService, FileIOService>();
             builder.Services.AddSingleton<IFFMpegWrapper, FFMpegWrapper>();
-            builder.Services.AddHttpClient<IFileDownloader, FileDownloader>();
+            builder.Services
+                .AddHttpClient<IFileDownloader, FileDownloader>()
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.Brotli
+                });
 
             // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
             builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4.1-mini", apiKey: globalSettings.OpenAIApiKey));

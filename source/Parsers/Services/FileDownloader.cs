@@ -23,11 +23,15 @@ namespace CopyWords.Parsers.Services
         private readonly HttpClient _httpClient;
 
         private const string SpanishSuggestionsApiUrl = "https://suggest1.spanishdict.com/dictionary/translate_es_suggest?q=";
+        private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+        private const string BrowserAcceptHeader = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+        private const string BrowserAcceptLanguageHeader = "en,ru;q=0.9,da;q=0.8,cs;q=0.7";
 
         public FileDownloader(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
+            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(BrowserUserAgent);
+            _httpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd(BrowserAcceptLanguageHeader);
         }
 
         public async Task<string?> DownloadPageAsync(string url, Encoding encoding, CancellationToken cancellationToken)
@@ -103,7 +107,11 @@ namespace CopyWords.Parsers.Services
 
         private async Task<string?> DownloadPageInternalAsync(string url, Encoding encoding, bool returnContentOnNotFound, CancellationToken cancellationToken)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Accept.ParseAdd(BrowserAcceptHeader);
+            request.Headers.Add("Upgrade-Insecure-Requests", "1");
+
+            HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode || (returnContentOnNotFound && response.StatusCode == HttpStatusCode.NotFound))
             {
