@@ -23,9 +23,13 @@ namespace CopyWords.Parsers.Services
         private readonly HttpClient _httpClient;
 
         private const string SpanishSuggestionsApiUrl = "https://suggest1.spanishdict.com/dictionary/translate_es_suggest?q=";
+        private const string DdoHost = "ordnet.dk";
         private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
         private const string BrowserAcceptHeader = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
         private const string BrowserAcceptLanguageHeader = "en,ru;q=0.9,da;q=0.8,cs;q=0.7";
+        private const string DdoSecChUaHeader = "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"";
+        private const string DdoSecChUaMobileHeader = "?0";
+        private const string DdoSecChUaPlatformHeader = "\"macOS\"";
 
         public FileDownloader(HttpClient httpClient)
         {
@@ -107,10 +111,7 @@ namespace CopyWords.Parsers.Services
 
         private async Task<string?> DownloadPageInternalAsync(string url, Encoding encoding, bool returnContentOnNotFound, CancellationToken cancellationToken)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.Accept.ParseAdd(BrowserAcceptHeader);
-            request.Headers.Add("Upgrade-Insecure-Requests", "1");
-
+            using var request = CreatePageRequest(url);
             HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode || (returnContentOnNotFound && response.StatusCode == HttpStatusCode.NotFound))
@@ -128,6 +129,38 @@ namespace CopyWords.Parsers.Services
                 $"Server returned error code '{response.StatusCode}' when requesting URL '{url}'.",
                 response.StatusCode,
                 url);
+        }
+
+        private static HttpRequestMessage CreatePageRequest(string url)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Accept.ParseAdd(BrowserAcceptHeader);
+            request.Headers.Add("Upgrade-Insecure-Requests", "1");
+
+            if (IsDdoRequest(request.RequestUri))
+            {
+                ApplyDdoBrowserProfile(request, url);
+            }
+
+            return request;
+        }
+
+        private static bool IsDdoRequest(Uri? requestUri)
+        {
+            return requestUri != null
+                && string.Equals(requestUri.Host, DdoHost, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void ApplyDdoBrowserProfile(HttpRequestMessage request, string url)
+        {
+            request.Headers.Referrer = new Uri(url);
+            request.Headers.Add("Sec-Fetch-Dest", "document");
+            request.Headers.Add("Sec-Fetch-Mode", "navigate");
+            request.Headers.Add("Sec-Fetch-Site", "same-origin");
+            request.Headers.Add("Sec-Fetch-User", "?1");
+            request.Headers.Add("sec-ch-ua", DdoSecChUaHeader);
+            request.Headers.Add("sec-ch-ua-mobile", DdoSecChUaMobileHeader);
+            request.Headers.Add("sec-ch-ua-platform", DdoSecChUaPlatformHeader);
         }
     }
 }

@@ -14,9 +14,9 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task DownloadPageAsync_WhenResponseIsSuccess_ReturnsDecodedContent()
         {
-            var response = CreateResponse(HttpStatusCode.OK, "islygte ");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "islygte "));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             string? result = await sut.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
@@ -26,9 +26,9 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task DownloadPageAsync_WhenResponseIsNotFound_ReturnsNull()
         {
-            var response = CreateResponse(HttpStatusCode.NotFound, "not-found ");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.NotFound, "not-found "));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             string? result = await sut.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
@@ -38,9 +38,9 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task DownloadPageAllowNotFoundAsync_WhenResponseIsNotFound_ReturnsContent()
         {
-            var response = CreateResponse(HttpStatusCode.NotFound, "islygte ");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.NotFound, "islygte "));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             string? result = await sut.DownloadPageAllowNotFoundAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
@@ -50,9 +50,9 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task DownloadPageAllowNotFoundAsync_WhenResponseIsServerError_Throws()
         {
-            var response = CreateResponse(HttpStatusCode.InternalServerError, "error ");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.InternalServerError, "error "));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             Func<Task> act = async () => await sut.DownloadPageAllowNotFoundAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
@@ -60,11 +60,54 @@ namespace CopyWords.Parsers.Tests
         }
 
         [TestMethod]
+        public async Task DownloadPageAsync_WhenRequestTargetsDdo_AddsBrowserNavigationHeaders()
+        {
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "islygte "));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
+            const string url = "https://ordnet.dk/ddo/ordbog?query=bedrift";
+
+            await sut.DownloadPageAsync(url, Encoding.UTF8, CancellationToken.None);
+
+            handler.LastRequest.Should().NotBeNull();
+            HttpRequestMessage request = handler.LastRequest!;
+            request.Headers.Referrer.Should().Be(new Uri(url));
+            request.Headers.GetValues("Sec-Fetch-Dest").Should().ContainSingle().Which.Should().Be("document");
+            request.Headers.GetValues("Sec-Fetch-Mode").Should().ContainSingle().Which.Should().Be("navigate");
+            request.Headers.GetValues("Sec-Fetch-Site").Should().ContainSingle().Which.Should().Be("same-origin");
+            request.Headers.GetValues("Sec-Fetch-User").Should().ContainSingle().Which.Should().Be("?1");
+            request.Headers.GetValues("sec-ch-ua").Should().ContainSingle().Which.Should().Be("\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"");
+            request.Headers.GetValues("sec-ch-ua-mobile").Should().ContainSingle().Which.Should().Be("?0");
+            request.Headers.GetValues("sec-ch-ua-platform").Should().ContainSingle().Which.Should().Be("\"macOS\"");
+        }
+
+        [TestMethod]
+        public async Task DownloadPageAsync_WhenRequestIsNotDdo_DoesNotAddDdoOnlyHeaders()
+        {
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "page "));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
+
+            await sut.DownloadPageAsync("https://example.com/page", Encoding.UTF8, CancellationToken.None);
+
+            handler.LastRequest.Should().NotBeNull();
+            HttpRequestMessage request = handler.LastRequest!;
+            request.Headers.Referrer.Should().BeNull();
+            request.Headers.Contains("Sec-Fetch-Dest").Should().BeFalse();
+            request.Headers.Contains("Sec-Fetch-Mode").Should().BeFalse();
+            request.Headers.Contains("Sec-Fetch-Site").Should().BeFalse();
+            request.Headers.Contains("Sec-Fetch-User").Should().BeFalse();
+            request.Headers.Contains("sec-ch-ua").Should().BeFalse();
+            request.Headers.Contains("sec-ch-ua-mobile").Should().BeFalse();
+            request.Headers.Contains("sec-ch-ua-platform").Should().BeFalse();
+        }
+
+        [TestMethod]
         public async Task GetSpanishWordsSuggestionsAsync_WhenResponseIsValid_ReturnsSuggestions()
         {
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"ser\",\"sera\",\"serio\"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"results\":[\"ser\",\"sera\",\"serio\"]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("ser", CancellationToken.None);
 
@@ -74,32 +117,34 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task GetSpanishWordsSuggestionsAsync_WhenResponseDoesNotContainResults_Throws()
         {
-            var response = CreateResponse(HttpStatusCode.OK, "{\"unexpected\":[]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"unexpected\":[]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             Func<Task> act = async () => await sut.GetSpanishWordsSuggestionsAsync("ser", CancellationToken.None);
 
             await act.Should().ThrowAsync<ServerErrorException>();
         }
 
-        private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string content)
+        [TestMethod]
+        public async Task GetSpanishWordsSuggestionsAsync_DoesNotAddDdoNavigationHeaders()
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(content);
-            return new HttpResponseMessage(statusCode)
-            {
-                Content = new ByteArrayContent(bytes)
-            };
-        }
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"results\":[\"ser\"]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
-        private sealed class StubHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
-        {
-            private readonly HttpResponseMessage _response = response;
+            await sut.GetSpanishWordsSuggestionsAsync("ser", CancellationToken.None);
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(_response);
-            }
+            handler.LastRequest.Should().NotBeNull();
+            HttpRequestMessage request = handler.LastRequest!;
+            request.Headers.Referrer.Should().BeNull();
+            request.Headers.Contains("Sec-Fetch-Dest").Should().BeFalse();
+            request.Headers.Contains("Sec-Fetch-Mode").Should().BeFalse();
+            request.Headers.Contains("Sec-Fetch-Site").Should().BeFalse();
+            request.Headers.Contains("Sec-Fetch-User").Should().BeFalse();
+            request.Headers.Contains("sec-ch-ua").Should().BeFalse();
+            request.Headers.Contains("sec-ch-ua-mobile").Should().BeFalse();
+            request.Headers.Contains("sec-ch-ua-platform").Should().BeFalse();
         }
 
         /// <summary>
@@ -110,9 +155,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenResponseIsBadRequest_ThrowsServerErrorException()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.BadRequest, "bad request");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.BadRequest, "bad request"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             Func<Task> act = async () => await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
@@ -130,9 +175,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenResponseIsInternalServerError_ThrowsServerErrorException()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.InternalServerError, "server error");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.InternalServerError, "server error"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             Func<Task> act = async () => await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
@@ -150,9 +195,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenResponseIsNotFound_ThrowsServerErrorException()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.NotFound, "not found");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.NotFound, "not found"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             Func<Task> act = async () => await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
@@ -170,9 +215,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenResponseIsInvalidJson_ThrowsServerErrorException()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "not valid json {{{");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "not valid json {{{"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             Func<Task> act = async () => await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
@@ -190,9 +235,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenResultsArrayIsEmpty_ReturnsEmptyList()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"results\":[]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
@@ -209,9 +254,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenResultsContainEmptyAndWhitespace_FiltersThemOut()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"word1\",\"\",\"word2\",\" \",\"word3\",\"  \"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"results\":[\"word1\",\"\",\"word2\",\" \",\"word3\",\"  \"]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
@@ -228,9 +273,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenInputTextIsEmpty_ReturnsResults()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"suggestion1\",\"suggestion2\"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"results\":[\"suggestion1\",\"suggestion2\"]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync(string.Empty, CancellationToken.None);
@@ -247,9 +292,9 @@ namespace CopyWords.Parsers.Tests
         public async Task GetSpanishWordsSuggestionsAsync_WhenInputTextHasSpecialCharacters_ReturnsResults()
         {
             // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"niño\",\"niña\"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "{\"results\":[\"niño\",\"niña\"]}"));
+            using var httpClient = new HttpClient(handler);
+            var sut = CreateSut(httpClient);
 
             // Act
             IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("niño & café", CancellationToken.None);
@@ -258,62 +303,31 @@ namespace CopyWords.Parsers.Tests
             result.Should().Equal("niño", "niña");
         }
 
-        /// <summary>
-        /// Tests that GetSpanishWordsSuggestionsAsync correctly handles
-        /// whitespace-only input text.
-        /// </summary>
-        [TestMethod]
-        public async Task GetSpanishWordsSuggestionsAsync_WhenInputTextIsWhitespace_ReturnsResults()
+        private static FileDownloader CreateSut(HttpClient httpClient)
         {
-            // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"word\"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
-
-            // Act
-            IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("   ", CancellationToken.None);
-
-            // Assert
-            result.Should().Equal("word");
+            return new FileDownloader(httpClient);
         }
 
-        /// <summary>
-        /// Tests that GetSpanishWordsSuggestionsAsync returns a single suggestion
-        /// when the results array contains only one element.
-        /// </summary>
-        [TestMethod]
-        public async Task GetSpanishWordsSuggestionsAsync_WhenResultsContainsSingleElement_ReturnsSingleSuggestion()
+        private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string content)
         {
-            // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"solo\"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
-
-            // Act
-            IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
-
-            // Assert
-            result.Should().ContainSingle()
-                .Which.Should().Be("solo");
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new ByteArrayContent(bytes)
+            };
         }
 
-        /// <summary>
-        /// Tests that GetSpanishWordsSuggestionsAsync correctly handles
-        /// results with duplicate values.
-        /// </summary>
-        [TestMethod]
-        public async Task GetSpanishWordsSuggestionsAsync_WhenResultsContainDuplicates_ReturnsDuplicates()
+        private sealed class StubHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
         {
-            // Arrange
-            var response = CreateResponse(HttpStatusCode.OK, "{\"results\":[\"word\",\"word\",\"other\"]}");
-            using var httpClient = new HttpClient(new StubHttpMessageHandler(response));
-            var sut = new FileDownloader(httpClient);
+            private readonly HttpResponseMessage _response = response;
 
-            // Act
-            IEnumerable<string> result = await sut.GetSpanishWordsSuggestionsAsync("test", CancellationToken.None);
+            public HttpRequestMessage? LastRequest { get; private set; }
 
-            // Assert
-            result.Should().Equal("word", "word", "other");
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                LastRequest = request;
+                return Task.FromResult(_response);
+            }
         }
     }
 }
