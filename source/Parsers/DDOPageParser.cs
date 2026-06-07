@@ -29,7 +29,7 @@ namespace CopyWords.Parsers
 
     public class DDOPageParser : PageParserBase, IDDOPageParser
     {
-        public const string DDOBaseUrl = "https://ordnet.dk/ddo/ordbog";
+        public const string DDOBaseUrl = "https://gammel.ordnet.dk/ddo/ordbog";
 
         #region Public Methods
 
@@ -330,6 +330,7 @@ namespace CopyWords.Parsers
                     continue;
                 }
 
+                variationUrl = BuildDdoUrl(variationUrl);
                 string word = DecodeText(ahref.InnerText);
                 string encodedVariationUrl = new Uri(variationUrl).AbsoluteUri;
 
@@ -380,7 +381,7 @@ namespace CopyWords.Parsers
 
                         word = word.Replace("&nbsp;", " ->");
 
-                        string variationUrl = DecodeText(ahref.Attributes["href"].Value);
+                        string variationUrl = BuildDdoUrl(DecodeText(ahref.Attributes["href"].Value));
                         string encodedVariationUrl = new Uri(variationUrl).AbsoluteUri;
 
                         variants.Add(new Variant(word, encodedVariationUrl));
@@ -415,6 +416,16 @@ namespace CopyWords.Parsers
             }
 
             return variants;
+        }
+
+        private static string BuildDdoUrl(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
+            {
+                return url;
+            }
+
+            return DDOBaseUrl + uri.Query;
         }
 
         #endregion

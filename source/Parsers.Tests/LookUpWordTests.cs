@@ -26,7 +26,7 @@ namespace CopyWords.Parsers.Tests
         [TestMethod]
         public async Task LookUpWordAsync_WhenSearchTermIsDDOUrl_CallsGivenUrl()
         {
-            string searchTerm = "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
+            string searchTerm = "https://gammel.ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt";
             SourceLanguage sourceLanguage = SourceLanguage.Danish;
 
             Mock<IDDOPageParser> ddoPageParserMock = _fixture.Freeze<Mock<IDDOPageParser>>();
@@ -87,7 +87,7 @@ namespace CopyWords.Parsers.Tests
 
             result.Should().NotBeNull();
 
-            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.StartsWith("https://ordnet.dk/ddo/ordbog?query=")), Encoding.UTF8, It.IsAny<CancellationToken>()));
+            fileDownloaderMock.Verify(x => x.DownloadPageAsync(It.Is<string>(str => str.StartsWith("https://gammel.ordnet.dk/ddo/ordbog?query=")), Encoding.UTF8, It.IsAny<CancellationToken>()));
             ddoPageParserMock.Verify(x => x.ParseHeadword());
         }
 
@@ -128,7 +128,7 @@ namespace CopyWords.Parsers.Tests
             var definition3 = new Models.DDO.DDODefinition("person der er særlig dygtig til et spil", Tag: "slang", Enumerable.Empty<Example>());
             var definitions = new List<Models.DDO.DDODefinition>() { definition1, definition2, definition3 };
 
-            var variants = new List<Variant>() { new Variant("haj", "https://ordnet.dk/ddo/ordbog?select=haj&query=haj") };
+            var variants = new List<Variant>() { new Variant("haj", "https://gammel.ordnet.dk/ddo/ordbog?select=haj&query=haj") };
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
             fileDownloaderMock.Setup(x => x.DownloadPageAsync(It.IsAny<string>(), Encoding.UTF8, It.IsAny<CancellationToken>())).ReturnsAsync("haj.html");
@@ -236,9 +236,9 @@ namespace CopyWords.Parsers.Tests
             const string searchTerm = "islygte";
             var suggestions = new List<Variant>
             {
-                new("lygte", "https://ordnet.dk/ddo/ordbog?query=lygte"),
-                new("flygte", "https://ordnet.dk/ddo/ordbog?query=flygte"),
-                new("lygte", "https://ordnet.dk/ddo/ordbog?query=lygte")
+                new("lygte", "https://gammel.ordnet.dk/ddo/ordbog?query=lygte"),
+                new("flygte", "https://gammel.ordnet.dk/ddo/ordbog?query=flygte"),
+                new("lygte", "https://gammel.ordnet.dk/ddo/ordbog?query=lygte")
             };
 
             Mock<IFileDownloader> fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();

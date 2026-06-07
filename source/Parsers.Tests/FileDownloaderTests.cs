@@ -18,7 +18,7 @@ namespace CopyWords.Parsers.Tests
             using var httpClient = new HttpClient(handler);
             var sut = CreateSut(httpClient);
 
-            string? result = await sut.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
+            string? result = await sut.DownloadPageAsync("https://gammel.ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
             result.Should().Be("islygte");
         }
@@ -30,7 +30,7 @@ namespace CopyWords.Parsers.Tests
             using var httpClient = new HttpClient(handler);
             var sut = CreateSut(httpClient);
 
-            string? result = await sut.DownloadPageAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
+            string? result = await sut.DownloadPageAsync("https://gammel.ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
             result.Should().BeNull();
         }
@@ -42,7 +42,7 @@ namespace CopyWords.Parsers.Tests
             using var httpClient = new HttpClient(handler);
             var sut = CreateSut(httpClient);
 
-            string? result = await sut.DownloadPageAllowNotFoundAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
+            string? result = await sut.DownloadPageAllowNotFoundAsync("https://gammel.ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
             result.Should().Be("islygte");
         }
@@ -54,7 +54,7 @@ namespace CopyWords.Parsers.Tests
             using var httpClient = new HttpClient(handler);
             var sut = CreateSut(httpClient);
 
-            Func<Task> act = async () => await sut.DownloadPageAllowNotFoundAsync("https://ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
+            Func<Task> act = async () => await sut.DownloadPageAllowNotFoundAsync("https://gammel.ordnet.dk/ddo/ordbog?query=islygte", Encoding.UTF8, CancellationToken.None);
 
             await act.Should().ThrowAsync<ServerErrorException>();
         }
@@ -65,7 +65,7 @@ namespace CopyWords.Parsers.Tests
             var handler = new StubHttpMessageHandler(CreateResponse(HttpStatusCode.OK, "islygte "));
             using var httpClient = new HttpClient(handler);
             var sut = CreateSut(httpClient);
-            const string url = "https://ordnet.dk/ddo/ordbog?query=bedrift";
+            const string url = "https://gammel.ordnet.dk/ddo/ordbog?query=bedrift";
 
             await sut.DownloadPageAsync(url, Encoding.UTF8, CancellationToken.None);
 

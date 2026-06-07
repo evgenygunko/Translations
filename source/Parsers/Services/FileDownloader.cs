@@ -23,7 +23,7 @@ namespace CopyWords.Parsers.Services
         private readonly HttpClient _httpClient;
 
         private const string SpanishSuggestionsApiUrl = "https://suggest1.spanishdict.com/dictionary/translate_es_suggest?q=";
-        private const string DdoHost = "ordnet.dk";
+        private const string DdoHost = "gammel.ordnet.dk";
         private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
         private const string BrowserAcceptHeader = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
         private const string BrowserAcceptLanguageHeader = "en,ru;q=0.9,da;q=0.8,cs;q=0.7";

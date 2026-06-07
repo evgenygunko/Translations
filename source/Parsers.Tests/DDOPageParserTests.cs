@@ -613,7 +613,7 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("underholdning sb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=underholdning&query=underholdning");
+            variants[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=underholdning&query=underholdning");
         }
 
         [TestMethod]
@@ -629,10 +629,10 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(2);
 
             variants[0].Word.Should().Be("høj(1) sb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=h%C3%B8j,1&query=h%C3%B8j");
+            variants[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=h%C3%B8j,1&query=h%C3%B8j");
 
             variants[1].Word.Should().Be("høj(2) adj.");
-            variants[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=h%C3%B8j,2&query=h%C3%B8j");
+            variants[1].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=h%C3%B8j,2&query=h%C3%B8j");
         }
 
         [TestMethod]
@@ -648,13 +648,13 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(3);
 
             variants[0].Word.Should().Be("skat sb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=skat&query=skat");
+            variants[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=skat&query=skat");
 
             variants[1].Word.Should().Be("skat -> skatte vb.");
-            variants[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=skatte&query=skat");
+            variants[1].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=skatte&query=skat");
 
             variants[2].Word.Should().Be("skat -> skate vb.");
-            variants[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=skate&query=skat");
+            variants[2].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=skate&query=skat");
         }
 
         [TestMethod]
@@ -683,7 +683,7 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(1);
 
             variants[0].Word.Should().Be("påtage vb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=p%C3%A5tage&query=p%C3%A5tage");
+            variants[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=p%C3%A5tage&query=p%C3%A5tage");
         }
 
         [TestMethod]
@@ -699,13 +699,13 @@ namespace CopyWords.Parsers.Tests
             variants.Should().HaveCount(3);
 
             variants[0].Word.Should().Be("slå(1) sb.");
-            variants[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
+            variants[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
 
             variants[1].Word.Should().Be("slå(2) vb.");
-            variants[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
+            variants[1].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
 
             variants[2].Word.Should().Be("slå om-nederdel eller slå-om-nederdel sb.");
-            variants[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
+            variants[2].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
         }
 
         #endregion
@@ -757,7 +757,7 @@ namespace CopyWords.Parsers.Tests
 
             Variant variant = result.Last();
             variant.Word.Should().Be("personlig skat");
-            variant.Url.Should().Be("https://ordnet.dk/ddo/ordbog?mselect=59008979&query=skat");
+            variant.Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?mselect=59008979&query=skat");
         }
 
         #endregion
@@ -776,25 +776,25 @@ namespace CopyWords.Parsers.Tests
 
             suggestions.Should().HaveCount(7);
             suggestions[0].Word.Should().Be("lygte");
-            suggestions[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=lygte");
+            suggestions[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=lygte");
 
             suggestions[1].Word.Should().Be("flygte");
-            suggestions[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=flygte");
+            suggestions[1].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=flygte");
 
             suggestions[2].Word.Should().Be("slagte");
-            suggestions[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=slagte");
+            suggestions[2].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=slagte");
 
             suggestions[3].Word.Should().Be("slægte");
-            suggestions[3].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=sl%C3%A6gte");
+            suggestions[3].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=sl%C3%A6gte");
 
             suggestions[4].Word.Should().Be("billygte");
-            suggestions[4].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=billygte");
+            suggestions[4].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=billygte");
 
             suggestions[5].Word.Should().Be("gaslygte");
-            suggestions[5].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=gaslygte");
+            suggestions[5].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=gaslygte");
 
             suggestions[6].Word.Should().Be("islægge");
-            suggestions[6].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=isl%C3%A6gge");
+            suggestions[6].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=isl%C3%A6gge");
         }
 
         [TestMethod]
@@ -809,40 +809,40 @@ namespace CopyWords.Parsers.Tests
 
             suggestions.Should().HaveCount(12);
             suggestions[0].Word.Should().Be("appel");
-            suggestions[0].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=appel");
+            suggestions[0].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=appel");
 
             suggestions[1].Word.Should().Be("ampel");
-            suggestions[1].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=ampel");
+            suggestions[1].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=ampel");
 
             suggestions[2].Word.Should().Be("kapel");
-            suggestions[2].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=kapel");
+            suggestions[2].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=kapel");
 
             suggestions[3].Word.Should().Be("padel");
-            suggestions[3].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=padel");
+            suggestions[3].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=padel");
 
             suggestions[4].Word.Should().Be("adel");
-            suggestions[4].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=adel");
+            suggestions[4].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=adel");
 
             suggestions[5].Word.Should().Be("panel");
-            suggestions[5].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=panel");
+            suggestions[5].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=panel");
 
             suggestions[6].Word.Should().Be("appeal");
-            suggestions[6].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=appeal");
+            suggestions[6].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=appeal");
 
             suggestions[7].Word.Should().Be("baffel");
-            suggestions[7].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=baffel");
+            suggestions[7].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=baffel");
 
             suggestions[8].Word.Should().Be("gaffel");
-            suggestions[8].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=gaffel");
+            suggestions[8].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=gaffel");
 
             suggestions[9].Word.Should().Be("kapsel");
-            suggestions[9].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=kapsel");
+            suggestions[9].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=kapsel");
 
             suggestions[10].Word.Should().Be("taffel");
-            suggestions[10].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=taffel");
+            suggestions[10].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=taffel");
 
             suggestions[11].Word.Should().Be("vaffel");
-            suggestions[11].Url.Should().Be("https://ordnet.dk/ddo/ordbog?query=vaffel");
+            suggestions[11].Url.Should().Be("https://gammel.ordnet.dk/ddo/ordbog?query=vaffel");
         }
 
         [TestMethod]

@@ -233,7 +233,7 @@ Looks up word definitions and translations.
   "variations": [
     {
       "word": "såsom konj.",
-      "url": "https://ordnet.dk/ddo/ordbog?select=s%C3%A5som&query=s%C3%A5som"
+      "url": "https://gammel.ordnet.dk/ddo/ordbog?select=s%C3%A5som&query=s%C3%A5som"
     }
   ]
 }

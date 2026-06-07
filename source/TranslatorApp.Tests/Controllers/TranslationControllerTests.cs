@@ -90,7 +90,7 @@ namespace TranslatorApp.Tests.Controllers
                 DestinationLanguage: "de",
                 ActiveDictionaries: ActiveDictionaries(SourceLanguage.Danish.ToString()));
 
-            string originalError = "Server returned error code 'ServiceUnavailable' when requesting URL 'https://ordnet.dk/ddo/ordbog?query=islygte'.";
+            string originalError = "Server returned error code 'ServiceUnavailable' when requesting URL 'https://gammel.ordnet.dk/ddo/ordbog?query=islygte'.";
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<TranslationController>>>();
 
@@ -100,7 +100,7 @@ namespace TranslatorApp.Tests.Controllers
                 .ThrowsAsync(new ServerErrorException(
                     originalError,
                     HttpStatusCode.ServiceUnavailable,
-                    "https://ordnet.dk/ddo/ordbog?query=islygte"));
+                    "https://gammel.ordnet.dk/ddo/ordbog?query=islygte"));
 
             // Act
             var sut = _fixture.Create<TranslationController>();

@@ -30,7 +30,7 @@ POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
-    "Text": "https://ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt",
+    "Text": "https://gammel.ordnet.dk/ddo/ordbog?select=bestemme&query=bestemt",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
     "ActiveDictionaries": ["Danish"],
@@ -56,7 +56,7 @@ POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
-    "Text": "https://ordnet.dk/ddo/ordbog?select=ramme,3&query=rammer",
+    "Text": "https://gammel.ordnet.dk/ddo/ordbog?select=ramme,3&query=rammer",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
     "ActiveDictionaries": ["Danish"],
@@ -123,11 +123,11 @@ Content-Type: application/json
     client.assert(response.body.definition["headword"]["english"].length > 0);
     client.assert(response.body.definition["headword"]["translation"].length > 0);
 
-    client.assert(response.body.variants[0]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
-    client.assert(response.body.variants[1]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
-    client.assert(response.body.variants[2]["url"] === "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
+    client.assert(response.body.variants[0]["url"] === "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5");
+    client.assert(response.body.variants[1]["url"] === "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5");
+    client.assert(response.body.variants[2]["url"] === "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5");
 
-    client.assert(response.body.expressions[0]["url"] === "https://ordnet.dk/ddo/ordbog?mselect=59006368&query=sl%C3%A5");
+    client.assert(response.body.expressions[0]["url"] === "https://gammel.ordnet.dk/ddo/ordbog?mselect=59006368&query=sl%C3%A5");
   });
 %}
 
@@ -137,7 +137,7 @@ POST {{HostAddress}}/api/v2/Translation/LookUpWord?code={{code}}
 Content-Type: application/json
 
 {
-    "Text": "https://ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5",
+    "Text": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5",
     "SourceLanguage": "Danish",
     "DestinationLanguage": "Russian",
     "ActiveDictionaries": ["Danish"],
