@@ -311,7 +311,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsGatewayTimeoutAndLogsWarning()
+        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsServiceUnavailableAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -340,7 +340,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             var result = actionResult.Result as ObjectResult;
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.GatewayTimeout);
+            result!.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
             result.Value.Should().Be(
                 "The online dictionary did not respond in time and may be experiencing a temporary problem. Please try again later.");
 

@@ -24,12 +24,12 @@ namespace CopyWords.Parsers.Services
 
         private const string SpanishSuggestionsApiUrl = "https://suggest1.spanishdict.com/dictionary/translate_es_suggest?q=";
         private const string DdoHost = "gammel.ordnet.dk";
-        private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
+        private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36";
         private const string BrowserAcceptHeader = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
-        private const string BrowserAcceptLanguageHeader = "en,ru;q=0.9,da;q=0.8,cs;q=0.7";
-        private const string DdoSecChUaHeader = "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"";
+        private const string BrowserAcceptLanguageHeader = "en,ru;q=0.9,da;q=0.8,es;q=0.7";
+        private const string DdoSecChUaHeader = "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"";
         private const string DdoSecChUaMobileHeader = "?0";
-        private const string DdoSecChUaPlatformHeader = "\"macOS\"";
+        private const string DdoSecChUaPlatformHeader = "\"Windows\"";
 
         public FileDownloader(HttpClient httpClient)
         {
@@ -139,7 +139,7 @@ namespace CopyWords.Parsers.Services
 
             if (IsDdoRequest(request.RequestUri))
             {
-                ApplyDdoBrowserProfile(request, url);
+                ApplyDdoBrowserProfile(request);
             }
 
             return request;
@@ -151,12 +151,11 @@ namespace CopyWords.Parsers.Services
                 && string.Equals(requestUri.Host, DdoHost, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static void ApplyDdoBrowserProfile(HttpRequestMessage request, string url)
+        private static void ApplyDdoBrowserProfile(HttpRequestMessage request)
         {
-            request.Headers.Referrer = new Uri(url);
             request.Headers.Add("Sec-Fetch-Dest", "document");
             request.Headers.Add("Sec-Fetch-Mode", "navigate");
-            request.Headers.Add("Sec-Fetch-Site", "same-origin");
+            request.Headers.Add("Sec-Fetch-Site", "none");
             request.Headers.Add("Sec-Fetch-User", "?1");
             request.Headers.Add("sec-ch-ua", DdoSecChUaHeader);
             request.Headers.Add("sec-ch-ua-mobile", DdoSecChUaMobileHeader);
