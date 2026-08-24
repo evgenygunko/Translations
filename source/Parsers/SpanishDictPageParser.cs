@@ -25,7 +25,7 @@ namespace CopyWords.Parsers
     {
         public const string SpanishDictBaseUrl = "https://www.spanishdict.com/translate/";
         internal const string SoundBaseUrl = "https://d10gt6izjc94x0.cloudfront.net/desktop/";
-        internal const string ImageBaseUrl = "https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/";
+        internal const string ImageBaseUrl = "https://sd-hegemone-production.sdcdns.com/dictionary-images/300/";
 
         #region Public Methods
 

@@ -490,7 +490,7 @@ namespace CopyWords.Parsers.Tests
 
             Meaning meaning1 = context.Meanings.First();
             meaning1.Original.Should().Be("venom (of an animal)");
-            meaning1.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/d533b470-18a4-4cae-ad08-3ee8858ae02c.jpg");
+            meaning1.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/d533b470-18a4-4cae-ad08-3ee8858ae02c.jpg");
             meaning1.Examples.Should().HaveCount(1);
             example = meaning1.Examples.First();
             example.Original.Should().Be("La herida aún tiene el veneno dentro.");
@@ -498,7 +498,7 @@ namespace CopyWords.Parsers.Tests
 
             Meaning meaning2 = context.Meanings.Skip(1).First();
             meaning2.Original.Should().Be("poison");
-            meaning2.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/d07aa7fd-a3fd-4d06-9751-656180d8b1ee.jpg");
+            meaning2.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/d07aa7fd-a3fd-4d06-9751-656180d8b1ee.jpg");
             meaning2.Examples.Should().HaveCount(1);
             example = meaning2.Examples.First();
             example.Original.Should().Be("Estos hongos contienen un veneno mortal.");
@@ -568,7 +568,7 @@ namespace CopyWords.Parsers.Tests
             example.Original.Should().Be("Los saltamontes pueden saltar muy alto.");
             example.Translation.Should().Be("Grasshoppers can jump really high.");
 
-            meaning.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/5bf100e5-da54-4be6-a55c-281edcd08b10.jpg");
+            meaning.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/5bf100e5-da54-4be6-a55c-281edcd08b10.jpg");
         }
 
         [TestMethod]
@@ -601,7 +601,7 @@ namespace CopyWords.Parsers.Tests
             example.Original.Should().Be("El gobierno quiere preservar el folclor y las tradiciones indígenas.");
             example.Translation.Should().Be("The government wants to preserve the indigenous folklore and traditions.");
 
-            meaning.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/native%252C%2520indigenous.jpg");
+            meaning.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/native%252C%2520indigenous.jpg");
 
             meaning = context.Meanings.Skip(1).First();
             meaning.Original.Should().Be("native");
@@ -641,7 +641,7 @@ namespace CopyWords.Parsers.Tests
             example.Original.Should().Be("Vámonos a la iglesia que la misa comienza pronto.");
             example.Translation.Should().Be("Let's go to the church; mass starts soon.");
 
-            meaning.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/temple%253B%2520church.jpg");
+            meaning.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/temple%253B%2520church.jpg");
         }
 
         [TestMethod]
@@ -674,7 +674,7 @@ namespace CopyWords.Parsers.Tests
             example.Original.Should().Be("Toma un vaso del estante si tienes sed.");
             example.Translation.Should().Be("Get a glass from the shelf if you're thirsty.");
 
-            meaning.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/Glass%2520%2528empty%2529.jpg");
+            meaning.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/Glass%2520%2528empty%2529.jpg");
         }
 
         [TestMethod]
@@ -707,7 +707,7 @@ namespace CopyWords.Parsers.Tests
             example.Original.Should().Be("No te preocupes por los resultados del examen.");
             example.Translation.Should().Be("Don't worry about the results of the test.");
 
-            meaning.ImageUrl.Should().Be("https://d25rq8gxcq0p71.cloudfront.net/dictionary-images/300/don%2527t%2520worry.jpg");
+            meaning.ImageUrl.Should().Be("https://sd-hegemone-production.sdcdns.com/dictionary-images/300/don%2527t%2520worry.jpg");
         }
 
         #endregion
