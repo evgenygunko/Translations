@@ -139,7 +139,7 @@ namespace TranslatorApp.Controllers
                 _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOnlineDictionaryTimedOut),
                     "Calling online dictionary timed out after {Timeout} seconds", LookupRequestTimeout.TotalSeconds);
                 return StatusCode(
-                    (int)HttpStatusCode.ServiceUnavailable,
+                    (int)HttpStatusCode.InternalServerError,
                     "The online dictionary did not respond in time and may be experiencing a temporary problem. Please try again later.");
             }
             catch (OperationCanceledException) when (translateRequestCt?.IsCancellationRequested == true)
@@ -166,7 +166,7 @@ namespace TranslatorApp.Controllers
                     "{Message}",
                     message);
 
-                return StatusCode((int)HttpStatusCode.ServiceUnavailable, message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, message);
             }
             catch (Exception ex)
             {

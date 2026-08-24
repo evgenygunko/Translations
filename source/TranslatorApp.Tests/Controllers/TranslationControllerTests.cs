@@ -81,7 +81,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenDdoDictionaryIsUnavailable_ReturnsServiceUnavailableWithDictionaryNameAndOriginalError()
+        public async Task LookUpWordAsync_WhenDdoDictionaryIsUnavailable_ReturnsInternalServerErrorWithDictionaryNameAndOriginalError()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -109,7 +109,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             var result = actionResult.Result as ObjectResult;
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
+            result!.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
             result.Value.Should().BeOfType<string>();
             result.Value!.ToString().Should().Contain("Online dictionary 'DDO' is temporarily unavailable.");
             result.Value!.ToString().Should().Contain(originalError);
@@ -127,7 +127,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenSpanishDictIsUnavailable_ReturnsServiceUnavailableWithDictionaryNameAndOriginalError()
+        public async Task LookUpWordAsync_WhenSpanishDictIsUnavailable_ReturnsInternalServerErrorWithDictionaryNameAndOriginalError()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -155,7 +155,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             var result = actionResult.Result as ObjectResult;
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
+            result!.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
             result.Value.Should().BeOfType<string>();
             result.Value!.ToString().Should().Contain("Online dictionary 'SpanishDict' is temporarily unavailable.");
             result.Value!.ToString().Should().Contain(originalError);
@@ -311,7 +311,7 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         [TestMethod]
-        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsServiceUnavailableAndLogsWarning()
+        public async Task LookUpWordAsync_WhenLookupTimesOut_ReturnsInternalServerErrorAndLogsWarning()
         {
             // Arrange
             var lookUpWordRequest = new LookUpWordRequest(
@@ -340,7 +340,7 @@ namespace TranslatorApp.Tests.Controllers
             // Assert
             var result = actionResult.Result as ObjectResult;
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be((int)HttpStatusCode.ServiceUnavailable);
+            result!.StatusCode.Should().Be((int)HttpStatusCode.InternalServerError);
             result.Value.Should().Be(
                 "The online dictionary did not respond in time and may be experiencing a temporary problem. Please try again later.");
 
