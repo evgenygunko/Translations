@@ -22,6 +22,7 @@ namespace TranslatorApp.Tests.Controllers
         private IFixture _fixture = default!;
         private Mock<IGlobalSettings> _globalSettingsMock = default!;
         private Mock<IValidator<LookUpWordRequest>> _requestValidatorMock = default!;
+        private Mock<IValidator<WordModel>> _wordModelValidatorMock = default!;
         private static IReadOnlyList<string> ActiveDictionaries(params string[] values) => values;
 
         [TestInitialize]
@@ -35,6 +36,11 @@ namespace TranslatorApp.Tests.Controllers
             _requestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
             _requestValidatorMock
                 .Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+
+            _wordModelValidatorMock = _fixture.Freeze<Mock<IValidator<WordModel>>>();
+            _wordModelValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<WordModel>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
         }
 
@@ -507,6 +513,9 @@ namespace TranslatorApp.Tests.Controllers
         [TestMethod]
         public async Task LookUpWordV3Async_WhenModelIsMissingOrUnusable_ReturnsBadRequest()
         {
+            _wordModelValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<WordModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult([new ValidationFailure("Definition.Contexts", "'Definition Contexts' must not be empty.")]));
             var sut = _fixture.Create<TranslationController>();
             WordModel unusable = CreateUsableWordModel() with
             {

@@ -21,7 +21,8 @@ namespace TranslatorApp.Controllers
     {
         private readonly ILogger<TranslationController> _logger;
         private readonly ITranslationsService _translationsService;
-        private readonly IValidator<LookUpWordRequest> _requestValidatorMock;
+        private readonly IValidator<LookUpWordRequest> _lookUpWordRequestValidator;
+        private readonly IValidator<WordModel> _wordModelValidator;
         private readonly IWebHostEnvironment _environment;
         private readonly IGlobalSettings _globalSettings;
 
@@ -32,12 +33,14 @@ namespace TranslatorApp.Controllers
             ILogger<TranslationController> logger,
             ITranslationsService translationsService,
             IValidator<LookUpWordRequest> lookUpWordRequestValidator,
+            IValidator<WordModel> wordModelValidator,
             IWebHostEnvironment environment,
             IGlobalSettings globalSettings)
         {
             _logger = logger;
             _translationsService = translationsService;
-            _requestValidatorMock = lookUpWordRequestValidator;
+            _lookUpWordRequestValidator = lookUpWordRequestValidator;
+            _wordModelValidator = wordModelValidator;
             _environment = environment;
             _globalSettings = globalSettings;
         }
@@ -55,9 +58,11 @@ namespace TranslatorApp.Controllers
                 return Unauthorized();
             }
 
-            if (!IsUsable(wordModel))
+            var validation = await _wordModelValidator.ValidateAsync(wordModel, cancellationToken);
+            if (!validation.IsValid)
             {
-                return BadRequest("Word model is missing or structurally unusable");
+                string errorMessage = validation.FormatErrorMessage();
+                return BadRequest(errorMessage);
             }
 
             CancellationToken? translateRequestCt = null;
@@ -138,7 +143,7 @@ namespace TranslatorApp.Controllers
                 return Unauthorized();
             }
 
-            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest, cancellationToken);
+            var validation = await _lookUpWordRequestValidator.ValidateAsync(lookUpWordRequest, cancellationToken);
             if (!validation.IsValid)
             {
                 string errorMessage = validation.FormatErrorMessage();
@@ -274,7 +279,7 @@ namespace TranslatorApp.Controllers
                 return Unauthorized();
             }
 
-            var validation = await _requestValidatorMock.ValidateAsync(lookUpWordRequest, cancellationToken);
+            var validation = await _lookUpWordRequestValidator.ValidateAsync(lookUpWordRequest, cancellationToken);
             if (!validation.IsValid)
             {
                 string errorMessage = validation.FormatErrorMessage();
@@ -309,25 +314,5 @@ namespace TranslatorApp.Controllers
             return "Unknown";
         }
 
-        private static bool IsUsable(WordModel? wordModel)
-        {
-            return wordModel != null
-                && !string.IsNullOrWhiteSpace(wordModel.Word)
-                && Enum.IsDefined(wordModel.SourceLanguage)
-                && wordModel.Definition != null
-                && wordModel.Definition.Headword != null
-                && !string.IsNullOrWhiteSpace(wordModel.Definition.Headword.Original)
-                && wordModel.Definition.Contexts != null
-                && wordModel.Definition.Contexts.Any()
-                && wordModel.Definition.Contexts.All(context =>
-                    context != null
-                    && context.Meanings != null
-                    && context.Meanings.All(meaning =>
-                        meaning != null
-                        && !string.IsNullOrWhiteSpace(meaning.Original)
-                        && meaning.Examples != null))
-                && wordModel.Variants != null
-                && wordModel.Expressions != null;
-        }
     }
 }
