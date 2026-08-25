@@ -16,6 +16,7 @@ namespace TranslatorApp.Controllers
 {
     [ApiController]
     [ApiVersion("2.0")]
+    [ApiVersion("3.0")]
     public class TranslationController : ControllerBase
     {
         private readonly ILogger<TranslationController> _logger;
@@ -39,6 +40,84 @@ namespace TranslatorApp.Controllers
             _requestValidatorMock = lookUpWordRequestValidator;
             _environment = environment;
             _globalSettings = globalSettings;
+        }
+
+        [HttpPost]
+        [MapToApiVersion("3.0")]
+        [Route("api/v{version:apiVersion}/[controller]/LookUpWord")]
+        public async Task<ActionResult<WordModel?>> LookUpWordV3Async(
+            [FromBody] WordModel wordModel,
+            [FromQuery] string? code = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (code != _globalSettings.RequestSecretCode)
+            {
+                return Unauthorized();
+            }
+
+            if (!IsUsable(wordModel))
+            {
+                return BadRequest("Word model is missing or structurally unusable");
+            }
+
+            CancellationToken? translateRequestCt = null;
+
+            try
+            {
+                string sourceLanguage = wordModel.SourceLanguage.ToString();
+                const string destinationLanguage = "Russian";
+
+                _logger.LogInformation(new EventId((int)TranslatorAppEventId.WillTranslateWithOpenAI),
+                    "Will translate '{Word}' from '{SourceLanguage}' to '{DestinationLanguage}' with OpenAI API.",
+                    wordModel.Word,
+                    sourceLanguage,
+                    destinationLanguage);
+
+                translateRequestCt = new CancellationTokenSource(TranslateRequestTimeout).Token;
+                using var translateLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, translateRequestCt.Value);
+
+                WordModel translatedWordModel = await _translationsService.TranslateAsync(
+                    wordModel,
+                    sourceLanguage,
+                    destinationLanguage,
+                    translateLinkedCts.Token);
+
+                if (_environment.IsDevelopment())
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel2),
+                        "Returning word model: {TranslationOutput}",
+                        JsonSerializer.Serialize(translatedWordModel, new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
+                }
+                else
+                {
+                    _logger.LogInformation(new EventId((int)TranslatorAppEventId.ReturningWordModel2),
+                        "Returning word model: {@TranslationOutput}",
+                        translatedWordModel);
+                }
+
+                return translatedWordModel;
+            }
+            catch (OperationCanceledException) when (translateRequestCt?.IsCancellationRequested == true)
+            {
+                _logger.LogWarning(new EventId((int)TranslatorAppEventId.CallingOpenAITimeoudOut),
+                    "Calling OpenAI API timed out after {Timeout} seconds", TranslateRequestTimeout.TotalSeconds);
+                return StatusCode(500, "Translation timed out");
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                var correlationId = Guid.NewGuid().ToString();
+                _logger.LogError(new EventId((int)TranslatorAppEventId.ErrorDuringLookup),
+                    ex, "An error occurred while trying to translate the supplied word model. CorrelationId: {CorrelationId}", correlationId);
+                return StatusCode(500, $"An internal error occurred. CorrelationId: {correlationId}");
+            }
         }
 
         [HttpPost]
@@ -228,6 +307,27 @@ namespace TranslatorApp.Controllers
             }
 
             return "Unknown";
+        }
+
+        private static bool IsUsable(WordModel? wordModel)
+        {
+            return wordModel != null
+                && !string.IsNullOrWhiteSpace(wordModel.Word)
+                && Enum.IsDefined(wordModel.SourceLanguage)
+                && wordModel.Definition != null
+                && wordModel.Definition.Headword != null
+                && !string.IsNullOrWhiteSpace(wordModel.Definition.Headword.Original)
+                && wordModel.Definition.Contexts != null
+                && wordModel.Definition.Contexts.Any()
+                && wordModel.Definition.Contexts.All(context =>
+                    context != null
+                    && context.Meanings != null
+                    && context.Meanings.All(meaning =>
+                        meaning != null
+                        && !string.IsNullOrWhiteSpace(meaning.Original)
+                        && meaning.Examples != null))
+                && wordModel.Variants != null
+                && wordModel.Expressions != null;
         }
     }
 }

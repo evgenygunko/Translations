@@ -492,6 +492,122 @@ namespace TranslatorApp.Tests.Controllers
 
         #endregion
 
+        #region Tests for LookUpWordV3Async
+
+        [TestMethod]
+        public async Task LookUpWordV3Async_WhenCodeIsInvalid_ReturnsUnauthorized()
+        {
+            var sut = _fixture.Create<TranslationController>();
+
+            ActionResult<WordModel?> result = await sut.LookUpWordV3Async(CreateUsableWordModel(), "invalid-code");
+
+            result.Result.Should().BeOfType<UnauthorizedResult>();
+        }
+
+        [TestMethod]
+        public async Task LookUpWordV3Async_WhenModelIsMissingOrUnusable_ReturnsBadRequest()
+        {
+            var sut = _fixture.Create<TranslationController>();
+            WordModel unusable = CreateUsableWordModel() with
+            {
+                Definition = CreateUsableWordModel().Definition with { Contexts = [] }
+            };
+
+            ActionResult<WordModel?> missingResult = await sut.LookUpWordV3Async(null!, "test-code");
+            ActionResult<WordModel?> unusableResult = await sut.LookUpWordV3Async(unusable, "test-code");
+
+            missingResult.Result.Should().BeOfType<BadRequestObjectResult>();
+            unusableResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task LookUpWordV3Async_TranslatesSuppliedModelWithoutDictionaryLookup()
+        {
+            WordModel suppliedModel = CreateUsableWordModel();
+            WordModel translatedModel = suppliedModel with
+            {
+                Definition = suppliedModel.Definition with
+                {
+                    Headword = suppliedModel.Definition.Headword with { Translation = "акула" }
+                }
+            };
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.TranslateAsync(suppliedModel, "Danish", "Russian", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(translatedModel);
+
+            var sut = _fixture.Create<TranslationController>();
+            ActionResult<WordModel?> result = await sut.LookUpWordV3Async(suppliedModel, "test-code");
+
+            result.Value.Should().BeSameAs(translatedModel);
+            translationsServiceMock.Verify(
+                x => x.TranslateAsync(suppliedModel, "Danish", "Russian", It.IsAny<CancellationToken>()),
+                Times.Once);
+            translationsServiceMock.Verify(
+                x => x.LookUpWordInDictionaryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [TestMethod]
+        public async Task LookUpWordV3Async_WhenTranslationTimesOut_ReturnsInternalServerError()
+        {
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(async (WordModel _, string _, string _, CancellationToken cancellationToken) =>
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                    return CreateUsableWordModel();
+                });
+            var sut = _fixture.Create<TranslationController>();
+            sut.TranslateRequestTimeout = TimeSpan.FromMilliseconds(10);
+
+            ActionResult<WordModel?> result = await sut.LookUpWordV3Async(CreateUsableWordModel(), "test-code");
+
+            var objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(500);
+            objectResult.Value.Should().Be("Translation timed out");
+        }
+
+        [TestMethod]
+        public async Task LookUpWordV3Async_WhenClientCancels_RethrowsCancellation()
+        {
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new OperationCanceledException(cts.Token));
+            var sut = _fixture.Create<TranslationController>();
+
+            Func<Task> action = async () => await sut.LookUpWordV3Async(CreateUsableWordModel(), "test-code", cts.Token);
+
+            await action.Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        [TestMethod]
+        public async Task LookUpWordV3Async_WhenTranslationFails_ReturnsInternalServerError()
+        {
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.TranslateAsync(It.IsAny<WordModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("test failure"));
+            var sut = _fixture.Create<TranslationController>();
+
+            ActionResult<WordModel?> result = await sut.LookUpWordV3Async(CreateUsableWordModel(), "test-code");
+
+            var objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(500);
+            objectResult.Value!.ToString().Should().StartWith("An internal error occurred. CorrelationId:");
+        }
+
+        #endregion
+
         #region Tests for SuggestedWordsAsync
 
         [TestMethod]
@@ -606,5 +722,16 @@ namespace TranslatorApp.Tests.Controllers
         }
 
         #endregion
+
+        private static WordModel CreateUsableWordModel()
+        {
+            var definition = new Definition(
+                new Headword("haj", null, null),
+                "substantiv, fælleskøn",
+                "-en, -er, -erne",
+                [new Context("", "", [new Meaning("stor bruskfisk", null, "1", null, null, null, [])])]);
+
+            return new WordModel("haj", SourceLanguage.Danish, null, null, definition, [], []);
+        }
     }
 }
