@@ -5,12 +5,8 @@ namespace TranslatorApp.Models
     public enum TranslatorAppEventId
     {
         WillTranslateWithOpenAI = 32,
-        LookupRequestReceived = 35,
-        WordNotFound = 36,
         TranslationReceived = 38,
         OpenAPIDidNotReturnContext = 39,
-        LanguageSpecificCharactersFound = 40,
-        RemoveAtPrefix = 41,
         ErrorDuringLookup = 42,
         NoTextFromOpenAI = 43,
         DownloadingSoundFile = 44,
@@ -20,12 +16,9 @@ namespace TranslatorApp.Models
         AudioExtractionFailed = 48,
         SoundDownloadRequestReceived = 49,
         ErrorDownloadingSound = 50,
-        CallingOnlineDictionaryTimedOut = 51,
         CallingOpenAITimeoudOut = 52,
         DownloadingSoundTimedOut = 53,
         ReturningWordModel2 = 54,
-        OnlineDictionaryUnavailable = 55,
         TranslationSuggestionsReceived = 57,
-        LookupControllerRequestReceived = 58
     }
 }

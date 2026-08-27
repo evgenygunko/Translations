@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Asp.Versioning;
-using CopyWords.Parsers;
 using CopyWords.Parsers.Models;
 using CopyWords.Parsers.Services;
 using FluentValidation;
@@ -87,12 +86,8 @@ public static class Program
             builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
             builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
             builder.Services.AddScoped<ISoundService, SoundService>();
-            builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
             builder.Services.AddScoped<IValidator<SuggestionsRequest>, SuggestionsRequestValidator>();
             builder.Services.AddScoped<IValidator<WordModel>, WordModelValidator>();
-            builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
-            builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();
-            builder.Services.AddSingleton<ISpanishDictPageParser, SpanishDictPageParser>();
             builder.Services.AddSingleton<IGlobalSettings>(globalSettings);
             builder.Services.AddSingleton<IFileIOService, FileIOService>();
             builder.Services.AddSingleton<IFFMpegWrapper, FFMpegWrapper>();
