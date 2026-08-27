@@ -349,6 +349,42 @@ namespace TranslatorApp.Tests.Services
         #region Tests for GetSuggestedWordsAsync
 
         [TestMethod]
+        public async Task GetAISuggestedWordsAsync_WhenLDFlagIsTrue_UsesChatCompletionService()
+        {
+            var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
+            launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(true);
+            var openAITranslationServiceMock = _fixture.Freeze<Mock<IOpenAITranslationService>>();
+            openAITranslationServiceMock
+                .Setup(x => x.GetTranslationSuggestionsAsync("привет", "Russian", "Danish", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["hej"]);
+            var sut = _fixture.Create<TranslationsService>();
+
+            IEnumerable<string> result = await sut.GetAISuggestedWordsAsync("привет", "Danish");
+
+            result.Should().Equal("hej");
+            _fixture.Freeze<Mock<IOpenAITranslationService2>>()
+                .Verify(x => x.GetTranslationSuggestionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetAISuggestedWordsAsync_WhenLDFlagIsFalse_UsesResponsesService()
+        {
+            var launchDarklyServiceMock = _fixture.Freeze<Mock<ILaunchDarklyService>>();
+            launchDarklyServiceMock.Setup(x => x.GetBooleanFlag("use-open-ai-chat-completion")).Returns(false);
+            var openAITranslationService2Mock = _fixture.Freeze<Mock<IOpenAITranslationService2>>();
+            openAITranslationService2Mock
+                .Setup(x => x.GetTranslationSuggestionsAsync("привет", "Russian", "Spanish", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["hola"]);
+            var sut = _fixture.Create<TranslationsService>();
+
+            IEnumerable<string> result = await sut.GetAISuggestedWordsAsync("привет", "Spanish");
+
+            result.Should().Equal("hola");
+            _fixture.Freeze<Mock<IOpenAITranslationService>>()
+                .Verify(x => x.GetTranslationSuggestionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task GetSuggestedWordsAsync_WhenWordHasDanishSymbols_CallsLookupWithDanishLanguage()
         {
             const string searchText = "Løb";

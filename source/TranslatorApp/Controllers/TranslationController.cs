@@ -22,6 +22,7 @@ namespace TranslatorApp.Controllers
         private readonly ILogger<TranslationController> _logger;
         private readonly ITranslationsService _translationsService;
         private readonly IValidator<LookUpWordRequest> _lookUpWordRequestValidator;
+        private readonly IValidator<SuggestionsRequest> _suggestionsRequestValidator;
         private readonly IValidator<WordModel> _wordModelValidator;
         private readonly IWebHostEnvironment _environment;
         private readonly IGlobalSettings _globalSettings;
@@ -33,6 +34,7 @@ namespace TranslatorApp.Controllers
             ILogger<TranslationController> logger,
             ITranslationsService translationsService,
             IValidator<LookUpWordRequest> lookUpWordRequestValidator,
+            IValidator<SuggestionsRequest> suggestionsRequestValidator,
             IValidator<WordModel> wordModelValidator,
             IWebHostEnvironment environment,
             IGlobalSettings globalSettings)
@@ -40,6 +42,7 @@ namespace TranslatorApp.Controllers
             _logger = logger;
             _translationsService = translationsService;
             _lookUpWordRequestValidator = lookUpWordRequestValidator;
+            _suggestionsRequestValidator = suggestionsRequestValidator;
             _wordModelValidator = wordModelValidator;
             _environment = environment;
             _globalSettings = globalSettings;
@@ -123,6 +126,34 @@ namespace TranslatorApp.Controllers
                     ex, "An error occurred while trying to translate the supplied word model. CorrelationId: {CorrelationId}", correlationId);
                 return StatusCode(500, $"An internal error occurred. CorrelationId: {correlationId}");
             }
+        }
+
+        [HttpPost]
+        [MapToApiVersion("3.0")]
+        [Route("api/v{version:apiVersion}/[controller]/SuggestedWords")]
+        public async Task<ActionResult<SuggestedWordsModel>> SuggestedWordsV3Async(
+            [FromBody] SuggestionsRequest request,
+            [FromQuery] string? code = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (code != _globalSettings.RequestSecretCode)
+            {
+                return Unauthorized();
+            }
+
+            var validation = await _suggestionsRequestValidator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+            {
+                string errorMessage = validation.FormatErrorMessage();
+                return BadRequest(errorMessage);
+            }
+
+            IEnumerable<string> suggestions = await _translationsService.GetAISuggestedWordsAsync(
+                request.Text,
+                request.DestinationLanguage,
+                cancellationToken);
+
+            return Ok(new SuggestedWordsModel(suggestions));
         }
 
         [HttpPost]

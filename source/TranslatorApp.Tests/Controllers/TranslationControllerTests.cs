@@ -22,6 +22,7 @@ namespace TranslatorApp.Tests.Controllers
         private IFixture _fixture = default!;
         private Mock<IGlobalSettings> _globalSettingsMock = default!;
         private Mock<IValidator<LookUpWordRequest>> _requestValidatorMock = default!;
+        private Mock<IValidator<SuggestionsRequest>> _suggestionsRequestValidatorMock = default!;
         private Mock<IValidator<WordModel>> _wordModelValidatorMock = default!;
         private static IReadOnlyList<string> ActiveDictionaries(params string[] values) => values;
 
@@ -36,6 +37,11 @@ namespace TranslatorApp.Tests.Controllers
             _requestValidatorMock = _fixture.Freeze<Mock<IValidator<LookUpWordRequest>>>();
             _requestValidatorMock
                 .Setup(x => x.ValidateAsync(It.IsAny<LookUpWordRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ValidationResult());
+
+            _suggestionsRequestValidatorMock = _fixture.Freeze<Mock<IValidator<SuggestionsRequest>>>();
+            _suggestionsRequestValidatorMock
+                .Setup(x => x.ValidateAsync(It.IsAny<SuggestionsRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
 
             _wordModelValidatorMock = _fixture.Freeze<Mock<IValidator<WordModel>>>();
@@ -618,6 +624,52 @@ namespace TranslatorApp.Tests.Controllers
         #endregion
 
         #region Tests for SuggestedWordsAsync
+
+        [TestMethod]
+        public async Task SuggestedWordsV3Async_WhenCodeIsInvalid_ReturnsUnauthorized()
+        {
+            var request = new SuggestionsRequest("привет", "Danish");
+            var sut = _fixture.Create<TranslationController>();
+
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsV3Async(request, "invalid-code");
+
+            actionResult.Result.Should().BeOfType<UnauthorizedResult>();
+        }
+
+        [TestMethod]
+        public async Task SuggestedWordsV3Async_WhenRequestIsInvalid_ReturnsBadRequest()
+        {
+            var request = new SuggestionsRequest("привет", "English");
+            var validationResult = new ValidationResult([new ValidationFailure("DestinationLanguage", "Unsupported language")]);
+            _suggestionsRequestValidatorMock
+                .Setup(x => x.ValidateAsync(request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(validationResult);
+            var sut = _fixture.Create<TranslationController>();
+
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsV3Async(request, "test-code");
+
+            actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task SuggestedWordsV3Async_WhenRequestIsValid_ReturnsAISuggestions()
+        {
+            var request = new SuggestionsRequest("привет", "Spanish");
+            var translationsServiceMock = _fixture.Freeze<Mock<ITranslationsService>>();
+            translationsServiceMock
+                .Setup(x => x.GetAISuggestedWordsAsync(request.Text, request.DestinationLanguage, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(["hola", "buenas"]);
+            var sut = _fixture.Create<TranslationController>();
+
+            ActionResult<SuggestedWordsModel> actionResult = await sut.SuggestedWordsV3Async(request, "test-code");
+
+            var result = actionResult.Result.Should().BeOfType<OkObjectResult>().Subject;
+            var model = result.Value.Should().BeOfType<SuggestedWordsModel>().Subject;
+            model.Words.Should().Equal("hola", "buenas");
+            translationsServiceMock.Verify(
+                x => x.GetAISuggestedWordsAsync(request.Text, request.DestinationLanguage, It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
 
         [TestMethod]
         public async Task SuggestedWordsAsync_WhenInputDataIsNull_ReturnsBadRequest()

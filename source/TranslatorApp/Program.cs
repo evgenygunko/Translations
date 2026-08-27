@@ -88,6 +88,7 @@ public static class Program
             builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
             builder.Services.AddScoped<ISoundService, SoundService>();
             builder.Services.AddScoped<IValidator<LookUpWordRequest>, LookUpWordRequestValidator>();
+            builder.Services.AddScoped<IValidator<SuggestionsRequest>, SuggestionsRequestValidator>();
             builder.Services.AddScoped<IValidator<WordModel>, WordModelValidator>();
             builder.Services.AddSingleton<ILookUpWord, LookUpWord>();
             builder.Services.AddSingleton<IDDOPageParser, DDOPageParser>();

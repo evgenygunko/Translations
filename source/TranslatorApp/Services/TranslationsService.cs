@@ -13,6 +13,8 @@ namespace TranslatorApp.Services
         Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default);
 
         Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string sourceLanguage, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<string>> GetAISuggestedWordsAsync(string searchTerm, string destinationLanguage, CancellationToken cancellationToken = default);
     }
 
     public class TranslationsService : ITranslationsService
@@ -122,18 +124,7 @@ namespace TranslatorApp.Services
                 {
                     // We want to translate Russian words to the language which user has selected in the UI,
                     // so we use sourceLanguage as the language to which we want to translate.
-                    if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
-                    {
-                        return await _openAITranslationService.GetTranslationSuggestionsAsync(searchTerm,
-                            sourceLanguage: lang,
-                            destinationLanguage: sourceLanguage,
-                            cancellationToken);
-                    }
-
-                    return await _openAITranslationService2.GetTranslationSuggestionsAsync(searchTerm,
-                        sourceLanguage: lang,
-                        destinationLanguage: sourceLanguage,
-                        cancellationToken);
+                    return await GetAISuggestedWordsAsync(searchTerm, sourceLanguage, cancellationToken);
                 }
 
                 sourceLanguage = lang;
@@ -156,6 +147,29 @@ namespace TranslatorApp.Services
                 sourceLanguage);
 
             return await _lookUpWord.GetSuggestedWordsAsync(searchTerm, sourceLanguage, cancellationToken);
+        }
+
+        public async Task<IEnumerable<string>> GetAISuggestedWordsAsync(
+            string searchTerm,
+            string destinationLanguage,
+            CancellationToken cancellationToken = default)
+        {
+            const string sourceLanguage = "Russian";
+
+            if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
+            {
+                return await _openAITranslationService.GetTranslationSuggestionsAsync(
+                    searchTerm,
+                    sourceLanguage,
+                    destinationLanguage,
+                    cancellationToken);
+            }
+
+            return await _openAITranslationService2.GetTranslationSuggestionsAsync(
+                searchTerm,
+                sourceLanguage,
+                destinationLanguage,
+                cancellationToken);
         }
 
         public async Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default)
