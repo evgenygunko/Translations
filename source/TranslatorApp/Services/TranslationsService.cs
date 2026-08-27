@@ -12,8 +12,6 @@ namespace TranslatorApp.Services
 
         Task<WordModel> TranslateAsync(WordModel wordModel, string sourceLanguage, string destinationLanguage, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string sourceLanguage, CancellationToken cancellationToken = default);
-
         Task<IEnumerable<string>> GetAISuggestedWordsAsync(string searchTerm, string destinationLanguage, CancellationToken cancellationToken = default);
     }
 
@@ -109,44 +107,6 @@ namespace TranslatorApp.Services
             }
 
             return wordModel;
-        }
-
-        public async Task<IEnumerable<string>> GetSuggestedWordsAsync(string searchTerm, string sourceLanguage, CancellationToken cancellationToken = default)
-        {
-            if (CheckLanguageSpecificCharacters(searchTerm) is (true, string lang))
-            {
-                _logger.LogInformation(new EventId((int)TranslatorAppEventId.LanguageSpecificCharactersFound),
-                    "The text '{Text}' has language specific characters, will use '{Language}' as source language.",
-                    searchTerm,
-                    lang);
-
-                if (string.Equals(lang, "Russian", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // We want to translate Russian words to the language which user has selected in the UI,
-                    // so we use sourceLanguage as the language to which we want to translate.
-                    return await GetAISuggestedWordsAsync(searchTerm, sourceLanguage, cancellationToken);
-                }
-
-                sourceLanguage = lang;
-            }
-
-            if (string.Equals(sourceLanguage, SourceLanguage.Danish.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                && TryRemoveDanishLookupPrefix(searchTerm, out string normalizedSearchTerm))
-            {
-                _logger.LogInformation(new EventId((int)TranslatorAppEventId.RemoveAtPrefix),
-                    "Will get suggested words for '{NormalizedText}' instead of the Danish lookup text '{Text}', because DDO may not return suggestions when the text starts with 'at ', 'en ', or 'et '.",
-                    searchTerm,
-                    normalizedSearchTerm);
-
-                searchTerm = normalizedSearchTerm;
-            }
-
-            _logger.LogInformation(new EventId((int)TranslatorAppEventId.SuggestedWordsRequestReceived),
-                "Will get suggested words for '{Text}' in the '{SourceLanguage}' dictionary.",
-                searchTerm,
-                sourceLanguage);
-
-            return await _lookUpWord.GetSuggestedWordsAsync(searchTerm, sourceLanguage, cancellationToken);
         }
 
         public async Task<IEnumerable<string>> GetAISuggestedWordsAsync(
