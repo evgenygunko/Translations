@@ -38,7 +38,6 @@ WORKDIR /src
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["source/TranslatorApp/TranslatorApp.csproj", "source/TranslatorApp/"]
-COPY ["source/Parsers/Parsers.csproj", "source/Parsers/"]
 RUN dotnet restore "./source/TranslatorApp/TranslatorApp.csproj"
 
 # Copy the rest of the source and build

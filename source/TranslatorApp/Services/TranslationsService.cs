@@ -1,6 +1,5 @@
 ﻿// Ignore Spelling: App
 
-using CopyWords.Parsers.Models;
 using TranslatorApp.Models;
 
 namespace TranslatorApp.Services

@@ -1,8 +1,8 @@
 # Translation App (for use by CopyWords App)
 
-This project contains an ASP.NET Core Web API application that provides translation and word lookup services using the [OpenAI API](https://platform.openai.com/docs/overview). The application serves as a translation service for the CopyWords application.
+This project contains the ASP.NET Core Web API used by the CopyWords client for OpenAI-backed translation, suggested words, and sound-file downloads.
 
-The API provides HTTP endpoints for translating text and looking up word definitions, utilizing OpenAI's language models for accurate translations and definitions. The service can be easily extended to support additional translation providers if needed.
+Online dictionary lookup and parsing are owned by the client application. The client sends an already-parsed `WordModel` to this API, which adds translations without fetching or parsing dictionary pages.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ You will need an OpenAI API key to use this service:
 
 ### .NET Requirements
 
-- .NET 9.0 SDK or later
+- .NET 10.0 SDK or later
 - Visual Studio 2022 or Visual Studio Code
 
 ## Working with OpenAI API
@@ -130,8 +130,11 @@ The project includes HTTP test files for testing the API. The `http-client.env.j
 
 Open the HTTP test files in the `HttpTests` folder:
 
-- `TranslationController.LookUpWord.http` - Test word lookup functionality
-- `Version.http` - Test version endpoint
+- `TranslationControllerV3_SuggestedWords.http` - Test suggested-word generation
+- `SoundControllerV1.http` - Test sound downloads and MP4 conversion
+- `Version.http` - Test version reporting
+
+The v3 lookup endpoint accepts a `WordModel` that was populated by the client-side dictionary parser; it does not perform dictionary lookup on the server.
 
 Select the **dev** environment and send test requests. If everything is configured correctly, you will receive responses with translations and word definitions.
 
@@ -161,83 +164,19 @@ The project is currently configured for deployment to DigitalOcean App Platform.
 
 ## API Endpoints
 
-The application provides the following endpoints:
+All functional endpoints require the configured request code in the `code` query parameter.
 
-### POST /api/LookUpWord
+### POST /api/v3/Translation/LookUpWord
 
-Looks up word definitions and translations.
+Accepts the client's parsed `WordModel`, translates its headword and meanings, and returns the same model shape with translation fields populated. The request and response contract is defined by `TranslatorApp.Models.WordModel`.
 
-**Request Body:**
+### POST /api/v3/Translation/SuggestedWords
 
-```json
-{
-  "Text": "såsom",
-  "SourceLanguage": "Danish",
-  "DestinationLanguage": "Russian",
-  "Version": "1"
-}
-```
+Accepts text and a destination language and returns AI-generated word suggestions.
 
-**Response:**
+### GET /api/v1/Sound/DownloadSound
 
-```json
-{
-  "word": "såsom",
-  "soundUrl": "https://static.ordnet.dk/mp3/11052/11052560_1.mp3",
-  "soundFileName": "såsom.mp3",
-  "definitions": [
-    {
-      "headword": {
-        "original": "såsom",
-        "english": "as, for example, such as",
-        "translation": "как, например, в качестве"
-      },
-      "partOfSpeech": "konjunktion",
-      "endings": "",
-      "contexts": [
-        {
-          "contextEN": "",
-          "position": "",
-          "meanings": [
-            {
-              "original": "bruges til angivelse af et eller flere eksempler på noget",
-              "translation": "используется для указания одного или нескольких примеров чего-либо",
-              "alphabeticalPosition": "1",
-              "tag": null,
-              "imageUrl": null,
-              "examples": [
-                {
-                  "original": "Festdragterne blev anvendt til større fester, såsom konfirmationer, bryllupper og dans omkring majstangen.",
-                  "translation": null
-                }
-              ]
-            },
-            {
-              "original": "bruges som indledning til en ledsætning der angiver en begrundelse",
-              "translation": "используется как вводное слово в придаточном предложении, выражающем причину",
-              "alphabeticalPosition": "2",
-              "tag": null,
-              "imageUrl": null,
-              "examples": [
-                {
-                  "original": "han .. var sit firmas dygtigste sælger, såsom han flere år i træk havde præsteret de flotteste salgstal.",
-                  "translation": null
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "variations": [
-    {
-      "word": "såsom konj.",
-      "url": "https://gammel.ordnet.dk/ddo/ordbog?select=s%C3%A5som&query=s%C3%A5som"
-    }
-  ]
-}
-```
+Downloads a sound URL for the client. MP3 data is returned directly; MP4 audio is converted to MP3 before it is returned.
 
 ## Using CI/CD
 

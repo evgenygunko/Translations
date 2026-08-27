@@ -32,10 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Parsers\Parsers.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="appsettings.json" />
 
     <EmbeddedResource Include="appsettings.*.json">

@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
 using Asp.Versioning;
-using CopyWords.Parsers.Models;
-using CopyWords.Parsers.Services;
 using FluentValidation;
 using OpenAI.Chat;
 using OpenAI.Responses;
@@ -92,7 +90,7 @@ public static class Program
             builder.Services.AddSingleton<IFileIOService, FileIOService>();
             builder.Services.AddSingleton<IFFMpegWrapper, FFMpegWrapper>();
             builder.Services
-                .AddHttpClient<IFileDownloader, FileDownloader>()
+                .AddHttpClient<ISoundFileDownloader, SoundFileDownloader>()
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
                 {
                     AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.Brotli

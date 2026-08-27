@@ -1,6 +1,5 @@
 ﻿// Ignore Spelling: Downloader ffmpeg
 
-using CopyWords.Parsers.Services;
 using TranslatorApp.Models;
 
 namespace TranslatorApp.Services
@@ -12,18 +11,18 @@ namespace TranslatorApp.Services
 
     public class SoundService : ISoundService
     {
-        private readonly IFileDownloader _fileDownloader;
+        private readonly ISoundFileDownloader _soundFileDownloader;
         private readonly ILogger<SoundService> _logger;
         private readonly IFileIOService _fileIOService;
         private readonly IFFMpegWrapper _ffmpegWrapper;
 
         public SoundService(
-            IFileDownloader fileDownloader,
+            ISoundFileDownloader soundFileDownloader,
             ILogger<SoundService> logger,
             IFileIOService fileIOService,
             IFFMpegWrapper ffmpegWrapper)
         {
-            _fileDownloader = fileDownloader;
+            _soundFileDownloader = soundFileDownloader;
             _logger = logger;
             _fileIOService = fileIOService;
             _ffmpegWrapper = ffmpegWrapper;
@@ -34,7 +33,7 @@ namespace TranslatorApp.Services
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.DownloadingSoundFile),
                 "Downloading sound file from URL: {SoundUrl} for word: {Word}", soundUrl, word);
 
-            byte[] fileBytes = await _fileDownloader.DownloadSoundFileAsync(soundUrl, cancellationToken);
+            byte[] fileBytes = await _soundFileDownloader.DownloadSoundFileAsync(soundUrl, cancellationToken);
 
             if (soundUrl.EndsWith(".mp4", StringComparison.InvariantCultureIgnoreCase))
             {

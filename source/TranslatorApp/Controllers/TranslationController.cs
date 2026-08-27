@@ -2,7 +2,6 @@
 
 using System.Text.Json;
 using Asp.Versioning;
-using CopyWords.Parsers.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using TranslatorApp.Extensions;

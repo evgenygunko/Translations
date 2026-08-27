@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Downloader
 
 using AutoFixture;
-using CopyWords.Parsers.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -17,15 +16,15 @@ namespace TranslatorApp.Tests.Services
         #region Tests for DownloadSoundAsync
 
         [TestMethod]
-        public async Task DownloadSoundAsync_Should_CallFileDownloader()
+        public async Task DownloadSoundAsync_Should_CallSoundFileDownloader()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
             string word = "test";
             byte[] soundBytes = new byte[] { 0x01, 0x02, 0x03, 0x04 };
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(soundBytes);
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<SoundService>>>();
@@ -46,7 +45,7 @@ namespace TranslatorApp.Tests.Services
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
                 Times.Once);
-            fileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl, It.IsAny<CancellationToken>()), Times.Once);
+            soundFileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
@@ -57,8 +56,8 @@ namespace TranslatorApp.Tests.Services
             string word = "test";
             byte[] soundBytes = new byte[] { 0x01, 0x02, 0x03, 0x04 };
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(soundBytes);
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<SoundService>>>();
@@ -81,7 +80,7 @@ namespace TranslatorApp.Tests.Services
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()!),
                 Times.Once);
-            fileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl, It.IsAny<CancellationToken>()), Times.Once);
+            soundFileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl, It.IsAny<CancellationToken>()), Times.Once);
 
             // Verify no extraction logging occurred
             loggerMock.Verify(x =>
@@ -108,8 +107,8 @@ namespace TranslatorApp.Tests.Services
             byte[] mp4Bytes = new byte[] { 0x00, 0x00, 0x00, 0x20 };
             byte[] mp3Bytes = new byte[] { 0xFF, 0xFB, 0x90, 0x00 }; // Mock MP3 data
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mp4Bytes);
 
             var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();
@@ -156,15 +155,15 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadSoundAsync_WhenFileDownloaderThrowsException_ExceptionPropagatesToCaller()
+        public async Task DownloadSoundAsync_WhenSoundFileDownloaderThrowsException_ExceptionPropagatesToCaller()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
             string word = "test";
             var expectedException = new HttpRequestException("Network error");
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(expectedException);
 
             var sut = _fixture.Create<SoundService>();
@@ -186,8 +185,8 @@ namespace TranslatorApp.Tests.Services
             byte[] mp4Bytes = new byte[] { 0x00, 0x00, 0x00, 0x20 };
             var ffmpegException = new Exception("FFmpeg conversion failed");
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mp4Bytes);
 
             var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();
@@ -226,8 +225,8 @@ namespace TranslatorApp.Tests.Services
             string word = "test";
             byte[] mp4Bytes = new byte[] { 0x00, 0x00 };
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mp4Bytes);
 
             var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();
@@ -248,15 +247,15 @@ namespace TranslatorApp.Tests.Services
         }
 
         [TestMethod]
-        public async Task DownloadSoundAsync_WithCancellationToken_PassesToFileDownloader()
+        public async Task DownloadSoundAsync_WithCancellationToken_PassesToSoundFileDownloader()
         {
             // Arrange
             string soundUrl = "https://example.com/sound.mp3";
             string word = "test";
             var cancellationToken = new CancellationToken(canceled: true);
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), cancellationToken))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), cancellationToken))
                 .ThrowsAsync(new OperationCanceledException());
 
             var sut = _fixture.Create<SoundService>();
@@ -266,7 +265,7 @@ namespace TranslatorApp.Tests.Services
 
             // Assert
             await act.Should().ThrowAsync<OperationCanceledException>();
-            fileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl, cancellationToken), Times.Once);
+            soundFileDownloaderMock.Verify(x => x.DownloadSoundFileAsync(soundUrl, cancellationToken), Times.Once);
         }
 
         [TestMethod]
@@ -278,8 +277,8 @@ namespace TranslatorApp.Tests.Services
             byte[] mp4Bytes = new byte[] { 0x00, 0x00, 0x00, 0x20 };
             byte[] mp3Bytes = new byte[] { 0xFF, 0xFB, 0x90, 0x00 };
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mp4Bytes);
 
             var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();
@@ -314,8 +313,8 @@ namespace TranslatorApp.Tests.Services
             byte[] mp4Bytes = new byte[] { 0x00, 0x00, 0x00, 0x20 };
             byte[] mp3Bytes = new byte[] { 0xFF, 0xFB, 0x90, 0x00 };
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mp4Bytes);
 
             var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();
@@ -350,8 +349,8 @@ namespace TranslatorApp.Tests.Services
             byte[] mp3Bytes = new byte[] { 0xFF, 0xFB, 0x90, 0x00 };
             var cancellationToken = new CancellationToken();
 
-            var fileDownloaderMock = _fixture.Freeze<Mock<IFileDownloader>>();
-            fileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), cancellationToken))
+            var soundFileDownloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            soundFileDownloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), cancellationToken))
                 .ReturnsAsync(mp4Bytes);
 
             var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();

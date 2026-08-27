@@ -1,7 +1,6 @@
 ﻿// Ignore Spelling: Deserialize App Validator
 
 using AutoFixture;
-using CopyWords.Parsers.Models;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;

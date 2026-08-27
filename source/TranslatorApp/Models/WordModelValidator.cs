@@ -1,6 +1,5 @@
 ﻿// Ignore Spelling: Validator
 
-using CopyWords.Parsers.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
