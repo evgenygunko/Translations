@@ -1,0 +1,150 @@
+// LookUpWord translates a client-parsed WordModel to Russian.
+// SourceLanguage is numeric: 0 = Danish, 1 = Spanish.
+
+### Translate supplied såsom model to Russian
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "såsom",
+    "sourceLanguage": 0,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "såsom",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "konjunktion",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "for eksempel",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": null,
+                        "examples": []
+                    },
+                    {
+                        "original": "som for eksempel",
+                        "translation": null,
+                        "alphabeticalPosition": "2",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": null,
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Translate supplied såsom model to Russian', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.word === "såsom", "Word is preserved");
+    client.assert(response.body.sourceLanguage === 0, "Source language is preserved");
+    client.assert(response.body.definition.headword.original === "såsom", "Headword is preserved");
+    client.assert(response.body.definition.partOfSpeech === "konjunktion", "Part of speech is preserved");
+    client.assert(typeof response.body.definition.headword.english === "string" && response.body.definition.headword.english.length > 0, "English headword is populated");
+    client.assert(typeof response.body.definition.headword.translation === "string" && response.body.definition.headword.translation.length > 0, "Russian headword is populated");
+    client.assert(response.body.definition.contexts.length === 1, "Contexts are preserved");
+    client.assert(response.body.definition.contexts[0].meanings.length === 2, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[0].meanings[0].original === "for eksempel", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[0].meanings[0].translation === "string" && response.body.definition.contexts[0].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[0].meanings[0].lookupUrl === null, "Lookup URL is preserved");
+    client.assert(response.body.definition.contexts[0].meanings[1].original === "som for eksempel", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[0].meanings[1].translation === "string" && response.body.definition.contexts[0].meanings[1].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[0].meanings[1].lookupUrl === null, "Lookup URL is preserved");
+    client.assert(JSON.stringify(response.body.variants) === JSON.stringify([]), "variants are preserved");
+    client.assert(JSON.stringify(response.body.expressions) === JSON.stringify([]), "expressions are preserved");
+  });
+%}
+
+### Translate supplied slå model to Russian
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "slå",
+    "sourceLanguage": 0,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "slå",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbum",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "ramme nogen eller noget med et slag",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": null,
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [
+        {
+            "word": "slå",
+            "url": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5"
+        },
+        {
+            "word": "slå",
+            "url": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5"
+        },
+        {
+            "word": "slå om-nederdel",
+            "url": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5"
+        }
+    ],
+    "expressions": [
+        {
+            "word": "slå",
+            "url": "https://gammel.ordnet.dk/ddo/ordbog?mselect=59006368&query=sl%C3%A5"
+        }
+    ]
+}
+
+> {%
+  client.test('Translate supplied slå model to Russian', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.word === "slå", "Word is preserved");
+    client.assert(response.body.sourceLanguage === 0, "Source language is preserved");
+    client.assert(response.body.definition.headword.original === "slå", "Headword is preserved");
+    client.assert(response.body.definition.partOfSpeech === "verbum", "Part of speech is preserved");
+    client.assert(typeof response.body.definition.headword.english === "string" && response.body.definition.headword.english.length > 0, "English headword is populated");
+    client.assert(typeof response.body.definition.headword.translation === "string" && response.body.definition.headword.translation.length > 0, "Russian headword is populated");
+    client.assert(response.body.definition.contexts.length === 1, "Contexts are preserved");
+    client.assert(response.body.definition.contexts[0].meanings.length === 1, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[0].meanings[0].original === "ramme nogen eller noget med et slag", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[0].meanings[0].translation === "string" && response.body.definition.contexts[0].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[0].meanings[0].lookupUrl === null, "Lookup URL is preserved");
+    client.assert(JSON.stringify(response.body.variants) === JSON.stringify([{"word": "slå", "url": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,1&query=sl%C3%A5"}, {"word": "slå", "url": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5,2&query=sl%C3%A5"}, {"word": "slå om-nederdel", "url": "https://gammel.ordnet.dk/ddo/ordbog?select=sl%C3%A5%20om-nederdel&query=sl%C3%A5"}]), "variants are preserved");
+    client.assert(JSON.stringify(response.body.expressions) === JSON.stringify([{"word": "slå", "url": "https://gammel.ordnet.dk/ddo/ordbog?mselect=59006368&query=sl%C3%A5"}]), "expressions are preserved");
+  });
+%}

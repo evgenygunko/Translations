@@ -1,0 +1,177 @@
+// LookUpWord translates a client-parsed WordModel to Russian.
+// SourceLanguage is numeric: 0 = Danish, 1 = Spanish.
+
+### Translate supplied afeitar model to Russian
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "afeitar",
+    "sourceLanguage": 1,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "afeitar",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbo",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "to shave",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/afeitar",
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Translate supplied afeitar model to Russian', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.word === "afeitar", "Word is preserved");
+    client.assert(response.body.sourceLanguage === 1, "Source language is preserved");
+    client.assert(response.body.definition.headword.original === "afeitar", "Headword is preserved");
+    client.assert(response.body.definition.partOfSpeech === "verbo", "Part of speech is preserved");
+    client.assert(typeof response.body.definition.headword.english === "string" && response.body.definition.headword.english.length > 0, "English headword is populated");
+    client.assert(typeof response.body.definition.headword.translation === "string" && response.body.definition.headword.translation.length > 0, "Russian headword is populated");
+    client.assert(response.body.definition.contexts.length === 1, "Contexts are preserved");
+    client.assert(response.body.definition.contexts[0].meanings.length === 1, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[0].meanings[0].original === "to shave", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[0].meanings[0].translation === "string" && response.body.definition.contexts[0].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[0].meanings[0].lookupUrl === "https://www.spanishdict.com/translate/afeitar", "Lookup URL is preserved");
+    client.assert(JSON.stringify(response.body.variants) === JSON.stringify([]), "variants are preserved");
+    client.assert(JSON.stringify(response.body.expressions) === JSON.stringify([]), "expressions are preserved");
+  });
+%}
+
+### Translate supplied coche model to Russian
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "coche",
+    "sourceLanguage": 1,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "coche",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "sustantivo",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "car",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/coche",
+                        "examples": []
+                    }
+                ]
+            },
+            {
+                "contextEN": "",
+                "position": "2",
+                "meanings": [
+                    {
+                        "original": "carriage",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/coche",
+                        "examples": []
+                    }
+                ]
+            },
+            {
+                "contextEN": "",
+                "position": "3",
+                "meanings": [
+                    {
+                        "original": "coach",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/coche",
+                        "examples": []
+                    }
+                ]
+            },
+            {
+                "contextEN": "",
+                "position": "4",
+                "meanings": [
+                    {
+                        "original": "baby carriage",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/coche",
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Translate supplied coche model to Russian', () => {
+    client.assert(response.status === 200, "Response status is 200");
+    client.assert(response.body.word === "coche", "Word is preserved");
+    client.assert(response.body.sourceLanguage === 1, "Source language is preserved");
+    client.assert(response.body.definition.headword.original === "coche", "Headword is preserved");
+    client.assert(response.body.definition.partOfSpeech === "sustantivo", "Part of speech is preserved");
+    client.assert(typeof response.body.definition.headword.english === "string" && response.body.definition.headword.english.length > 0, "English headword is populated");
+    client.assert(typeof response.body.definition.headword.translation === "string" && response.body.definition.headword.translation.length > 0, "Russian headword is populated");
+    client.assert(response.body.definition.contexts.length === 4, "Contexts are preserved");
+    client.assert(response.body.definition.contexts[0].meanings.length === 1, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[0].meanings[0].original === "car", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[0].meanings[0].translation === "string" && response.body.definition.contexts[0].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[0].meanings[0].lookupUrl === "https://www.spanishdict.com/translate/coche", "Lookup URL is preserved");
+    client.assert(response.body.definition.contexts[1].meanings.length === 1, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[1].meanings[0].original === "carriage", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[1].meanings[0].translation === "string" && response.body.definition.contexts[1].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[1].meanings[0].lookupUrl === "https://www.spanishdict.com/translate/coche", "Lookup URL is preserved");
+    client.assert(response.body.definition.contexts[2].meanings.length === 1, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[2].meanings[0].original === "coach", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[2].meanings[0].translation === "string" && response.body.definition.contexts[2].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[2].meanings[0].lookupUrl === "https://www.spanishdict.com/translate/coche", "Lookup URL is preserved");
+    client.assert(response.body.definition.contexts[3].meanings.length === 1, "Meanings are preserved");
+    client.assert(response.body.definition.contexts[3].meanings[0].original === "baby carriage", "Original meaning is preserved");
+    client.assert(typeof response.body.definition.contexts[3].meanings[0].translation === "string" && response.body.definition.contexts[3].meanings[0].translation.length > 0, "Russian meaning is populated");
+    client.assert(response.body.definition.contexts[3].meanings[0].lookupUrl === "https://www.spanishdict.com/translate/coche", "Lookup URL is preserved");
+    client.assert(JSON.stringify(response.body.variants) === JSON.stringify([]), "variants are preserved");
+    client.assert(JSON.stringify(response.body.expressions) === JSON.stringify([]), "expressions are preserved");
+  });
+%}

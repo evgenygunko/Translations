@@ -1,0 +1,259 @@
+// Language-independent validation and authorization for LookUpWord.
+// SourceLanguage is numeric: 0 = Danish, 1 = Spanish.
+
+### Reject a model with no contexts
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "haj",
+    "sourceLanguage": 0,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "haj",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbum",
+        "endings": "",
+        "contexts": []
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Reject a model with no contexts', () => {
+    client.assert(response.status === 400, "Response status is 400");
+    client.assert(typeof response.body === "string" && response.body.includes("Contexts"), "Validation identifies contexts");
+  });
+%}
+
+### Reject an empty original headword
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "haj",
+    "sourceLanguage": 0,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbum",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "stor bruskfisk",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": null,
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Reject an empty original headword', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Reject an invalid lookup secret
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code=invalid-code
+Content-Type: application/json
+
+{
+    "word": "haj",
+    "sourceLanguage": 0,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "haj",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbum",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "stor bruskfisk",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": null,
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Reject an invalid lookup secret', () => {
+    client.assert(response.status === 401, "Response status is 401");
+  });
+%}
+
+### Reject a missing definition
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "coche",
+    "sourceLanguage": 1,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": null,
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Reject a missing definition', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Reject an unsupported source language
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "coche",
+    "sourceLanguage": 99,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "coche",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbo",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "car",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/coche",
+                        "examples": []
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Reject an unsupported source language', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Reject null examples
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "word": "coche",
+    "sourceLanguage": 1,
+    "soundUrl": null,
+    "soundFileName": null,
+    "definition": {
+        "headword": {
+            "original": "coche",
+            "english": null,
+            "translation": null
+        },
+        "partOfSpeech": "verbo",
+        "endings": "",
+        "contexts": [
+            {
+                "contextEN": "",
+                "position": "1",
+                "meanings": [
+                    {
+                        "original": "car",
+                        "translation": null,
+                        "alphabeticalPosition": "1",
+                        "tag": null,
+                        "imageUrl": null,
+                        "lookupUrl": "https://www.spanishdict.com/translate/coche",
+                        "examples": null
+                    }
+                ]
+            }
+        ]
+    },
+    "variants": [],
+    "expressions": []
+}
+
+> {%
+  client.test('Reject null examples', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
+
+### Reject the obsolete dictionary lookup payload
+
+POST {{HostAddress}}/api/v3/Translation/LookUpWord?code={{code}}
+Content-Type: application/json
+
+{
+    "Text": "coche",
+    "SourceLanguage": "Spanish",
+    "DestinationLanguage": "Russian",
+    "ActiveDictionaries": [
+        "Spanish"
+    ],
+    "Version": "2"
+}
+
+> {%
+  client.test('Reject the obsolete dictionary lookup payload', () => {
+    client.assert(response.status === 400, "Response status is 400");
+  });
+%}
