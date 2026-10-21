@@ -14,20 +14,14 @@ namespace TranslatorApp.Services
     public class TranslationsService : ITranslationsService
     {
         private readonly IOpenAITranslationService _openAITranslationService;
-        private readonly IOpenAITranslationService2 _openAITranslationService2;
         private readonly ILogger<TranslationsService> _logger;
-        private readonly ILaunchDarklyService _launchDarklyService;
 
         public TranslationsService(
             IOpenAITranslationService openAITranslationService,
-            IOpenAITranslationService2 openAITranslationService2,
-            ILogger<TranslationsService> logger,
-            ILaunchDarklyService launchDarklyService)
+            ILogger<TranslationsService> logger)
         {
             _openAITranslationService = openAITranslationService;
-            _openAITranslationService2 = openAITranslationService2;
             _logger = logger;
-            _launchDarklyService = launchDarklyService;
         }
 
         #region Public Methods
@@ -39,16 +33,7 @@ namespace TranslatorApp.Services
         {
             const string sourceLanguage = "Russian";
 
-            if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
-            {
-                return await _openAITranslationService.GetTranslationSuggestionsAsync(
-                    searchTerm,
-                    sourceLanguage,
-                    destinationLanguage,
-                    cancellationToken);
-            }
-
-            return await _openAITranslationService2.GetTranslationSuggestionsAsync(
+            return await _openAITranslationService.GetTranslationSuggestionsAsync(
                 searchTerm,
                 sourceLanguage,
                 destinationLanguage,
@@ -59,16 +44,8 @@ namespace TranslatorApp.Services
         {
             Models.Translation.TranslationInput translationInput = CreateTranslationInputFromWordModel(wordModel, sourceLanguage, destinationLanguage);
 
-            Models.Translation.TranslationOutput? translationOutput;
-
-            if (_launchDarklyService.GetBooleanFlag("use-open-ai-chat-completion"))
-            {
-                translationOutput = await _openAITranslationService.TranslateAsync(translationInput, cancellationToken);
-            }
-            else
-            {
-                translationOutput = await _openAITranslationService2.TranslateAsync(translationInput, cancellationToken);
-            }
+            Models.Translation.TranslationOutput? translationOutput =
+                await _openAITranslationService.TranslateAsync(translationInput, cancellationToken);
 
             if (translationOutput == null)
             {

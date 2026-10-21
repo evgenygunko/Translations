@@ -22,54 +22,7 @@ You will need an OpenAI API key to use this service:
 
 ## Working with OpenAI API
 
-This application provides two different approaches for integrating with OpenAI's services, each with its own advantages and use cases. You can switch between them using an environment variable.
-
-### Option 1: Chat Completions API (Traditional) - Default
-
-The `OpenAITranslationService` class uses OpenAI's standard Chat Completions API with structured output via JSON schema. This is the default option used when no additional configuration is set.
-
-### Option 2: Response API (Experimental)
-
-The `OpenAITranslationService2` class uses OpenAI's newer, experimental Response API. This approach:
-
-- Uses the `/v1/responses` endpoint (currently in beta)
-- Requires prompts to be pre-created and managed in the OpenAI dashboard
-- References prompts by their unique ID rather than sending prompt text
-- Provides centralized prompt management through OpenAI's interface
-- Is ideal for applications with stable, reusable prompts
-
-**Setting up Response API:**
-
-1. Navigate to the [OpenAI Platform Dashboard](https://platform.openai.com/chat)
-2. Create a new prompt with the required variables (`source_language`, `destination_langauge`, `input_json`)
-3. Copy the prompt ID from the dashboard
-4. Update the prompt ID in `OpenAITranslationService2.GetPromptMessage()` method
-
-**Note:** The Response API is currently experimental and subject to change.
-
-### Switching Between Options
-
-The application automatically selects which service to use based on the `USE_OPENAI_RESPONSE_API` environment variable:
-
-- **Option 1 (Default)**: No environment variable set or set to `false`/`0`
-- **Option 2**: Set `USE_OPENAI_RESPONSE_API` to `true` or `1`
-
-#### To use Option 1 (Chat Completions API):
-
-```powershell
-# Remove the environment variable or set it to false
-[Environment]::SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", $null, "User")
-# OR
-[Environment]::SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "false", "User")
-```
-
-#### To use Option 2 (Response API):
-
-```powershell
-[Environment]::SetEnvironmentVariable("USE_OPENAI_RESPONSE_API", "true", "User")
-```
-
-The application checks for this environment variable at both the process level and user level, so you can set it using either `"Process"` or `"User"` scope.
+The `OpenAITranslationService` class uses the Chat Completions API. Translation prompts live in source control and each request includes a strict JSON schema generated from its expected C# response type.
 
 ## Configure Local Development Environment
 

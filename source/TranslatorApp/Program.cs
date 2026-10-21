@@ -2,7 +2,6 @@
 using Asp.Versioning;
 using FluentValidation;
 using OpenAI.Chat;
-using OpenAI.Responses;
 using Serilog;
 using TranslatorApp.Models;
 using TranslatorApp.Services;
@@ -42,10 +41,6 @@ public static class Program
                 throw new InvalidOperationException("Request secret code key not found. Please make sure it is added to appsettings.json or environment variables.");
             }
 
-            // Configure OpenAI settings
-            builder.Services.Configure<OpenAIConfiguration>(
-                builder.Configuration.GetSection(OpenAIConfiguration.SectionName));
-
             // Add services to the container.
             builder.Services.AddControllers();
 
@@ -82,7 +77,6 @@ public static class Program
             // Add custom services
             builder.Services.AddScoped<ITranslationsService, TranslationsService>();
             builder.Services.AddScoped<IOpenAITranslationService, OpenAITranslationService>();
-            builder.Services.AddScoped<IOpenAITranslationService2, OpenAITranslationService2>();
             builder.Services.AddScoped<ISoundService, SoundService>();
             builder.Services.AddScoped<IValidator<SuggestionsRequest>, SuggestionsRequestValidator>();
             builder.Services.AddScoped<IValidator<WordModel>, WordModelValidator>();
@@ -98,13 +92,6 @@ public static class Program
 
             // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
             builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4.1-mini", apiKey: globalSettings.OpenAIApiKey));
-
-#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
-            // For the OpenAI Response API, it doesn't matter which model you select here. It will use the model, selected in the prompts saved in the Dashboard: https://platform.openai.com/chat
-            builder.Services.AddSingleton<ResponsesClient>(_ => new ResponsesClient(apiKey: globalSettings.OpenAIApiKey));
-
-#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
             // Initialize LaunchDarkly if SDK key is provided.
             // Client must be constructed before the web application.
