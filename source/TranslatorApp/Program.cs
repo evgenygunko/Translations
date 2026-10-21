@@ -90,8 +90,10 @@ public static class Program
                     AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.Brotli
                 });
 
-            // "gpt-4.1-mini" - this is the fastest model as of now, faster than "gpt-4o-mini", but more expensive. And "gpt-5-mini" is crazy slow, sometimes takes 30 seconds to respond.
-            builder.Services.AddSingleton<ChatClient>(_ => new ChatClient(model: "gpt-4.1-mini", apiKey: globalSettings.OpenAIApiKey));
+            builder.Services.AddKeyedSingleton<ChatClient>("gpt-4.1-mini",
+                (_, _) => new ChatClient(model: "gpt-4.1-mini", apiKey: globalSettings.OpenAIApiKey));
+            builder.Services.AddKeyedSingleton<ChatClient>("gpt-6-luna",
+                (_, _) => new ChatClient(model: "gpt-6-luna", apiKey: globalSettings.OpenAIApiKey));
 
             // Initialize LaunchDarkly if SDK key is provided.
             // Client must be constructed before the web application.

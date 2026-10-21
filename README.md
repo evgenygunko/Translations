@@ -26,6 +26,23 @@ The `OpenAITranslationService` class uses the Chat Completions API. Translation 
 
 ## Configure Local Development Environment
 
+### Model rollout
+
+Create a boolean LaunchDarkly flag named `use-gpt-6-luna` in the environment used by
+`LAUNCHDARKLY_SDK_KEY`, initially false with an off variation of false. The existing
+evaluation context has kind `user` and key `TranslationApp`.
+
+- False: `gpt-4.1-mini` with existing request options.
+- True: `gpt-6-luna` with `reasoning_effort: "none"`.
+
+The flag is evaluated on every translation and suggested-words call. Missing flags,
+uninitialized LaunchDarkly, and flag evaluation errors default to the existing model.
+Both paths preserve Chat Completions, prompts, and strict JSON schemas. Toggle false
+to roll back without restarting. Verify model access, translation quality, and latency
+with the Danish/Spanish lookup and suggested-words samples under
+`source/TranslatorApp/HttpTests` before enabling in production. Complete rollout before
+January 14, 2027, when the legacy model retires and the false path stops working.
+
 For local development and testing, you need to set up the OpenAI API key and configure the HTTP test environment.
 
 ### 1. Set OpenAI API Key

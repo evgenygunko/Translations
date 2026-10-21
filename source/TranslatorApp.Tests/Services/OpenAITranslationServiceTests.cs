@@ -43,7 +43,7 @@ namespace TranslatorApp.Tests.Services
                 .Setup(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(openAIResponse);
 
-            var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ILogger<OpenAITranslationService>>().Object);
+            var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ChatClient>(MockBehavior.Strict).Object, new Mock<ILaunchDarklyService>().Object, new Mock<ILogger<OpenAITranslationService>>().Object);
 
             TranslationOutput? result = await sut.TranslateAsync(translationInput, CancellationToken.None);
 
@@ -99,7 +99,7 @@ namespace TranslatorApp.Tests.Services
                 .Setup(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(), It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(openAIResponse);
 
-            var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ILogger<OpenAITranslationService>>().Object);
+            var sut = new OpenAITranslationService(chatClientMock.Object, new Mock<ChatClient>(MockBehavior.Strict).Object, new Mock<ILaunchDarklyService>().Object, new Mock<ILogger<OpenAITranslationService>>().Object);
 
             IReadOnlyList<string> result = await sut.GetTranslationSuggestionsAsync("есть", "Russian", "Danish", CancellationToken.None);
 
@@ -121,6 +121,52 @@ namespace TranslatorApp.Tests.Services
         #endregion
 
         #region Private methods
+
+        [TestMethod]
+        [DataRow(false, false, false)]
+        [DataRow(true, false, false)]
+        [DataRow(false, true, false)]
+        [DataRow(false, false, true)]
+        [DataRow(true, false, true)]
+        [DataRow(false, true, true)]
+        public async Task ModelRollout_SelectsClientAndReasoning(bool useLuna, bool flagFails, bool translate)
+        {
+            var legacy = new Mock<ChatClient>(MockBehavior.Strict);
+            var luna = new Mock<ChatClient>(MockBehavior.Strict);
+            var flags = new Mock<ILaunchDarklyService>(MockBehavior.Strict);
+            var flagSetup = flags.Setup(x => x.GetBooleanFlag(OpenAITranslationService.UseGpt6LunaFlag, false));
+            if (flagFails)
+                flagSetup.Throws(new TranslatorApp.Exceptions.LaunchDarklyGetFlagException("Evaluation failed"));
+            else
+                flagSetup.Returns(useLuna);
+
+            var selected = useLuna ? luna : legacy;
+#pragma warning disable OPENAI001 // Verify the experimental reasoning control used by the service.
+            selected.Setup(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(),
+                    It.Is<ChatCompletionOptions>(o => o.ResponseFormat != null &&
+                        (useLuna ? o.ReasoningEffortLevel == new ChatReasoningEffortLevel("none") : o.ReasoningEffortLevel == null)),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(CreateChatCompletionFromString(translate ? "null" : "{\"results\":[\"at spise\"]}"));
+#pragma warning restore OPENAI001
+
+            var sut = new OpenAITranslationService(legacy.Object, luna.Object, flags.Object,
+                new Mock<ILogger<OpenAITranslationService>>().Object);
+            if (translate)
+            {
+                var input = new TranslationInput("2", "Danish", "Russian",
+                    new DefinitionInput(new HeadwordInput("spise", "verb", "eat", []), []));
+                await sut.TranslateAsync(input, CancellationToken.None);
+            }
+            else
+            {
+                var result = await sut.GetTranslationSuggestionsAsync("есть", "Russian", "Danish", CancellationToken.None);
+                result.Should().Equal("at spise");
+            }
+
+            flags.Verify(x => x.GetBooleanFlag(OpenAITranslationService.UseGpt6LunaFlag, false), Times.Once);
+            selected.Verify(x => x.CompleteChatAsync(It.IsAny<IEnumerable<ChatMessage>>(),
+                It.IsAny<ChatCompletionOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
 
         private static ClientResult<ChatCompletion> CreateChatCompletionFromJson(string jsonFileName)
         {

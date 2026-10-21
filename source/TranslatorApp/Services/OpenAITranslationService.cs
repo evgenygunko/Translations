@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Json.Serialization;
 using OpenAI.Chat;
+using TranslatorApp.Exceptions;
 using TranslatorApp.Models;
 using TranslatorApp.Models.Translation;
 
@@ -21,14 +22,22 @@ namespace TranslatorApp.Services
 
     public class OpenAITranslationService : IOpenAITranslationService
     {
-        private readonly ChatClient _chatClient;
+        public const string UseGpt6LunaFlag = "use-gpt-6-luna";
+
+        private readonly ChatClient _legacyChatClient;
+        private readonly ChatClient _lunaChatClient;
+        private readonly ILaunchDarklyService _launchDarklyService;
         private readonly ILogger<OpenAITranslationService> _logger;
 
         public OpenAITranslationService(
-            ChatClient chatClient,
+            [FromKeyedServices("gpt-4.1-mini")] ChatClient legacyChatClient,
+            [FromKeyedServices("gpt-6-luna")] ChatClient lunaChatClient,
+            ILaunchDarklyService launchDarklyService,
             ILogger<OpenAITranslationService> logger)
         {
-            _chatClient = chatClient;
+            _legacyChatClient = legacyChatClient;
+            _lunaChatClient = lunaChatClient;
+            _launchDarklyService = launchDarklyService;
             _logger = logger;
         }
 
@@ -78,12 +87,13 @@ Meaning output fields:
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            TranslationOutput? openAITranslations = await CallOpenAIAsync<TranslationOutput>(prompt.ToString(), cancellationToken);
+            string model = GetModel();
+            TranslationOutput? openAITranslations = await CallOpenAIAsync<TranslationOutput>(prompt.ToString(), model, cancellationToken);
 
             stopwatch.Stop();
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationReceived),
-                    "The call to OpenAPI Chat Completions API took {TotalSeconds} seconds.",
-                    stopwatch.Elapsed.TotalSeconds);
+                    "The call to OpenAI Chat Completions API using {Model} took {TotalSeconds} seconds.",
+                    model, stopwatch.Elapsed.TotalSeconds);
 
             return openAITranslations;
         }
@@ -120,12 +130,13 @@ destination language: ""{destinationLanguage}""";
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            TranslationSuggestionsOutput? response = await CallOpenAIAsync<TranslationSuggestionsOutput>(prompt, cancellationToken);
+            string model = GetModel();
+            TranslationSuggestionsOutput? response = await CallOpenAIAsync<TranslationSuggestionsOutput>(prompt, model, cancellationToken);
 
             stopwatch.Stop();
             _logger.LogInformation(new EventId((int)TranslatorAppEventId.TranslationSuggestionsReceived),
-                    "The call to OpenAPI Chat Completions API took {TotalSeconds} seconds.",
-                    stopwatch.Elapsed.TotalSeconds);
+                    "The call to OpenAI Chat Completions API using {Model} took {TotalSeconds} seconds.",
+                    model, stopwatch.Elapsed.TotalSeconds);
 
             return response?.results ?? [];
         }
@@ -134,12 +145,36 @@ destination language: ""{destinationLanguage}""";
 
         #region Private Methods
 
-        private async Task<T?> CallOpenAIAsync<T>(string prompt, CancellationToken cancellationToken)
+        private string GetModel()
+        {
+            try
+            {
+                return _launchDarklyService.GetBooleanFlag(UseGpt6LunaFlag, defaultValue: false)
+                    ? "gpt-6-luna" : "gpt-4.1-mini";
+            }
+            catch (LaunchDarklyGetFlagException ex)
+            {
+                _logger.LogWarning(ex, "Could not evaluate {Flag}; using gpt-4.1-mini", UseGpt6LunaFlag);
+                return "gpt-4.1-mini";
+            }
+        }
+
+        private async Task<T?> CallOpenAIAsync<T>(string prompt, string model, CancellationToken cancellationToken)
         {
             List<ChatMessage> messages = new List<ChatMessage>() { new UserChatMessage(prompt) };
             ChatCompletionOptions options = CreateChatCompletionOptions<T>();
+            bool useLuna = model == "gpt-6-luna";
 
-            ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options, cancellationToken);
+            if (useLuna)
+            {
+#pragma warning disable OPENAI001 // Reasoning controls are experimental in the pinned OpenAI SDK.
+                options.ReasoningEffortLevel = new ChatReasoningEffortLevel("none");
+#pragma warning restore OPENAI001
+            }
+
+            ChatClient chatClient = useLuna ? _lunaChatClient : _legacyChatClient;
+            _logger.LogInformation("Calling OpenAI Chat Completions API using {Model}", model);
+            ChatCompletion completion = await chatClient.CompleteChatAsync(messages, options, cancellationToken);
 
             string json = completion.Content[0].Text;
 
