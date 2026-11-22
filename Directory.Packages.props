@@ -9,7 +9,7 @@
     <PackageVersion Include="AutoFixture.AutoMoq" Version="4.18.1" />
     <PackageVersion Include="BetterStack.Logs.Serilog" Version="1.4.0" />
     <PackageVersion Include="coverlet.collector" Version="10.1.1" />
-    <PackageVersion Include="FFMpegCore" Version="5.5.0" />
+    <PackageVersion Include="FFMpegCore" Version="6.0.0" />
     <PackageVersion Include="FluentAssertions" Version="[7.*, 8)" />
     <PackageVersion Include="FluentValidation" Version="12.2.0" />
     <PackageVersion Include="LaunchDarkly.ServerSdk" Version="8.17.2" />
@@ -18,8 +18,8 @@
     <PackageVersion Include="MSTest" Version="4.5.3" />
     <PackageVersion Include="OpenAI" Version="2.15.0" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
-    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
-    <PackageVersion Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="11.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Logging" Version="11.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>

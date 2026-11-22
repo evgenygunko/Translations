@@ -53,7 +53,13 @@ namespace TranslatorApp.Services
                         tempInputFilePath, fileBytes.Length);
 
                     // Process with FFmpeg using file paths - the pipes return only a few bytes when used in containers
-                    await _ffmpegWrapper.ExtractAudioAsync(tempInputFilePath, tempOutputFilePath);
+                    var result = await _ffmpegWrapper.ExtractAudioAsync(tempInputFilePath, tempOutputFilePath);
+                    if (!result.Success)
+                    {
+                        throw new InvalidOperationException(
+                            $"Audio extraction failed with exit code {result.ExitCode}. " +
+                            $"Cancelled: {result.Cancelled}. {string.Join(Environment.NewLine, result.StandardError)}");
+                    }
 
                     byte[] mp3FileBytes = await _fileIOService.ReadAllBytesAsync(tempOutputFilePath, cancellationToken);
                     _logger.LogInformation(new EventId((int)TranslatorAppEventId.AudioExtractionSuccessful),

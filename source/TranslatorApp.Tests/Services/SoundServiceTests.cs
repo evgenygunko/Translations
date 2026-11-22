@@ -1,7 +1,10 @@
-﻿// Ignore Spelling: Downloader
+// Ignore Spelling: Downloader
 
 using AutoFixture;
 using FluentAssertions;
+using FFMpegCore;
+using System.Reflection;
+using TranslatorApp.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TranslatorApp.Services;
@@ -12,6 +15,17 @@ namespace TranslatorApp.Tests.Services
     public class SoundServiceTests
     {
         private readonly IFixture _fixture = FixtureFactory.Create();
+
+        // FFMpegResult exposes only an internal constructor.
+        private static FFMpegResult CreateFFMpegResult(int exitCode, bool cancelled = false)
+        {
+            return (FFMpegResult)Activator.CreateInstance(
+                typeof(FFMpegResult),
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                binder: null,
+                args: new object[] { exitCode, new[] { "FFmpeg diagnostic" }, cancelled },
+                culture: null)!;
+        }
 
         #region Tests for DownloadSoundAsync
 
@@ -119,7 +133,7 @@ namespace TranslatorApp.Tests.Services
 
             var ffmpegWrapperMock = _fixture.Freeze<Mock<IFFMpegWrapper>>();
             ffmpegWrapperMock.Setup(x => x.ExtractAudioAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(CreateFFMpegResult(0));
 
             var loggerMock = _fixture.Freeze<Mock<ILogger<SoundService>>>();
 
@@ -289,7 +303,7 @@ namespace TranslatorApp.Tests.Services
 
             var ffmpegWrapperMock = _fixture.Freeze<Mock<IFFMpegWrapper>>();
             ffmpegWrapperMock.Setup(x => x.ExtractAudioAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(CreateFFMpegResult(0));
 
             var sut = _fixture.Create<SoundService>();
 
@@ -325,7 +339,7 @@ namespace TranslatorApp.Tests.Services
 
             var ffmpegWrapperMock = _fixture.Freeze<Mock<IFFMpegWrapper>>();
             ffmpegWrapperMock.Setup(x => x.ExtractAudioAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(CreateFFMpegResult(0));
 
             var sut = _fixture.Create<SoundService>();
 
@@ -361,7 +375,7 @@ namespace TranslatorApp.Tests.Services
 
             var ffmpegWrapperMock = _fixture.Freeze<Mock<IFFMpegWrapper>>();
             ffmpegWrapperMock.Setup(x => x.ExtractAudioAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(CreateFFMpegResult(0));
 
             var sut = _fixture.Create<SoundService>();
 
@@ -371,6 +385,41 @@ namespace TranslatorApp.Tests.Services
             // Assert
             fileIOServiceMock.Verify(x => x.WriteAllBytesAsync(It.IsAny<string>(), mp4Bytes, cancellationToken), Times.Once);
             fileIOServiceMock.Verify(x => x.ReadAllBytesAsync(It.IsAny<string>(), cancellationToken), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow(1, false)]
+        [DataRow(0, true)]
+        public async Task DownloadSoundAsync_WhenExtractionResultIsUnsuccessful_LogsAndThrows(int exitCode, bool cancelled)
+        {
+            var downloaderMock = _fixture.Freeze<Mock<ISoundFileDownloader>>();
+            downloaderMock.Setup(x => x.DownloadSoundFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new byte[] { 0x01 });
+
+            var fileIOServiceMock = _fixture.Freeze<Mock<IFileIOService>>();
+            fileIOServiceMock.Setup(x => x.WriteAllBytesAsync(It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var ffmpegWrapperMock = _fixture.Freeze<Mock<IFFMpegWrapper>>();
+            ffmpegWrapperMock.Setup(x => x.ExtractAudioAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(CreateFFMpegResult(exitCode, cancelled));
+
+            var loggerMock = _fixture.Freeze<Mock<ILogger<SoundService>>>();
+            var sut = _fixture.Create<SoundService>();
+
+            Func<Task> act = async () => await sut.DownloadSoundAsync("https://example.com/sound.mp4", "test", CancellationToken.None);
+
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage($"Audio extraction failed with exit code {exitCode}. Cancelled: {cancelled}. FFmpeg diagnostic");
+
+            loggerMock.Verify(x => x.Log(
+                LogLevel.Error,
+                It.Is<EventId>(id => id.Id == (int)TranslatorAppEventId.AudioExtractionFailed),
+                It.Is<It.IsAnyType>((v, t) => v != null && v.ToString()!.Contains("Failed to extract audio from MP4 for word: test")),
+                It.Is<Exception>(ex => ex is InvalidOperationException && ex.Message.Contains("FFmpeg diagnostic")),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()!), Times.Once);
+
+            fileIOServiceMock.Verify(x => x.ReadAllBytesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         #endregion
