@@ -17,7 +17,7 @@ You will need an OpenAI API key to use this service:
 
 ### .NET Requirements
 
-- .NET 10.0 SDK or later
+- .NET 11.0 SDK or later
 - Visual Studio 2022 or Visual Studio Code
 
 ## Working with OpenAI API

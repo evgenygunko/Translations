@@ -4,7 +4,7 @@
 ############################
 # Runtime image (Alpine)
 ############################
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-alpine AS base
 
 # Workdir where the app will run
 WORKDIR /app
@@ -27,7 +27,7 @@ EXPOSE 8081
 ############################
 # Build image (Alpine SDK)
 ############################
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0-alpine AS build
 
 ARG BUILD_CONFIGURATION=Release
 ARG VERSION=1.0.0
